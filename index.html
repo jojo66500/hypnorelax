@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto-Hypnose Guidée</title>
+    
+    <!-- Intégration PWA -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0A2463">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <!-- CSS de base -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Préchargement des ressources critiques -->
+    <link rel="preload" href="styles.css" as="style">
+    <link rel="preload" href="script.js" as="script">
+    
+    <!-- NoSleep.js pour empêcher l'écran de se mettre en veille -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nosleep/0.12.0/NoSleep.min.js"></script>
+</head>
+<body>
+<!--
+=============================================================================
+PROPRIÉTÉ INTELLECTUELLE ET DROITS D'AUTEUR
+=============================================================================
+Application d'Auto-Hypnose Guidée
+Copyright © 2025 Joffrey ROS (joffrey66@gmail.com). Tous droits réservés.
+
+AVIS LÉGAL:
+Cette œuvre est protégée par les lois françaises et internationales sur
+le droit d'auteur et la propriété intellectuelle. En vertu du Code de la 
+propriété intellectuelle français, notamment les articles L.111-1 et suivants,
+ainsi que les conventions internationales incluant la Convention de Berne.
+
+UTILISATION INTERDITE SANS AUTORISATION:
+Toute reproduction, distribution, modification, adaptation, traduction,
+représentation publique ou utilisation de cette œuvre, en tout ou partie,
+sous quelque forme et par quelque moyen que ce soit, électronique,
+mécanique ou autre, est strictement interdite sans l'autorisation
+écrite préalable de l'auteur, Joffrey ROS.
+
+Pour toute demande d'utilisation, veuillez contacter: joffrey66@gmail.com
+=============================================================================
+-->
+<!--
+=============================================================================
+SIGNATURE NUMÉRIQUE
+=============================================================================
+ID: AHGJR-25072023-H001
+Auteur: Joffrey ROS
+Email: joffrey66@gmail.com
+Date de création: 07/03/2025
+Signature: JR-f5e8a4d1b6c7e9f0a3d2b1c8e7d6a5f4-2025
+=============================================================================
+-->
+
+<!-- Indicateur visuel d'écran actif -->
+<div id="keep-awake-indicator" style="position: fixed; top: 10px; left: 10px; 
+    background-color: rgba(0,0,0,0.5); color: white; font-size: 10px; 
+    padding: 4px 8px; border-radius: 10px; display: none; z-index: 9999;">
+    Écran actif 🔆
+</div>
+
+<!-- Splash screen pour PWA -->
+<div id="splash-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background-color: #0A2463; display: flex; justify-content: center; align-items: center; 
+    z-index: 10000; opacity: 1; transition: opacity 0.5s ease; color: white;">
+    <div style="text-align: center;">
+        <div style="font-size: 2rem; font-weight: bold; margin-bottom: 20px;">Hypnorelax</div>
+        <div>Chargement en cours...</div>
+    </div>
+</div>
+
+<div class="container">
+    <header>
+        <h1>Séance d'Auto-Hypnose Guidée</h1>
+    </header>
+    
+    <!-- Logo et nom de l'application -->
+    <div class="app-branding">
+        <div class="app-name">Hypnorelax</div>
+    </div>
+    
+    <!-- Navigation steps -->
+    <div class="progress-steps">
+        <div class="progress-line"></div>
+        <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+        <div class="step active" id="step1">
+            <div class="step-label">Accueil</div>
+        </div>
+        <div class="step" id="step2">
+            <div class="step-label">Préparation</div>
+        </div>
+        <div class="step" id="step3">
+            <div class="step-label">Induction</div>
+        </div>
+        <div class="step" id="step4">
+            <div class="step-label">Profondeur</div>
+        </div>
+        <div class="step" id="step5">
+            <div class="step-label">Exploration</div>
+        </div>
+        <div class="step" id="step6">
+            <div class="step-label">Retour</div>
+        </div>
+    </div>
+    
+    <!-- Page d'accueil -->
+    <div class="page active" id="page1">
+        <div class="intro-content">
+            <div class="intro-icon">
+                <div class="spiral-small"></div>
+            </div>
+            <h2>Bienvenue à votre séance d'auto-hypnose</h2>
+            <div class="intro-text">
+                <p>Cette séance est conçue pour vous guider progressivement vers un état hypnotique à travers une série d'exercices.</p>
+                <p>Prenez le temps de vous installer confortablement dans un endroit calme où vous ne serez pas dérangé(e) pendant environ 15 minutes.</p>
+                
+                <div class="audio-controls">
+                    <div class="audio-toggle">
+                        <label for="audioToggle">Guidage vocal</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="audioToggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <div class="speaking-indicator" id="speakingIndicator"></div>
+                    </div>
+                    
+                    <div class="voice-selection">
+                        <label for="voiceSelect">Voix</label>
+                        <select id="voiceSelect">
+                            <option value="default">Chargement des voix...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="volume-control">
+                        <label for="volumeSlider">Volume</label>
+                        <input type="range" min="0" max="1" step="0.1" value="0.8" class="volume-slider" id="volumeSlider">
+                    </div>
+                    
+                    <!-- Ajouter ce bloc dans la div "audio-controls" de votre HTML, juste après le contrôle du volume -->
+                    <div class="audio-toggle">
+                        <label for="binauralToggle">Son hypnotique</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="binauralToggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="volume-control">
+                        <label for="binauralVolumeSlider">Volume son</label>
+                        <input type="range" min="0" max="0.3" step="0.01" value="0.1" class="volume-slider" id="binauralVolumeSlider">
+                    </div>
+                    <p class="binaural-info">Les sons binauraux favorisent l'entrée en transe hypnotique en synchronisant vos ondes cérébrales. Activez-les pour une expérience plus profonde.</p>
+                </div>
+                
+                <div class="steps-list">
+                    <p><strong>Voici les étapes que nous allons suivre :</strong></p>
+                    <ul>
+                        <li>Préparation et relaxation</li>
+                        <li>Induction hypnotique visuelle</li>
+                        <li>Approfondissement de l'état</li>
+                        <li>Exploration de la transe</li>
+                        <li>Retour en conscience ordinaire</li>
+                    </ul>
+                </div>
+                
+                <p><strong>Important :</strong> Cette expérience est à but éducatif. Ne pratiquez pas cette séance si vous conduisez ou utilisez une machine. Si vous souffrez d'épilepsie ou de problèmes psychiatriques, consultez un professionnel avant d'essayer l'auto-hypnose.</p>
+            </div>
+        </div>
+        <div class="btn-container">
+            <button class="btn" id="startBtn">Commencer la séance</button>
+        </div>
+    </div>
+    
+    <!-- Page de préparation -->
+    <div class="page" id="page2">
+        <h2>Préparation - Cohérence Cardiaque</h2>
+        
+        <div id="coherenceIntroduction">
+            <div class="coherence-instructions">
+                <h3>Qu'est-ce que la cohérence cardiaque ?</h3>
+                <p>La cohérence cardiaque est une technique de respiration qui aide à synchroniser votre rythme cardiaque et votre respiration. Elle permet d'induire rapidement un état de calme et de détente, idéal avant une séance d'hypnose.</p>
+                
+                <h3>Comment pratiquer :</h3>
+                <ul>
+                    <li>Respirez lentement, à raison de 6 respirations par minute (5 secondes d'inspiration, 5 secondes d'expiration)</li>
+                    <li>Suivez le mouvement du cercle bleu : montée = inspiration, descente = expiration</li>
+                    <li>Gardez une respiration fluide et régulière, sans à-coups</li>
+                    <li>Vous pouvez fermer les yeux après vous être familiarisé avec le rythme - la voix vous guidera</li>
+                </ul>
+            </div>
+            
+            <div class="btn-container">
+                <button class="btn" id="startCoherenceBtn">Commencer la cohérence cardiaque</button>
+            </div>
+        </div>
+        
+        <div id="coherenceContainer" style="display: none;">
+            <div class="hypnotic-container">
+                <div class="coherence-container">
+                    <div class="breath-path"></div>
+                    <div class="breath-circle" id="breathCircle"></div>
+                    <div class="breath-label breath-in-label" id="breathInLabel">Inspirez</div>
+                    <div class="breath-label breath-out-label" id="breathOutLabel">Expirez</div>
+                </div>
+                
+                <div class="timer-display" id="timerDisplay">02:00</div>
+                
+                <div class="instruction" id="coherenceInstruction">
+                    Suivez le rythme du cercle pour votre respiration
+                </div>
+            </div>
+            
+            <div class="btn-container">
+                <button class="btn" id="nextPrepBtn">Continuer</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Page d'induction -->
+    <div class="page" id="page3">
+        <h2>Induction Hypnotique</h2>
+        
+        <div class="hypnotic-container">
+            <div class="spiral-container">
+                <div class="spiral"></div>
+                <div class="spiral-center"></div>
+                <div class="focus-dot"></div>
+            </div>
+            
+            <div class="instruction" id="inductionInstruction">
+                Fixez votre regard sur le point central
+            </div>
+            <div class="counter" id="inductionCounter">10</div>
+        </div>
+        
+        <div class="btn-container">
+            <button class="btn" id="skipInductionBtn">Passer cette étape</button>
+        </div>
+    </div>
+    
+    <!-- Page d'approfondissement -->
+    <div class="page" id="page4">
+        <h2>Profondeur</h2>
+        
+        <div class="hypnotic-container">
+            <div class="instruction" id="deepeningInstruction">
+                Imaginez un escalier qui descend doucement...
+            </div>
+            
+            <div class="counter" id="stairsCounter">10</div>
+            
+            <p>À chaque marche descendue, vous vous sentez de plus en plus détendu(e), de plus en plus calme...</p>
+            
+            <!-- Nouvel escalier hypnotique remplaçant le rond bleu -->
+            <div class="staircase-container">
+                <div class="staircase">
+                    <div class="stair stair-1"></div>
+                    <div class="stair stair-2"></div>
+                    <div class="stair stair-3"></div>
+                    <div class="stair stair-4"></div>
+                    <div class="stair stair-5"></div>
+                    <div class="stair stair-6"></div>
+                    <div class="stair stair-7"></div>
+                    <div class="stair stair-8"></div>
+                    <div class="stair stair-9"></div>
+                    <div class="stair stair-10"></div>
+                </div>
+                <!-- Points lumineux qui descendent -->
+                <div class="stair-dots-container" id="stairDotsContainer"></div>
+            </div>
+        </div>
+        
+        <div class="btn-container">
+            <button class="btn" id="skipDeepeningBtn">Passer cette étape</button>
+        </div>
+    </div>
+    
+    <!-- Page d'exploration -->
+    <div class="page" id="page5">
+        <h2>Exploration et Approfondissement</h2>
+        
+        <div class="hypnotic-container">
+            <div class="instruction" id="explorationInstruction">
+                Imaginez un lieu de paix et de sécurité. Un endroit où vous vous sentez parfaitement bien et détendu(e).
+            </div>
+            
+            <!-- Nouvelle scène d'exploration avec animations -->
+            <div class="exploration-scene" id="explorationScene">
+                <div class="exploration-background"></div>
+                <div class="exploration-ring"></div>
+                <div class="exploration-ring"></div>
+                <div class="exploration-ring"></div>
+                <!-- Les particules seront ajoutées dynamiquement -->
+            </div>
+
+            <div class="progress-container">
+                <div id="explorationProgress" style="width: 0%"></div>
+            </div>
+            
+            <p>À chaque respiration, sentez-vous descendre plus profondément dans un état de relaxation et de bien-être.</p>
+            <p>Prenez le temps d'explorer ce lieu intérieur, de ressentir ses qualités et les sensations qu'il évoque en vous.</p>
+        </div>
+        
+        <div class="btn-container">
+            <button class="btn" id="nextExplorationBtn">Passer cette étape</button>
+        </div>
+    </div>
+    
+    <!-- Page de retour -->
+    <div class="page" id="page6">
+        <h2>Retour à la Conscience Ordinaire</h2>
+        
+        <div class="hypnotic-container">
+            <div class="energy-scene" id="energyScene">
+                <div class="energy-glow"></div>
+            </div>
+            
+            <div class="instruction">
+                Préparez-vous à revenir doucement, plein(e) d'énergie et de bien-être
+            </div>
+            <div class="counter" id="awakeningCounter">5</div>
+            
+            <p>Je vais compter de 5 à 1. À 1, vous serez parfaitement éveillé(e), revigoré(e) et plein(e) d'énergie positive.</p>
+        </div>
+        
+        <div class="btn-container">
+            <button class="btn" id="completeBtn">Terminer la séance</button>
+        </div>
+    </div>
+    
+    <!-- Page finale avec section promo modernisée et déplacée à la fin -->
+    <div class="page" id="page7">
+        <div class="intro-content">
+            <div class="intro-icon">
+                <div class="spiral-small" style="animation: rotate 30s linear infinite reverse;"></div>
+            </div>
+            <h2>Séance Complétée</h2>
+            <div class="intro-text">
+                <p>Félicitations pour avoir complété cette séance d'auto-hypnose guidée.</p>
+                <p>Comment vous sentez-vous ? Prenez un moment pour observer les sensations dans votre corps et dans votre esprit.</p>
+                <p>Chaque pratique de l'auto-hypnose renforce votre capacité à entrer dans cet état bénéfique. Nous vous recommandons de pratiquer régulièrement pour approfondir votre expérience.</p>
+                
+                <h3>Effets possibles que vous avez pu ressentir :</h3>
+                <ul class="steps-list">
+                    <li>Sensation de lourdeur ou de légèreté</li>
+                    <li>Relaxation musculaire profonde</li>
+                    <li>Altération de la perception du temps</li>
+                    <li>Détachement des pensées quotidiennes</li>
+                    <li>Créativité et imagination accrues</li>
+                </ul>
+            </div>
+        </div>
+        <div class="btn-container">
+            <button class="btn" id="restartBtn">Refaire la séance</button>
+            <button class="btn btn-blue" id="homeBtn">Retour à l'accueil</button>
+            <button class="btn btn-install" id="installBtn" style="display: none;">Installer l'application</button>
+        </div>
+        
+        <!-- Section promotionnelle déplacée après les boutons -->
+        <div class="promo-section">
+            <div class="promo-content">
+                <div class="promo-header">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 80" width="180" height="48">
+                        <style>
+                            .logo-text { fill: #0A2463; font-family: Arial, sans-serif; font-weight: bold; }
+                        </style>
+                        <text x="20" y="35" class="logo-text" font-size="32">HYPNOSE</text>
+                        <text x="50" y="70" class="logo-text" font-size="32">JOFFREY</text>
+                    </svg>
+                    <h3 class="promo-title">Application créée par <span>Joffrey ROS</span></h3>
+                </div>
+                <p>Cette expérience d'auto-hypnose a été conçue par un hypnothérapeute professionnel. Pour découvrir d'autres techniques ou prendre rendez-vous pour une séance personnalisée :</p>
+                <a href="https://hypnosejoffrey.fr" target="_blank" class="promo-button">
+                    <span>Visiter hypnosejoffrey.fr</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="footer-legal">
+    <div class="footer-section">
+        <p>Cette application est conçue à des fins éducatives. Consultez un professionnel pour toute utilisation thérapeutique de l'hypnose.</p>
+    </div>
+    
+    <div class="footer-divider"></div>
+    
+    <div class="footer-section legal-notice">
+        <h4>Conditions d'utilisation et mentions légales</h4>
+        <p>© 2025 Joffrey ROS (joffrey66@gmail.com) - Tous droits réservés</p>
+        <p>Cette œuvre est protégée par le Code de la propriété intellectuelle français (articles L.111-1 et suivants) et par les traités internationaux sur le droit d'auteur.</p>
+        <p>Toute reproduction, adaptation, représentation ou diffusion, intégrale ou partielle, par quelque procédé que ce soit, sans autorisation expresse de l'auteur, est illicite et constitue une contrefaçon sanctionnée par les articles L.335-2 et suivants du Code de la propriété intellectuelle.</p>
+        <p>L'article L.335-3 du Code de la propriété intellectuelle définit notamment comme délit de contrefaçon "toute reproduction, représentation ou diffusion, par quelque moyen que ce soit, d'une œuvre de l'esprit en violation des droits de l'auteur".</p>
+        <p>Les contrevenants s'exposent à des sanctions civiles et pénales pouvant aller jusqu'à 3 ans d'emprisonnement et 300 000 € d'amende (article L.335-2 du CPI).</p>
+        <p>Pour toute demande d'utilisation, veuillez contacter l'auteur à : <a href="mailto:joffrey66@gmail.com">joffrey66@gmail.com</a></p>
+    </div>
+</footer>
+
+<!-- Filigrane discret -->
+<div id="jr-watermark" style="position: fixed; bottom: 10px; right: 10px; font-size: 10px; 
+    opacity: 0.3; color: #666; z-index: 1000; pointer-events: none; 
+    font-family: Arial, sans-serif;">
+    © 2025 Joffrey ROS
+</div>
+
+<!-- Notification pour inciter à l'installation -->
+<div id="install-prompt" class="install-prompt" style="display: none;">
+    <div class="install-prompt-content">
+        <h3>Installez Hypnorelax</h3>
+        <p>Pour une meilleure expérience, installez cette application sur votre appareil.</p>
+        <div class="install-buttons">
+            <button id="install-yes" class="btn btn-blue">Installer</button>
+            <button id="install-no" class="btn">Plus tard</button>
+        </div>
+    </div>
+</div>
+
+<!-- 
+Code développé par Joffrey ROS (joffrey66@gmail.com) - SIGNATURE: JR-07032025-7842
+Ce commentaire fait partie de la signature numérique et ne doit pas être supprimé.
+-->
+
+<!-- Script pour NoSleep.js et le code JavaScript principal -->
+<script src="script.js"></script>
+
+<!-- Enregistrement du Service Worker -->
+<script>
+  // Enregistrer le service worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(reg => console.log('Service worker enregistré avec succès'))
+        .catch(err => console.log('Erreur lors de l\'enregistrement du service worker', err));
+    });
+  }
+  
+  // Masquer l'écran de démarrage après chargement
+  window.addEventListener('load', () => {
+    const splashScreen = document.getElementById('splash-screen');
+    if (splashScreen) {
+      splashScreen.style.opacity = '0';
+      setTimeout(() => {
+        splashScreen.style.display = 'none';
+      }, 500);
+    }
+  });
+</script>
+
+</body>
+</html>
