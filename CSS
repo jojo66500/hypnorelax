@@ -1,0 +1,1437 @@
+/*
+=============================================================================
+PROPRIÉTÉ INTELLECTUELLE ET DROITS D'AUTEUR
+=============================================================================
+Application d'Auto-Hypnose Guidée - Feuille de style
+Copyright © 2025 Joffrey ROS (joffrey66@gmail.com). Tous droits réservés.
+
+AVIS LÉGAL:
+Ce code CSS est protégé par les lois françaises et internationales sur
+le droit d'auteur et la propriété intellectuelle. En vertu du Code de la 
+propriété intellectuelle français, notamment les articles L.111-1 et suivants,
+toute utilisation non autorisée est strictement interdite.
+
+Le vol de propriété intellectuelle est passible de poursuites judiciaires.
+=============================================================================
+*/
+/*
+=============================================================================
+SIGNATURE NUMÉRIQUE
+=============================================================================
+ID: AHGJR-25072023-C001
+Auteur: Joffrey ROS
+Email: joffrey66@gmail.com
+Date de création: 07/03/2025
+Signature: JR-d7c8b3a2f1e9d8c7b6a5f4e3d2c1b0a-2025
+=============================================================================
+*/
+
+/* Palette de couleurs */
+:root {
+    --deep-blue: #0A2463;
+    --orange: #FF7F50;
+    --pastel-blue: #A8D0E6;
+    --light-orange: #FFC8A2;
+    --dark-orange: #E25822;
+    --white: #FFFFFF;
+    --black: #000000;
+    --gray: #333333;
+    --light-gray: #F5F5F5;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent; /* Supprime la surbrillance au toucher sur mobile */
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: var(--light-gray);
+    color: var(--gray);
+    line-height: 1.6;
+    padding: 20px;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    position: relative;
+    margin-bottom: 30px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    padding-top: 15px; /* Ajout d'un padding en haut pour descendre le titre */
+}
+
+h1 {
+    color: var(--deep-blue);
+    font-size: 1.6rem; /* Réduit davantage de 1.8rem à 1.6rem */
+    margin-bottom: 10px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-top: 15px; /* Augmentation de la marge pour descendre le titre */
+}
+
+h2 {
+    color: var(--orange);
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+}
+
+h3 {
+    color: var(--deep-blue);
+    margin-bottom: 10px;
+    margin-top: 20px;
+}
+
+p {
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+ul {
+    margin-bottom: 15px;
+    padding-left: 20px;
+}
+
+li {
+    margin-bottom: 5px;
+}
+
+/* Logo et branding */
+.app-branding {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    z-index: 100;
+}
+
+/* Affichage du nom du logo uniquement (sans image PNG) */
+.app-name {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--deep-blue);
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
+}
+
+/* Page system */
+.page {
+    display: none;
+    margin-bottom: 20px;
+}
+
+.page.active {
+    display: block;
+}
+
+/* Intro page */
+.intro-content {
+    text-align: center;
+    padding: 30px 0; /* Augmenté de 20px à 30px */
+}
+
+.intro-icon {
+    width: 130px; /* Augmenté de 120px à 130px */
+    height: 130px; /* Augmenté de 120px à 130px */
+    margin: 0 auto 25px; /* Augmenté de 20px à 25px */
+    background: linear-gradient(135deg, var(--deep-blue), var(--pastel-blue));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); /* Ombre plus prononcée */
+}
+
+.spiral-small {
+    width: 80px;
+    height: 80px;
+    background: conic-gradient(
+        from 0deg,
+        var(--white) 0%,
+        var(--light-orange) 25%,
+        var(--orange) 50%,
+        var(--deep-blue) 75%,
+        var(--white) 100%
+    );
+    border-radius: 50%;
+    position: relative;
+    animation: rotate 30s linear infinite;
+}
+
+.spiral-small::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50%;
+    height: 50%;
+    background: white;
+    border-radius: 50%;
+}
+
+.steps-list {
+    text-align: left;
+    max-width: 500px;
+    margin: 20px auto;
+}
+
+.steps-list li {
+    margin-bottom: 10px;
+    position: relative;
+    padding-left: 30px;
+}
+
+.steps-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    background: var(--pastel-blue);
+    border-radius: 50%;
+}
+
+/* Progress steps */
+.progress-steps {
+    display: flex;
+    justify-content: space-between;
+    margin: 20px auto 45px; /* Augmenter la marge en bas */
+    max-width: 600px; /* Augmenter la largeur maximale */
+    position: relative;
+}
+
+.progress-line {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: #ddd;
+    z-index: 1;
+}
+
+.progress-fill {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(to right, var(--pastel-blue), var(--orange));
+    z-index: 2;
+    transition: width 0.5s ease;
+}
+
+.step {
+    width: 16px;
+    height: 16px;
+    background: #ddd;
+    border-radius: 50%;
+    position: relative;
+    z-index: 3;
+}
+
+.step.active {
+    background: var(--orange);
+    box-shadow: 0 0 10px var(--orange);
+}
+
+.step-label {
+    position: absolute;
+    top: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.7rem;
+    white-space: nowrap;
+    color: #888;
+    text-align: center;
+    width: 85px;
+}
+
+.step.active .step-label {
+    color: var(--deep-blue);
+    font-weight: bold;
+}
+
+/* Animations */
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes breathe {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Hypnotic Elements */
+.hypnotic-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 0;
+}
+
+.spiral-container {
+    width: 300px;
+    height: 300px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+.spiral {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: conic-gradient(
+        from 0deg,
+        var(--white) 0%,
+        var(--light-orange) 10%,
+        var(--orange) 25%,
+        var(--deep-blue) 50%,
+        var(--pastel-blue) 75%,
+        var(--white) 100%
+    );
+    animation: rotate 20s linear infinite;
+    position: relative;
+    box-shadow: 0 0 30px rgba(10, 36, 99, 0.3);
+}
+
+.spiral::before {
+    content: '';
+    position: absolute;
+    top: 5%;
+    left: 5%;
+    width: 90%;
+    height: 90%;
+    border-radius: 50%;
+    background: conic-gradient(
+        from 180deg,
+        var(--white) 0%,
+        var(--pastel-blue) 25%,
+        var(--deep-blue) 50%,
+        var(--orange) 75%,
+        var(--light-orange) 90%,
+        var(--white) 100%
+    );
+    animation: rotate 15s linear infinite reverse;
+}
+
+.spiral::after {
+    content: '';
+    position: absolute;
+    top: 15%;
+    left: 15%;
+    width: 70%;
+    height: 70%;
+    border-radius: 50%;
+    background: conic-gradient(
+        from 90deg,
+        var(--white) 0%,
+        var(--light-orange) 10%,
+        var(--orange) 30%,
+        var(--deep-blue) 60%,
+        var(--pastel-blue) 85%,
+        var(--white) 100%
+    );
+    animation: rotate 10s linear infinite;
+}
+
+.spiral-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50px;
+    height: 50px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+    z-index: 2;
+}
+
+.focus-dot {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 10px;
+    height: 10px;
+    background: var(--deep-blue);
+    border-radius: 50%;
+    z-index: 3;
+}
+
+/* Breath animation */
+.coherence-container {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    margin: 20px auto;
+}
+
+.breath-circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 60px;
+    height: 60px;
+    background: var(--pastel-blue);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 20px rgba(168, 208, 230, 0.7);
+}
+
+.breath-path {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 2px dashed rgba(10, 36, 99, 0.3);
+}
+
+.breath-label {
+    position: absolute;
+    text-align: center;
+    font-size: 1rem;
+    color: var(--deep-blue);
+    font-weight: bold;
+    transition: opacity 0.3s ease;
+}
+
+.breath-in-label {
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+}
+
+.breath-out-label {
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+}
+
+/* Instructions */
+.instruction {
+    text-align: center;
+    margin: 20px 0;
+    font-size: 1.3rem;
+    color: var(--deep-blue);
+    font-weight: bold;
+    transition: opacity 0.8s ease;
+    min-height: 4em;
+}
+
+.timer-display {
+    text-align: center;
+    font-size: 1.2rem;
+    margin: 10px 0;
+    color: var(--orange);
+    font-weight: bold;
+}
+
+.coherence-instructions {
+    background: rgba(168, 208, 230, 0.2);
+    border-radius: 10px;
+    padding: 15px;
+    margin: 20px 0;
+    border-left: 3px solid var(--pastel-blue);
+}
+
+.counter {
+    font-size: 3rem;
+    font-weight: bold;
+    color: var(--orange);
+    margin: 10px 0;
+    text-align: center;
+    transition: opacity 0.5s ease;
+}
+
+.breath-indicator {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--pastel-blue);
+    margin: 20px auto;
+    animation: breathe 5s infinite ease-in-out;
+}
+
+/* Audio controls */
+.audio-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 20px 0;
+    padding: 10px;
+    background: rgba(168, 208, 230, 0.2);
+    border-radius: 50px;
+}
+
+.audio-toggle {
+    display: flex;
+    align-items: center;
+    margin: 10px;
+}
+
+.audio-toggle label {
+    margin-right: 10px;
+    font-size: 0.9rem;
+    color: var(--deep-blue);
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background-color: var(--orange);
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(26px);
+}
+
+.voice-selection {
+    display: flex;
+    align-items: center;
+    margin: 10px;
+}
+
+.voice-selection label {
+    margin-right: 10px;
+    font-size: 0.9rem;
+    color: var(--deep-blue);
+}
+
+.volume-control {
+    display: flex;
+    align-items: center;
+    margin: 10px;
+}
+
+.volume-control label {
+    margin-right: 10px;
+    font-size: 0.9rem;
+    color: var(--deep-blue);
+}
+
+.volume-slider {
+    width: 80px;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 5px;
+    border-radius: 5px;
+    background: #d3d3d3;
+    outline: none;
+}
+
+.volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--orange);
+    cursor: pointer;
+}
+
+.volume-slider::-moz-range-thumb {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--orange);
+    cursor: pointer;
+}
+
+.speaking-indicator {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--orange);
+    display: inline-block;
+    margin-left: 10px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.speaking-indicator.active {
+    opacity: 1;
+    animation: pulse 1s infinite;
+}
+
+/* Energy scene */
+.energy-scene {
+    position: relative;
+    width: 100%;
+    height: 150px;
+    margin: 20px 0;
+    opacity: 0;
+    transition: opacity 2s ease;
+}
+
+.energy-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle, var(--orange), transparent 70%);
+    border-radius: 50%;
+    animation: pulse 3s infinite;
+}
+
+/* Buttons */
+.btn-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 25px; /* Augmenté de 20px à 25px */
+    margin-bottom: 15px; /* Augmenté de 10px à 15px */
+    flex-wrap: wrap; /* Permet aux boutons de s'adapter en mobile */
+    gap: 10px; /* Espacement entre les boutons */
+}
+
+.btn {
+    display: inline-block;
+    padding: 14px 34px; /* Augmenté de 12px 30px à 14px 34px */
+    background: linear-gradient(135deg, var(--orange), var(--dark-orange));
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 1.2rem; /* Augmenté de 1.1rem à 1.2rem */
+    cursor: pointer;
+    box-shadow: 0 6px 15px rgba(226, 88, 34, 0.3); /* Ombre colorée */
+    transition: all 0.3s ease;
+    outline: none;
+    margin: 0 10px;
+    font-weight: 500; /* Police légèrement plus grasse */
+}
+
+.btn:hover {
+    transform: translateY(-5px); /* Animation plus prononcée */
+    box-shadow: 0 8px 20px rgba(226, 88, 34, 0.4);
+}
+
+.btn:active {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-blue {
+    background: linear-gradient(135deg, var(--deep-blue), var(--pastel-blue));
+    box-shadow: 0 6px 15px rgba(10, 36, 99, 0.3);
+}
+
+.btn-blue:hover {
+    box-shadow: 0 8px 20px rgba(10, 36, 99, 0.4);
+}
+
+.btn-install {
+    background: linear-gradient(135deg, #4CAF50, #2E7D32);
+    box-shadow: 0 6px 15px rgba(76, 175, 80, 0.3);
+}
+
+.btn-install:hover {
+    box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+}
+
+/* Notification d'installation */
+.install-prompt {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    z-index: 9999;
+    max-width: 90%;
+    width: 400px;
+    text-align: center;
+}
+
+.install-prompt-content h3 {
+    margin-top: 0;
+    color: var(--deep-blue);
+}
+
+.install-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+/* Responsive */
+@media screen and (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+    
+    h1 {
+        font-size: 1.5rem; /* Réduit davantage pour les mobiles */
+    }
+    
+    h2 {
+        font-size: 1.3rem;
+    }
+    
+    .spiral-container {
+        width: 250px;
+        height: 250px;
+    }
+    
+    .instruction {
+        font-size: 1.1rem;
+        text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+    }
+    
+    .btn {
+        padding: 12px 24px; /* Taille de bouton ajustée pour mobile */
+        font-size: 1.1rem;
+        margin: 5px;
+    }
+    
+    .audio-controls {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 15px;
+    }
+    
+    .coherence-container {
+        width: 250px;
+        height: 250px;
+    }
+    
+    .step-label {
+        font-size: 0.6rem;
+        width: 60px;
+    }
+    
+    .progress-steps {
+        max-width: 100%;
+        margin: 20px auto 50px;
+    }
+    
+    .app-branding {
+        top: 10px;
+        right: 10px;
+    }
+    
+    .app-name {
+        font-size: 0.9rem;
+    }
+}
+
+/* Améliorations mobiles supplémentaires */
+@media (hover: none) {
+    /* Augmenter la taille des zones cliquables pour les doigts */
+    .btn {
+        padding: 16px 36px;
+        margin: 15px 5px;
+    }
+    
+    /* Désactiver les effets hover qui peuvent "coller" sur mobile */
+    .btn:hover {
+        transform: none;
+        box-shadow: 0 6px 15px rgba(226, 88, 34, 0.3);
+    }
+    
+    /* Activer l'effet seulement au toucher actif */
+    .btn:active {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(226, 88, 34, 0.4);
+    }
+    
+    /* Optimiser les contrôles audio pour les doigts */
+    .audio-controls {
+        padding: 15px;
+    }
+    
+    .volume-slider {
+        width: 100px;
+        height: 10px;
+    }
+    
+    .volume-slider::-webkit-slider-thumb {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .volume-slider::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+.pulse-animation {
+    animation: pulse 2s infinite;
+}
+
+footer {
+    text-align: center;
+    padding: 10px;
+    font-size: 0.8rem;
+    color: #888;
+    margin-top: 20px;
+}
+
+/* Nouvelles animations pour l'exploration */
+.exploration-scene {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    margin: 20px auto;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    overflow: hidden;
+    transition: opacity 3s ease;
+    opacity: 0;
+}
+
+.exploration-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, var(--pastel-blue) 0%, transparent 70%);
+    border-radius: 50%;
+    opacity: 0.3;
+    transform-origin: center;
+    animation: breathe 8s infinite ease-in-out;
+}
+
+.exploration-ring {
+    position: absolute;
+    top: 10%;
+    left: 10%;
+    width: 80%;
+    height: 80%;
+    border: 3px solid rgba(255, 127, 80, 0.3);
+    border-radius: 50%;
+    animation: rotate 30s linear infinite;
+}
+
+.exploration-ring:nth-child(2) {
+    top: 20%;
+    left: 20%;
+    width: 60%;
+    height: 60%;
+    border-color: rgba(10, 36, 99, 0.2);
+    animation-duration: 40s;
+    animation-direction: reverse;
+}
+
+.exploration-ring:nth-child(3) {
+    top: 30%;
+    left: 30%;
+    width: 40%;
+    height: 40%;
+    border-color: rgba(168, 208, 230, 0.4);
+    animation-duration: 20s;
+}
+
+/* Particule d'exploration de base avec styles améliorés */
+.exploration-particle {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 0; /* Forme par défaut carrée */
+    opacity: 0;
+    transition: transform 7s cubic-bezier(0.23, 1, 0.32, 1), opacity 2s ease;
+}
+
+.exploration-progress {
+    position: relative;
+    width: 80%;
+    height: 4px;
+    background: rgba(168, 208, 230, 0.2);
+    border-radius: 4px;
+    margin: 20px auto;
+    overflow: hidden;
+}
+
+.exploration-progress-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0;
+    background: linear-gradient(to right, var(--pastel-blue), var(--orange));
+    transition: width 1s ease;
+}
+
+/* Effet de vague de fond */
+.wave-effect {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+    top: 0;
+    left: 0;
+    transition: transform 2s ease, opacity 2s ease;
+}
+
+/* Particules pour l'effet de couleur */
+.color-burst {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    box-shadow: 0 0 10px currentColor;
+    opacity: 0;
+    transform: scale(0);
+    transition: transform 1.5s ease-out, opacity 1.5s ease-out;
+}
+
+/* Effet d'onde sonore */
+.sound-wave {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid rgba(100, 149, 237, 0.7); /* Bleu cornflower */
+    box-shadow: 0 0 5px rgba(100, 149, 237, 0.5);
+    opacity: 0.7;
+    transform: scale(1);
+    transition: transform 2s ease-out, opacity 2s ease-out;
+}
+
+/* Particule pour les arômes qui s'élèvent */
+.aroma-particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background-color: rgba(255, 223, 186, 0.6); /* Teinte ambrée pour les arômes */
+    border-radius: 50%;
+    box-shadow: 0 0 3px rgba(255, 223, 186, 0.4);
+    opacity: 0.8;
+    transition: transform 3s ease-out, opacity 3s ease-out;
+}
+
+/* Particule d'énergie */
+.energy-particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background-color: rgba(255, 215, 0, 0.7); /* Or */
+    border-radius: 50%;
+    box-shadow: 0 0 8px currentColor;
+    opacity: 0.6;
+    transition: transform 2.5s cubic-bezier(0.47, 0, 0.745, 0.715), opacity 2.5s ease;
+}
+
+/* Animation de pulsation douce */
+@keyframes gentlePulse {
+    0% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 255, 255, 0.1); }
+    50% { transform: scale(1.05); box-shadow: 0 0 25px rgba(255, 255, 255, 0.2); }
+    100% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 255, 255, 0.1); }
+}
+
+.gentle-pulse {
+    animation: gentlePulse 4s infinite ease-in-out;
+}
+
+/* Animation d'escalier hypnotique */
+.staircase-container {
+    width: 200px;
+    height: 200px;
+    position: relative;
+    margin: 20px auto;
+    perspective: 1000px;
+    transform-style: preserve-3d;
+}
+
+.staircase {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    animation: rotateStairs 20s infinite linear;
+}
+
+@keyframes rotateStairs {
+    0% {
+        transform: rotateY(0) rotateX(60deg);
+    }
+    100% {
+        transform: rotateY(360deg) rotateX(60deg);
+    }
+}
+
+.stair {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    border-radius: 50%;
+    left: 0;
+    top: 0;
+    opacity: 0.8;
+}
+
+.stair-1 { transform: translateZ(0px); background: rgba(10, 36, 99, 0.2); }
+.stair-2 { transform: translateZ(-10px); background: rgba(168, 208, 230, 0.3); }
+.stair-3 { transform: translateZ(-20px); background: rgba(255, 127, 80, 0.2); }
+.stair-4 { transform: translateZ(-30px); background: rgba(10, 36, 99, 0.2); }
+.stair-5 { transform: translateZ(-40px); background: rgba(168, 208, 230, 0.3); }
+.stair-6 { transform: translateZ(-50px); background: rgba(255, 127, 80, 0.2); }
+.stair-7 { transform: translateZ(-60px); background: rgba(10, 36, 99, 0.2); }
+.stair-8 { transform: translateZ(-70px); background: rgba(168, 208, 230, 0.3); }
+.stair-9 { transform: translateZ(-80px); background: rgba(255, 127, 80, 0.2); }
+.stair-10 { transform: translateZ(-90px); background: rgba(10, 36, 99, 0.2); }
+
+/* Petits points lumineux qui descendent */
+.stair-dots-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    transform-style: preserve-3d;
+    animation: floatDown 8s infinite linear;
+}
+
+@keyframes floatDown {
+    0% {
+        transform: translateZ(50px);
+        opacity: 0;
+    }
+    20% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateZ(-100px);
+        opacity: 0;
+    }
+}
+
+.stair-dot {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: var(--orange);
+    border-radius: 50%;
+    box-shadow: 0 0 5px var(--orange);
+}
+
+/* Container de la barre de progression */
+.progress-container {
+    width: 80%;
+    height: 8px;
+    background: rgba(168, 208, 230, 0.2);
+    border-radius: 4px;
+    margin: 20px auto;
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Barre de progression de l'exploration */
+#explorationProgress {
+    height: 100%;
+    background: linear-gradient(to right, var(--pastel-blue), var(--orange));
+    width: 0%;
+    transition: width 1s ease;
+    border-radius: inherit;
+    box-shadow: 0 0 5px rgba(144, 238, 144, 0.5);
+}
+
+/* Animations des particules ajoutées dynamiquement */
+@keyframes fadeInOut {
+    0% { opacity: 0.3; }
+    50% { opacity: 0.8; }
+    100% { opacity: 0.3; }
+}
+
+/* Styles pour la page finale */
+.intro-content .intro-icon {
+    transition: transform 0.5s ease-in-out;
+}
+
+.intro-content:hover .intro-icon {
+    transform: scale(1.05);
+}
+
+/* Améliorations visuelles pour la section légale du footer */
+.footer-legal {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    padding-top: 15px;
+    margin-top: 30px;
+}
+
+.footer-section {
+    margin-bottom: 15px;
+}
+
+.footer-divider {
+    width: 60%;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.1);
+    margin: 15px auto;
+}
+
+.legal-notice {
+    font-size: 0.7rem;
+    color: #999;
+    line-height: 1.4;
+}
+
+.legal-notice h4 {
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+    color: #666;
+}
+
+.legal-notice a {
+    color: var(--pastel-blue);
+    text-decoration: none;
+}
+
+.legal-notice a:hover {
+    text-decoration: underline;
+}
+
+/* Filigrane discret */
+#jr-watermark {
+    transition: opacity 0.3s ease;
+}
+
+#jr-watermark:hover {
+    opacity: 0.6;
+}
+
+/* Amélioration des contrôles audio */
+.audio-controls {
+    transition: background-color 0.3s ease;
+}
+
+.audio-controls:hover {
+    background: rgba(168, 208, 230, 0.3);
+}
+
+.volume-slider:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 127, 80, 0.3);
+}
+
+/* Styles spécifiques pour les appareils très petits */
+@media screen and (max-width: 380px) {
+    .container {
+        padding: 12px;
+    }
+    
+    h1 {
+        font-size: 1.4rem;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        font-size: 1rem;
+    }
+    
+    .intro-icon {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .spiral-small {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .step-label {
+        font-size: 0.55rem;
+        width: 50px;
+    }
+}
+
+/* Améliorations pour l'accessibilité */
+.btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 127, 80, 0.5);
+}
+
+select:focus, input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(10, 36, 99, 0.3);
+}
+
+/* Transitions plus fluides pour une meilleure expérience utilisateur */
+.page {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.page.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Style pour le texte explicatif des sons binauraux */
+.binaural-info {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    text-align: center;
+    max-width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+    font-style: italic;
+    line-height: 1.4;
+}
+
+/* Styles modernes pour la section promotionnelle */
+.promo-section {
+    margin: 30px auto 10px;
+    padding: 20px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(240, 245, 255, 0.9));
+    box-shadow: 0 10px 25px rgba(10, 36, 99, 0.08);
+    border: 1px solid rgba(168, 208, 230, 0.3);
+    max-width: 680px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.promo-section:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(10, 36, 99, 0.12);
+}
+
+.promo-content {
+    text-align: center;
+}
+
+.promo-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.promo-title {
+    color: var(--gray);
+    font-size: 1.1rem;
+    font-weight: normal;
+    margin: 8px 0 12px;
+}
+
+.promo-title span {
+    color: var(--deep-blue);
+    font-weight: bold;
+}
+
+.promo-content p {
+    color: var(--gray);
+    font-size: 0.95rem;
+    margin-bottom: 15px;
+    max-width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.promo-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: var(--deep-blue);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 10px rgba(10, 36, 99, 0.2);
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.promo-button:hover {
+    background: linear-gradient(135deg, var(--deep-blue), #1a3a7c);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(10, 36, 99, 0.3);
+}
+
+.promo-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(10, 36, 99, 0.2);
+}
+
+.promo-button svg {
+    transition: transform 0.3s ease;
+}
+
+.promo-button:hover svg {
+    transform: translateX(3px);
+}
+
+/* Styles responsifs améliorés */
+@media screen and (max-width: 768px) {
+    .promo-section {
+        padding: 15px;
+        margin-top: 25px;
+    }
+    
+    .promo-header svg {
+        width: 160px;
+        height: 42px;
+    }
+    
+    .promo-title {
+        font-size: 1rem;
+    }
+    
+    .promo-content p {
+        font-size: 0.9rem;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .promo-section {
+        padding: 12px;
+        margin-top: 20px;
+    }
+    
+    .promo-header svg {
+        width: 140px;
+        height: 36px;
+    }
+    
+    .promo-content p {
+        font-size: 0.85rem;
+        max-width: 100%;
+    }
+    
+    .promo-button {
+        padding: 8px 16px;
+        font-size: 0.85rem;
+    }
+    
+    /* Désactiver certaines animations complexes sur les très petits écrans */
+    .staircase {
+        animation: none !important;
+    }
+    
+    .staircase .stair {
+        opacity: 0.6 !important;
+    }
+}
+
+/* Styles pour l'optimisation mobile */
+.mobile-optimized .spiral::before,
+.mobile-optimized .spiral::after {
+    animation-duration: 40s; /* Plus lent = moins de ressources */
+}
+
+.mobile-optimized .exploration-particle {
+    transition: all 4s cubic-bezier(0.2, 0.8, 0.3, 1) !important; /* Animation plus lente */
+}
+
+/* Styles pour le splash screen de l'application */
+#splash-screen {
+    background: linear-gradient(135deg, var(--deep-blue), #051a46);
+    color: white;
+    text-align: center;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Styles pour le bouton d'installation */
+.btn-install {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-install::before {
+    content: "📱";
+    font-size: 1.2em;
+}
