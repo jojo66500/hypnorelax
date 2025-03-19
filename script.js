@@ -113,10 +113,6 @@ let speechQueue = [];
 let isSpeaking = false;
 let waitingForNextSpeech = false;
 
-// Variables pour PWA
-let deferredPrompt;
-let installPromptShown = false;
-
 // Fonction sécurisée pour setTimeout qui garde une référence
 function safeSetTimeout(callback, delay) {
     const timeoutId = setTimeout(() => {
@@ -763,12 +759,6 @@ function initializeApp() {
     // Initialiser les ajustements pour les styles mobiles
     adjustMobileStyles();
     
-    // Initialiser les fonctionnalités PWA
-    setupPWA();
-    
-    // Optimiser l'application pour mobile
-    optimizeForMobile();
-    
     console.log("Initialisation de l'application terminée");
 }
 
@@ -804,7 +794,6 @@ function initDOMReferences() {
     completeBtn = document.getElementById('completeBtn');
     restartBtn = document.getElementById('restartBtn');
     homeBtn = document.getElementById('homeBtn');
-    installBtn = document.getElementById('installBtn');
 
     // Autres éléments
     inductionInstruction = document.getElementById('inductionInstruction');
@@ -814,160 +803,6 @@ function initDOMReferences() {
     explorationInstruction = document.getElementById('explorationInstruction');
     awakeningCounter = document.getElementById('awakeningCounter');
     energyScene = document.getElementById('energyScene');
-}
-
-// Fonction pour configurer les fonctionnalités PWA
-function setupPWA() {
-    try {
-        // Intercepter l'événement beforeinstallprompt pour le reporter
-        window.addEventListener('beforeinstallprompt', (e) => {
-            // Empêcher Chrome d'afficher l'invite par défaut
-            e.preventDefault();
-            // Stocker l'événement pour l'utiliser plus tard
-            deferredPrompt = e;
-            // Mettre à jour l'interface utilisateur pour indiquer que l'application peut être installée
-            if (installBtn) {
-                installBtn.style.display = 'inline-block';
-            }
-            
-            // Montrer la notification d'installation après un délai si elle n'a pas déjà été affichée
-            if (!installPromptShown && localStorage.getItem('installPromptDismissed') !== 'true') {
-                setTimeout(() => {
-                    showInstallPrompt();
-                }, 120000); // 2 minutes après le chargement
-            }
-        });
-        
-        // Gérer l'événement appinstalled
-        window.addEventListener('appinstalled', (evt) => {
-            // L'application a été installée avec succès
-            console.log('Application installée avec succès!');
-            // Cacher le bouton d'installation
-            if (installBtn) {
-                installBtn.style.display = 'none';
-            }
-            // Cacher le prompt d'installation s'il est visible
-            hideInstallPrompt();
-            // Enregistrer que l'application a été installée
-            localStorage.setItem('appInstalled', 'true');
-        });
-        
-        // Configurer les interactions avec le bouton d'installation
-        if (installBtn) {
-            installBtn.addEventListener('click', () => {
-                promptInstall();
-            });
-        }
-        
-        // Configurer les boutons du prompt d'installation
-        const installYesBtn = document.getElementById('install-yes');
-        const installNoBtn = document.getElementById('install-no');
-        
-        if (installYesBtn) {
-            installYesBtn.addEventListener('click', () => {
-                hideInstallPrompt();
-                promptInstall();
-            });
-        }
-        
-        if (installNoBtn) {
-            installNoBtn.addEventListener('click', () => {
-                hideInstallPrompt();
-                // Enregistrer que l'utilisateur a refusé l'installation
-                localStorage.setItem('installPromptDismissed', 'true');
-            });
-        }
-        
-        // Vérifier si l'application est déjà installée
-        if (window.matchMedia('(display-mode: standalone)').matches || 
-            window.navigator.standalone === true) {
-            console.log('Application déjà installée');
-            if (installBtn) {
-                installBtn.style.display = 'none';
-            }
-        }
-    } catch (error) {
-        console.error("Erreur lors de la configuration PWA:", error);
-    }
-}
-
-// Afficher l'invite d'installation
-function showInstallPrompt() {
-    const installPrompt = document.getElementById('install-prompt');
-    if (installPrompt && deferredPrompt) {
-        installPrompt.style.display = 'block';
-        installPromptShown = true;
-    }
-}
-
-// Cacher l'invite d'installation
-function hideInstallPrompt() {
-    const installPrompt = document.getElementById('install-prompt');
-    if (installPrompt) {
-        installPrompt.style.display = 'none';
-    }
-}
-
-// Lancer l'installation
-function promptInstall() {
-    if (!deferredPrompt) {
-        console.log('Aucune invite d\'installation disponible');
-        return;
-    }
-    
-    // Afficher l'invite d'installation
-    deferredPrompt.prompt();
-    
-    // Attendre la réponse de l'utilisateur
-    deferredPrompt.userChoice.then((choiceResult) => {
-        if (choiceResult.outcome === 'accepted') {
-            console.log('Utilisateur a accepté l\'installation');
-        } else {
-            console.log('Utilisateur a refusé l\'installation');
-            // Enregistrer que l'utilisateur a refusé l'installation
-            localStorage.setItem('installPromptDismissed', 'true');
-        }
-        // Effacer l'invite car elle ne peut être utilisée qu'une fois
-        deferredPrompt = null;
-    });
-}
-
-// Optimiser pour les appareils mobiles
-function optimizeForMobile() {
-    // Détecter si c'est un appareil mobile
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
-    
-    if (isMobile) {
-        // Réduire la complexité des animations
-        document.body.classList.add('mobile-optimized');
-        
-        // Précharger seulement les ressources nécessaires
-        const preloadLinks = document.querySelectorAll('link[rel="preload"]');
-        preloadLinks.forEach(link => {
-            if (link.getAttribute('as') === 'image' && !link.getAttribute('data-critical')) {
-                link.setAttribute('rel', 'prefetch');
-            }
-        });
-        
-        // Ajuster la qualité des animations
-        const simplifyAnimations = () => {
-            // Réduire le nombre de particules
-            const particleCount = 5; // Réduit de 20 à 5
-            
-            // Simplifier l'animation de la spirale
-            const spiral = document.querySelector('.spiral');
-            if (spiral) {
-                spiral.style.animationDuration = '30s'; // Plus lent pour économiser des ressources
-            }
-        };
-        
-        // Exécuter après le chargement initial
-        if (document.readyState === 'complete') {
-            simplifyAnimations();
-        } else {
-            window.addEventListener('load', simplifyAnimations);
-        }
-    }
 }
 
 // Fonction pour configurer tous les écouteurs d'événements
@@ -1174,7 +1009,7 @@ function prepareKeepAwakeMedia() {
     // Créer une source audio avec un son silencieux
     const source = document.createElement('source');
     // Data URL d'un son silencieux de 1 seconde
-    source.src = 'data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU3LjU2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABGADk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk//////////////////////////////////////////////////////////////////8AAAAATGF2YzU3LjY0AAAAAAAAAAAAAAAAJAZAAAAAAAAY4MUkRQAAAAAAAAAAAAAAABSAAAAAAAAAAAAAAAAAAAAAP/7kGQAAAAAAGkAAAAIAAANIAAAAQAAAaQAAAAgAAA0gAAABExBTUUzLjk5LjVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjk5LjVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVQ==';
+    source.src = 'data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU3LjU2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABGADk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk5OTk//////////////////////////////////////////////////////////////////8AAAAATGF2YzU3LjY0AAAAAAAAAAAAAAAAJAZAAAAAAAAY4MUkRQAAAAAAAAAAAAAAABSAAAAAAAAAAAAAAAAAAAAAP/7kGQAAAAAAGkAAAAIAAANIAAAAQAAAaQAAAAgAAA0gAAABExBTUUzLjk5LjVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjk5LjVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVQ==';
     source.type = 'audio/mpeg';
     audio.appendChild(source);
     
@@ -2279,12 +2114,8 @@ function createStairDots() {
         // Vider le container d'abord
         container.innerHTML = '';
         
-        // Si on est sur mobile, réduire le nombre de points pour optimiser les performances
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
-        const dotCount = isMobile ? 10 : 20;
-        
-        // Créer des points à des positions aléatoires
-        for (let i = 0; i < dotCount; i++) {
+        // Créer 20 points à des positions aléatoires
+        for (let i = 0; i < 20; i++) {
             const dot = document.createElement('div');
             dot.className = 'stair-dot';
             
@@ -2333,9 +2164,6 @@ function startExploration() {
         let currentTextIndex = 0;
         let particlesInterval;
         const totalTexts = explorationTexts.length;
-        
-        // Déterminer si nous sommes sur mobile pour ajuster les animations
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
         
         // Fonction pour créer une particule avec des couleurs et formes variées
         function createParticle() {
@@ -2389,15 +2217,10 @@ function startExploration() {
                 const rotation = Math.random() * 360; // Rotation aléatoire
                 const scale = 0.8 + Math.random() * 0.5; // Échelle aléatoire
                 
-                // Adaptation pour mobile: animation plus courte et plus simple
-                if (isMobile) {
-                    particle.style.transform = `translate(${targetX - x}px, ${targetY - y}px) scale(${scale})`;
-                } else {
-                    particle.style.transform = `translate(${targetX - x}px, ${targetY - y}px) rotate(${rotation}deg) scale(${scale})`;
-                }
+                particle.style.transform = `translate(${targetX - x}px, ${targetY - y}px) rotate(${rotation}deg) scale(${scale})`;
                 
-                // Durée de vie variable des particules - plus courte sur mobile
-                const duration = isMobile ? 5000 + Math.random() * 3000 : 8000 + Math.random() * 7000;
+                // Durée de vie variable des particules
+                const duration = 8000 + Math.random() * 7000;
                 
                 // Disparition progressive
                 safeSetTimeout(() => {
@@ -2415,25 +2238,16 @@ function startExploration() {
         
         // Fonction pour créer des particules périodiquement
         function startParticlesAnimation() {
-            // Adapter la fréquence des particules selon le device
-            const interval = isMobile ? 2500 : 1500; // Intervalle plus long sur mobile
-            
             return safeSetInterval(() => {
                 if (currentTextIndex < totalTexts) {
                     // Augmenter progressivement le nombre de particules créées
-                    // Moins de particules sur mobile pour de meilleures performances
-                    let particleCount;
-                    if (isMobile) {
-                        particleCount = 1 + Math.floor(currentTextIndex / 3);
-                    } else {
-                        particleCount = 1 + Math.floor(currentTextIndex / 2);
-                    }
+                    const particleCount = 1 + Math.floor(currentTextIndex / 2);
                     
                     for (let i = 0; i < particleCount; i++) {
                         safeSetTimeout(() => createParticle(), i * 200);
                     }
                 }
-            }, interval);
+            }, 1500);
         }
         
         // Créer un effet de vagues pour le fond
@@ -2458,40 +2272,22 @@ function startExploration() {
             
             explorationScene.appendChild(waveEffect);
             
-            // Animation de pulsation - Simplifier pour mobile
+            // Animation de pulsation
             let scale = 1;
             let growing = true;
-            let pulseInterval;
             
-            if (isMobile) {
-                // Version simplifiée pour mobile
-                pulseInterval = safeSetInterval(() => {
-                    if (growing) {
-                        scale += 0.01;
-                        if (scale >= 1.15) growing = false;
-                    } else {
-                        scale -= 0.01;
-                        if (scale <= 1) growing = true;
-                    }
-                    
-                    waveEffect.style.transform = `translate(-50%, -50%) scale(${scale})`;
-                    waveEffect.style.opacity = 0.1 + Math.sin(scale * Math.PI) * 0.05;
-                }, 150); // Plus lent sur mobile
-            } else {
-                // Version complète pour bureau
-                pulseInterval = safeSetInterval(() => {
-                    if (growing) {
-                        scale += 0.01;
-                        if (scale >= 1.2) growing = false;
-                    } else {
-                        scale -= 0.01;
-                        if (scale <= 1) growing = true;
-                    }
-                    
-                    waveEffect.style.transform = `translate(-50%, -50%) scale(${scale})`;
-                    waveEffect.style.opacity = 0.1 + Math.sin(scale * Math.PI) * 0.05;
-                }, 100);
-            }
+            const pulseInterval = safeSetInterval(() => {
+                if (growing) {
+                    scale += 0.01;
+                    if (scale >= 1.2) growing = false;
+                } else {
+                    scale -= 0.01;
+                    if (scale <= 1) growing = true;
+                }
+                
+                waveEffect.style.transform = `translate(-50%, -50%) scale(${scale})`;
+                waveEffect.style.opacity = 0.1 + Math.sin(scale * Math.PI) * 0.05;
+            }, 100);
             
             return {
                 element: waveEffect,
@@ -2528,12 +2324,8 @@ function startExploration() {
                         // AMÉLIORATION: Utiliser la segmentation pour une meilleure fluidité
                         const textSegments = segmentTextForBetterSpeech(explorationTexts[currentTextIndex]);
                         
-                        // Créer un effet spécial pour cette phase - réduire le nombre pour mobile
-                        if (isMobile) {
-                            createParticleBurst(5 + currentTextIndex, 200);
-                        } else {
-                            createParticleBurst(10 + currentTextIndex * 2, 150);
-                        }
+                        // Créer un effet spécial pour cette phase
+                        createParticleBurst(10 + currentTextIndex * 2, 150);
                         
                         // Utiliser la nouvelle méthode de segments pour parler
                         speakTextSegments(textSegments, 0, () => {
@@ -2851,13 +2643,6 @@ function showPage(pageNumber) {
                     adjustMobileStyles();
                     // Désactiver le système anti-veille à la fin de la séance
                     disableKeepAwake();
-                    // Afficher le bouton d'installation si disponible
-                    if (deferredPrompt) {
-                        const installBtn = document.getElementById('installBtn');
-                        if (installBtn) {
-                            installBtn.style.display = 'inline-block';
-                        }
-                    }
                     break;
             }
         }, 800); // Délai optimisé pour la réactivité
@@ -2919,27 +2704,6 @@ function addCSSAnimations() {
             z-index: 5;
             pointer-events: none;
         }
-        
-        /* Classe pour appliquer l'optimisation mobile */
-        .mobile-optimized .exploration-particle {
-            transition: all 4s cubic-bezier(0.2, 0.8, 0.3, 1) !important;
-        }
-        
-        .mobile-optimized .spiral::before,
-        .mobile-optimized .spiral::after {
-            animation-duration: 40s;
-        }
-        
-        /* Désactiver certaines animations sur petit écran */
-        @media screen and (max-width: 480px) {
-            .staircase {
-                animation: none !important;
-            }
-            
-            .staircase .stair {
-                opacity: 0.6 !important;
-            }
-        }
     `;
     
     document.head.appendChild(styleElement);
@@ -2972,15 +2736,4 @@ window.addEventListener('beforeunload', function() {
 document.addEventListener('DOMContentLoaded', function() {
     addCSSAnimations();
     initializeApp();
-    
-    // Masquer l'écran de démarrage après chargement
-    window.addEventListener('load', () => {
-        const splashScreen = document.getElementById('splash-screen');
-        if (splashScreen) {
-            splashScreen.style.opacity = '0';
-            setTimeout(() => {
-                splashScreen.style.display = 'none';
-            }, 500);
-        }
-    });
 });
