@@ -66,7 +66,7 @@ let audioToggle, voiceSelect, volumeSlider, speakingIndicator;
 // Éléments de la cohérence cardiaque
 let coherenceIntro, coherenceContainer, breathCircle, breathInLabel, breathOutLabel, timerDisplay, coherenceInstruction;
 
-// Boutons
+// Boutons - Uniquement les boutons essentiels
 let startBtn, startCoherenceBtn, restartBtn, homeBtn;
 
 // Autres éléments
@@ -882,7 +882,7 @@ function initDOMReferences() {
     timerDisplay = document.getElementById('timerDisplay');
     coherenceInstruction = document.getElementById('coherenceInstruction');
 
-    // Boutons
+    // Boutons essentiels uniquement
     startBtn = document.getElementById('startBtn');
     startCoherenceBtn = document.getElementById('startCoherenceBtn');
     restartBtn = document.getElementById('restartBtn');
@@ -900,8 +900,7 @@ function initDOMReferences() {
 
 // Fonction pour configurer tous les écouteurs d'événements
 function setupEventListeners() {
-    // Conservation uniquement des boutons pour la première page, 
-    // la partie préparation et la partie "séance complétée"
+    // Uniquement les boutons essentiels
     if (startBtn) startBtn.addEventListener('click', () => showPage(2));
     if (startCoherenceBtn) startCoherenceBtn.addEventListener('click', startCoherenceCardiaque);
     if (restartBtn) restartBtn.addEventListener('click', () => showPage(2));
