@@ -1,0 +1,109 @@
+/* Optimisations pour les appareils mobiles */
+
+/* Améliorer les interactions tactiles */
+@media (hover: none) {
+  /* Augmenter la taille des zones cliquables pour les doigts */
+  .btn {
+    padding: 16px 36px;
+    margin: 15px 5px;
+    min-height: 50px;
+    min-width: 120px;
+  }
+  
+  /* Améliorer la lisibilité sur les écrans brillants en extérieur */
+  .instruction {
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Remplacer les effets hover par des effets touch */
+  .btn:hover {
+    transform: none;
+    box-shadow: 0 6px 15px rgba(226, 88, 34, 0.3);
+  }
+  
+  .btn:active {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(226, 88, 34, 0.4);
+  }
+  
+  /* Optimiser les contrôles audio pour les doigts */
+  .audio-controls {
+    padding: 15px;
+  }
+  
+  .volume-slider {
+    width: 100px;
+    height: 10px;
+  }
+  
+  .volume-slider::-webkit-slider-thumb {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .volume-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+  }
+  
+  /* Faciliter la lecture sur petits écrans */
+  p, li {
+    line-height: 1.5;
+  }
+  
+  /* Améliorer l'espacement des boutons sur mobile */
+  .btn-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  /* Animations optimisées pour les appareils moins puissants */
+  .spiral {
+    animation-duration: 30s !important;
+  }
+  
+  .spiral::before, .spiral::after {
+    animation-duration: 40s !important;
+  }
+  
+  /* Réduire la complexité visuelle sur les très petits écrans */
+  @media screen and (max-width: 360px) {
+    .step-label {
+      font-size: 0.5rem !important;
+      width: 45px !important;
+    }
+    
+    .coherence-container, .spiral-container {
+      transform: scale(0.85);
+    }
+  }
+}
+
+/* Optimisation du mode plein écran pour PWA */
+@media all and (display-mode: standalone) {
+  /* Ajout d'un padding pour éviter les boutons système sur iOS */
+  .container {
+    padding-top: 30px;
+    padding-bottom: 30px;
+  }
+  
+  /* Badge pour montrer qu'on est en mode app */
+  .app-branding::after {
+    content: "App";
+    font-size: 0.7rem;
+    background: var(--orange);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: 5px;
+  }
+}
+
+/* Meilleure adaptation aux écrans de tablettes */
+@media screen and (min-width: 768px) and (max-width: 1024px) {
+  .container {
+    max-width: 90%;
+    padding: 25px;
+  }
+}
