@@ -153,7 +153,7 @@ function clearAllIntervals() {
     allIntervals.clear();
 }
 
-// Version sécurisée de showPage avec anti-double-clic
+// Version sécurisée de showPage avec anti-double-clic - VERSION SIMPLIFIÉE
 function safeShowPage(pageNumber) {
     if (pageTransitionInProgress) {
         console.log("Transition de page déjà en cours, demande ignorée");
@@ -162,6 +162,11 @@ function safeShowPage(pageNumber) {
     
     // Verrouiller les transitions pendant un court moment
     pageTransitionInProgress = true;
+    
+    // Arrêter la synthèse vocale en cours
+    if (speech && typeof speech.stop === 'function') {
+        speech.stop();
+    }
     
     // Appeler la fonction réelle de changement de page
     showPage(pageNumber);
@@ -615,6 +620,11 @@ const speech = {
                 return;
             }
             
+            // Forcer l'utilisation de la première voix disponible si aucune n'est sélectionnée
+            if (!this.selectedVoice && this.voices && this.voices.length > 0) {
+                this.selectedVoice = this.voices[0];
+            }
+            
             // Prétraiter le texte pour les problèmes de prononciation spécifiques
             text = this.fixSpecificPronunciations(text);
             
@@ -639,12 +649,10 @@ const speech = {
             
             // Ajouter des événements avec des délais pour assurer la stabilité
             utterance.onstart = () => {
-                safeSetTimeout(() => {
-                    speakingInProgress = true;
-                    if (speakingIndicator) {
-                        speakingIndicator.classList.add('active');
-                    }
-                }, 50);
+                speakingInProgress = true;
+                if (speakingIndicator) {
+                    speakingIndicator.classList.add('active');
+                }
             };
             
             utterance.onend = () => {
@@ -654,16 +662,13 @@ const speech = {
                     this.utteranceQueue.splice(index, 1);
                 }
                 
-                // Petit délai pour éviter les problèmes de timing
-                safeSetTimeout(() => {
-                    // Ne mettre fin que si aucune autre utterance n'est en cours
-                    if (this.utteranceQueue.length === 0) {
-                        speakingInProgress = false;
-                        if (speakingIndicator) {
-                            speakingIndicator.classList.remove('active');
-                        }
+                // Ne mettre fin que si aucune autre utterance n'est en cours
+                if (this.utteranceQueue.length === 0) {
+                    speakingInProgress = false;
+                    if (speakingIndicator) {
+                        speakingIndicator.classList.remove('active');
                     }
-                }, 100);
+                }
             };
             
             utterance.onerror = (e) => {
@@ -676,20 +681,16 @@ const speech = {
                 }
                 
                 // Réinitialiser l'état si nécessaire
-                safeSetTimeout(() => {
-                    if (this.utteranceQueue.length === 0) {
-                        speakingInProgress = false;
-                        if (speakingIndicator) {
-                            speakingIndicator.classList.remove('active');
-                        }
+                if (this.utteranceQueue.length === 0) {
+                    speakingInProgress = false;
+                    if (speakingIndicator) {
+                        speakingIndicator.classList.remove('active');
                     }
-                }, 100);
+                }
             };
             
-            // Prononcer le texte avec un léger délai pour stabiliser
-            safeSetTimeout(() => {
-                this.synth.speak(utterance);
-            }, 50);
+            // Prononcer le texte
+            this.synth.speak(utterance);
             
         } catch (error) {
             console.error('Erreur de synthèse vocale:', error);
@@ -697,28 +698,14 @@ const speech = {
         }
     },
     
-    // Arrêter toute la synthèse vocale proprement - AMÉLIORÉ
+    // Arrêter toute la synthèse vocale proprement - VERSION SIMPLIFIÉE
     stop: function() {
         try {
-            console.log("Arrêt complet de toute synthèse vocale");
-            
-            // Arrêter tous les minuteurs
-            if (this.resumeTimer) {
-                clearTimeout(this.resumeTimer);
-                this.resumeTimer = null;
-            }
+            console.log("Arrêt de la synthèse vocale");
             
             // Annuler toutes les paroles
             if (this.synth) {
-                // Double annulation pour s'assurer que tout est bien arrêté
                 this.synth.cancel();
-                
-                // Seconde annulation après un bref délai pour garantir l'arrêt complet
-                safeSetTimeout(() => {
-                    if (this.synth) {
-                        this.synth.cancel();
-                    }
-                }, 100);
             }
             
             // Réinitialiser les états
@@ -728,7 +715,7 @@ const speech = {
                 speakingIndicator.classList.remove('active');
             }
             
-            console.log("Synthèse vocale arrêtée avec succès");
+            console.log("Synthèse vocale arrêtée");
         } catch (error) {
             console.error('Erreur lors de l\'arrêt de la synthèse vocale:', error);
         }
@@ -1616,76 +1603,26 @@ function getCountText(count) {
     }[count] || "";
 }
 
-// Version améliorée avec meilleure gestion de la fluidité
+// Version simplifiée de queueSpeech pour éviter les problèmes
 function queueSpeech(text, delay, textElement) {
     try {
         if (!text || text.trim() === '') return;
         
-        if (delay === undefined) delay = 0;
-        
-        speechQueue.push({text, delay, textElement});
-        
-        // Si rien n'est en cours, démarrer le traitement
-        if (!isSpeaking && !waitingForNextSpeech) {
-            processSpeechQueue();
+        // Remplir l'élément de texte immédiatement si fourni
+        if (textElement && typeof textElement === 'object') {
+            textElement.textContent = text;
         }
+        
+        // Si l'audio n'est pas activé, ne pas continuer
+        if (!audioToggle || !audioToggle.checked) return;
+        
+        // Parler directement
+        safeSetTimeout(() => {
+            speech.speak(text);
+        }, delay || 0);
+        
     } catch (error) {
         console.error('Erreur dans queueSpeech:', error);
-    }
-}
-
-// Traitement amélioré de la file d'attente vocale
-function processSpeechQueue() {
-    try {
-        if (speechQueue.length === 0) {
-            isSpeaking = false;
-            waitingForNextSpeech = false;
-            return;
-        }
-        
-        isSpeaking = true;
-        const nextSpeech = speechQueue.shift();
-        
-        // Mettre à jour l'élément de texte avant de commencer à parler
-        if (nextSpeech.textElement && typeof nextSpeech.textElement === 'object') {
-            nextSpeech.textElement.textContent = nextSpeech.text;
-        }
-        
-        // Attendre le délai spécifié avant de parler
-        safeSetTimeout(function() {
-            // Si le texte est trop long, le diviser pour une meilleure fluidité
-            const textSegments = segmentTextForBetterSpeech(nextSpeech.text);
-            
-            if (textSegments.length === 1) {
-                // Texte court, prononcer directement
-                if (nextSpeech.text) {
-                    speech.speak(nextSpeech.text);
-                }
-                
-                // Attendre que la parole soit terminée avant de continuer
-                const estimatedDuration = calculateEstimatedDuration(nextSpeech.text);
-                
-                waitingForNextSpeech = true;
-                
-                safeSetTimeout(function() {
-                    waitingForNextSpeech = false;
-                    processSpeechQueue();
-                }, estimatedDuration);
-            } else {
-                // Texte long, prononcer en segments
-                waitingForNextSpeech = true;
-                speakTextSegments(textSegments, 0, () => {
-                    waitingForNextSpeech = false;
-                    processSpeechQueue();
-                });
-            }
-            
-        }, nextSpeech.delay);
-    } catch (error) {
-        console.error('Erreur dans processSpeechQueue:', error);
-        // Réinitialiser les états pour éviter un blocage
-        isSpeaking = false;
-        waitingForNextSpeech = false;
     }
 }
 
@@ -1824,15 +1761,21 @@ function animateBreath() {
                     coherenceInstruction.textContent = "Expirez doucement...";
                     
                     // Utiliser un délai pour éviter de couper la voix précédente
-                    if (audioToggle && audioToggle.checked && !speakingInProgress) {
-                        speech.speak("Expirez");
+               // Mettre à jour l'instruction pour l'expiration
+                    if (step === 0) {
+                        coherenceInstruction.textContent = "Expirez doucement...";
+                        
+                        // Utiliser un délai pour éviter de couper la voix précédente
+                        if (audioToggle && audioToggle.checked && !speakingInProgress) {
+                            speech.speak("Expirez");
+                        }
                     }
-                }
-                
-                step++;
-                if (step >= totalSteps) {
-                    phase = 'in';
-                    step = 0;
+                    
+                    step++;
+                    if (step >= totalSteps) {
+                        phase = 'in';
+                        step = 0;
+                    }
                 }
             }
         }, 100); // 10 frames par seconde
@@ -2411,7 +2354,6 @@ function startAwakening() {
         
         // Réinitialiser tous les états et éléments
         speech.stop();
-        speechQueue = [];
         
         const mainInstruction = document.querySelector('#page6 .instruction');
         if (!mainInstruction) {
@@ -2445,16 +2387,13 @@ function startAwakening() {
                         const text = "Préparez-vous à revenir doucement à votre état de conscience habituel.";
                         mainInstruction.textContent = text;
                         
-                        // Utiliser la segmentation pour une meilleure fluidité
-                        const segments = segmentTextForBetterSpeech(text);
+                        // Parler directement pour éviter les problèmes
+                        speech.speak(text);
                         
-                        // Utiliser la nouvelle méthode pour une meilleure prononciation
-                        speakTextSegments(segments, 0, () => {
-                            if (!phaseComplete) {
-                                phaseComplete = true;
-                                safeSetTimeout(nextPhase, 1000); // Pause entre les phrases
-                            }
-                        });
+                        // Passer à la phase suivante après un délai
+                        safeSetTimeout(() => {
+                            nextPhase();
+                        }, 5000);
                     }, 2000);
                     break;
                     
@@ -2462,16 +2401,13 @@ function startAwakening() {
                     const text = "À chaque compte, vous vous sentirez de plus en plus éveillé et alerte.";
                     mainInstruction.textContent = text;
                     
-                    // Utiliser la segmentation pour une meilleure fluidité
-                    const segments = segmentTextForBetterSpeech(text);
+                    // Parler directement
+                    speech.speak(text);
                     
-                    // Utiliser la nouvelle méthode pour une meilleure prononciation
-                    speakTextSegments(segments, 0, () => {
-                        if (!phaseComplete) {
-                            phaseComplete = true;
-                            safeSetTimeout(nextPhase, 1000);
-                        }
-                    });
+                    // Passer à la phase suivante après un délai
+                    safeSetTimeout(() => {
+                        nextPhase();
+                    }, 5000);
                     break;
                     
                 case 2: // Début du décompte
@@ -2480,19 +2416,18 @@ function startAwakening() {
             }
         }
         
-        // Fonction pour gérer le décompte du réveil - VERSION AMÉLIORÉE
+        // Fonction pour gérer le décompte du réveil - VERSION SIMPLIFIÉE
         function startAwakeningCountdown() {
             if (count < 0) {
                 // Fin du décompte
                 const finalText = "Vous êtes maintenant complètement réveillé, présent et alerte, tout en conservant cette sensation de bien-être et de calme.";
                 mainInstruction.textContent = finalText;
                 
-                // Utiliser la segmentation pour le texte final
-                const segments = segmentTextForBetterSpeech(finalText);
-                speakTextSegments(segments, 0, () => {
-                    // Passer à la page finale après un délai
-                    safeSetTimeout(() => safeShowPage(7), 5000);
-                });
+                // Parler directement
+                speech.speak(finalText);
+                
+                // Passer à la page finale après un délai
+                safeSetTimeout(() => safeShowPage(7), 8000);
                 return;
             }
             
@@ -2503,23 +2438,14 @@ function startAwakening() {
             const countText = getCountText(count);
             mainInstruction.textContent = countText;
             
-            // Utiliser la méthode speak directement pour les nombres, pour une meilleure prononciation
-            if (count > 0) {
-                // Assurer une synchronisation parfaite pour le chiffre et son texte associé
-                speech.speak(countText);
-                
-                // Calculer la durée estimée pour déterminer quand passer au chiffre suivant
-                const estimatedDuration = calculateEstimatedDuration(countText);
-                
-                // Programmer le prochain chiffre après la durée calculée
-                safeSetTimeout(() => {
-                    count--;
-                    safeSetTimeout(startAwakeningCountdown, 1000);
-                }, estimatedDuration + 500); // Ajouter une pause supplémentaire pour rendre le rythme plus naturel
-            } else {
+            // Parler directement
+            speech.speak(countText);
+            
+            // Programmer le prochain chiffre après un délai fixe
+            safeSetTimeout(() => {
                 count--;
                 safeSetTimeout(startAwakeningCountdown, 1000);
-            }
+            }, 6000); // Délai fixe suffisamment long
         }
         
         // Démarrer la séquence
@@ -2539,8 +2465,10 @@ function showPage(pageNumber) {
         clearAllTimeouts();
         clearAllIntervals();
         
-        // Interrompre proprement TOUTE synthèse vocale en vidant complètement les files d'attente
-        speech.stop();
+        // Interrompre proprement TOUTE synthèse vocale
+        if (speech && typeof speech.stop === 'function') {
+            speech.stop();
+        }
         
         // MODIFICATION: Ne pas arrêter les sons binauraux lors des changements de page
         // Seulement à la fin du programme (page 7)
@@ -2548,13 +2476,6 @@ function showPage(pageNumber) {
             stopBinauralBeats();
             binauralActive = false;
         }
-        
-        // Stopper toutes les animations et séquences
-        speech.utteranceQueue = [];
-        speechQueue = [];
-        isSpeaking = false;
-        waitingForNextSpeech = false;
-        speakingInProgress = false;
         
         // Arrêter les intervalles de la cohérence cardiaque si actifs
         if (coherenceInterval) {
@@ -2591,7 +2512,6 @@ function showPage(pageNumber) {
         window.scrollTo(0, 0);
         
         // Exécuter les actions spécifiques à la page après un délai
-        // pour s'assurer que toutes les voix précédentes sont bien arrêtées
         safeSetTimeout(function() {
             switch (pageNumber) {
                 case 1:
@@ -2645,7 +2565,7 @@ function showPage(pageNumber) {
                     disableKeepAwake();
                     break;
             }
-        }, 800); // Délai optimisé pour la réactivité
+        }, 600); // Délai optimisé pour la réactivité
     } catch (error) {
         console.error('Erreur lors du changement de page:', error);
     }
