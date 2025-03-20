@@ -67,7 +67,7 @@ let audioToggle, voiceSelect, volumeSlider, speakingIndicator;
 let coherenceIntro, coherenceContainer, breathCircle, breathInLabel, breathOutLabel, timerDisplay, coherenceInstruction;
 
 // Boutons
-let startBtn, startCoherenceBtn, nextPrepBtn, skipInductionBtn, skipDeepeningBtn, nextExplorationBtn, completeBtn, restartBtn, homeBtn;
+let startBtn, startCoherenceBtn, restartBtn, homeBtn;
 
 // Autres éléments
 let inductionInstruction, inductionCounter, deepeningInstruction, stairsCounter, explorationInstruction, awakeningCounter, energyScene;
@@ -96,10 +96,6 @@ let binauralActive = false; // Suivi de l'état du son binaural
 // Variables globales pour la gestion des timeouts et des intervalles
 const allTimeouts = new Set();
 const allIntervals = new Set();
-
-// Variable pour prévenir les transitions rapides entre pages
-let pageTransitionInProgress = false;
-let pageTransitionTimeout = null;
 
 // Variables d'état
 let currentPage = 1;
@@ -153,28 +149,125 @@ function clearAllIntervals() {
     allIntervals.clear();
 }
 
-// Version sécurisée de showPage avec anti-double-clic - VERSION SIMPLIFIÉE
-function safeShowPage(pageNumber) {
-    if (pageTransitionInProgress) {
-        console.log("Transition de page déjà en cours, demande ignorée");
-        return;
-    }
-    
-    // Verrouiller les transitions pendant un court moment
-    pageTransitionInProgress = true;
-    
-    // Arrêter la synthèse vocale en cours
-    if (speech && typeof speech.stop === 'function') {
+// Fonction simplifiée pour afficher une page
+function showPage(pageNumber) {
+    try {
+        console.log(`Changement vers la page ${pageNumber}`);
+        
+        // Annuler TOUS les timers en cours pour éviter les chevauchements
+        clearAllTimeouts();
+        clearAllIntervals();
+        
+        // Interrompre proprement TOUTE synthèse vocale en vidant complètement les files d'attente
         speech.stop();
+        
+        // MODIFICATION: Ne pas arrêter les sons binauraux lors des changements de page
+        // Seulement à la fin du programme (page 7)
+        if (typeof stopBinauralBeats === 'function' && pageNumber === 7) {
+            stopBinauralBeats();
+            binauralActive = false;
+        }
+        
+        // Stopper toutes les animations et séquences
+        speech.utteranceQueue = [];
+        speechQueue = [];
+        isSpeaking = false;
+        waitingForNextSpeech = false;
+        speakingInProgress = false;
+        
+        // Arrêter les intervalles de la cohérence cardiaque si actifs
+        if (coherenceInterval) {
+            clearInterval(coherenceInterval);
+            coherenceInterval = null;
+        }
+        
+        if (coherenceTimer) {
+            clearInterval(coherenceTimer);
+            coherenceTimer = null;
+        }
+        
+        // Masquer toutes les pages
+        pages.forEach(function(page) {
+            page.classList.remove('active');
+        });
+        
+        // Afficher la page demandée
+        const pageElement = document.getElementById('page' + pageNumber);
+        if (pageElement) {
+            pageElement.classList.add('active');
+        } else {
+            console.error('Page non trouvée:', 'page' + pageNumber);
+            return;
+        }
+        
+        // Mettre à jour la navigation
+        updateSteps(pageNumber);
+        
+        // Mettre à jour l'état actuel
+        currentPage = pageNumber;
+        
+        // Défiler vers le haut
+        window.scrollTo(0, 0);
+        
+        // Exécuter les actions spécifiques à la page après un délai
+        // pour s'assurer que toutes les voix précédentes sont bien arrêtées
+        safeSetTimeout(function() {
+            switch (pageNumber) {
+                case 1:
+                    // Page d'accueil
+                    const welcomeElement = document.querySelector('#page1 .intro-text p:first-child');
+                    const homeText = "Bienvenue dans votre séance d'auto-hypnose guidée.";
+                    if (welcomeElement) {
+                        welcomeElement.textContent = homeText;
+                    }
+                    queueSpeech(homeText);
+                    break;
+                    
+                case 2:
+                    // Page de préparation
+                    resetCoherenceCardiaque();
+                    break;
+                    
+                case 3:
+                    // Induction
+                    startInduction();
+                    // Activer le système anti-veille au début de la séance
+                    enableKeepAwake();
+                    break;
+                
+                case 4:
+                    // Profondeur
+                    startDeepening();
+                    // S'assurer que le système anti-veille reste actif
+                    enableKeepAwake();
+                    break;
+                    
+                case 5:
+                    // Exploration
+                    startExploration();
+                    // S'assurer que le système anti-veille reste actif
+                    enableKeepAwake();
+                    break;
+                    
+                case 6:
+                    // Retour
+                    startAwakening();
+                    // S'assurer que le système anti-veille reste actif
+                    enableKeepAwake();
+                    break;
+                    
+                case 7:
+                    // Page finale
+                    // Appliquer les ajustements de style mobile
+                    adjustMobileStyles();
+                    // Désactiver le système anti-veille à la fin de la séance
+                    disableKeepAwake();
+                    break;
+            }
+        }, 800); // Délai optimisé pour la réactivité
+    } catch (error) {
+        console.error('Erreur lors du changement de page:', error);
     }
-    
-    // Appeler la fonction réelle de changement de page
-    showPage(pageNumber);
-    
-    // Déverrouiller après un court délai
-    pageTransitionTimeout = safeSetTimeout(() => {
-        pageTransitionInProgress = false;
-    }, 1000); // 1 seconde de "cooldown" entre les transitions
 }
 
 // Initialisation de la synthèse vocale AMÉLIORÉE
@@ -620,11 +713,6 @@ const speech = {
                 return;
             }
             
-            // Forcer l'utilisation de la première voix disponible si aucune n'est sélectionnée
-            if (!this.selectedVoice && this.voices && this.voices.length > 0) {
-                this.selectedVoice = this.voices[0];
-            }
-            
             // Prétraiter le texte pour les problèmes de prononciation spécifiques
             text = this.fixSpecificPronunciations(text);
             
@@ -649,10 +737,12 @@ const speech = {
             
             // Ajouter des événements avec des délais pour assurer la stabilité
             utterance.onstart = () => {
-                speakingInProgress = true;
-                if (speakingIndicator) {
-                    speakingIndicator.classList.add('active');
-                }
+                safeSetTimeout(() => {
+                    speakingInProgress = true;
+                    if (speakingIndicator) {
+                        speakingIndicator.classList.add('active');
+                    }
+                }, 50);
             };
             
             utterance.onend = () => {
@@ -662,13 +752,16 @@ const speech = {
                     this.utteranceQueue.splice(index, 1);
                 }
                 
-                // Ne mettre fin que si aucune autre utterance n'est en cours
-                if (this.utteranceQueue.length === 0) {
-                    speakingInProgress = false;
-                    if (speakingIndicator) {
-                        speakingIndicator.classList.remove('active');
+                // Petit délai pour éviter les problèmes de timing
+                safeSetTimeout(() => {
+                    // Ne mettre fin que si aucune autre utterance n'est en cours
+                    if (this.utteranceQueue.length === 0) {
+                        speakingInProgress = false;
+                        if (speakingIndicator) {
+                            speakingIndicator.classList.remove('active');
+                        }
                     }
-                }
+                }, 100);
             };
             
             utterance.onerror = (e) => {
@@ -681,16 +774,20 @@ const speech = {
                 }
                 
                 // Réinitialiser l'état si nécessaire
-                if (this.utteranceQueue.length === 0) {
-                    speakingInProgress = false;
-                    if (speakingIndicator) {
-                        speakingIndicator.classList.remove('active');
+                safeSetTimeout(() => {
+                    if (this.utteranceQueue.length === 0) {
+                        speakingInProgress = false;
+                        if (speakingIndicator) {
+                            speakingIndicator.classList.remove('active');
+                        }
                     }
-                }
+                }, 100);
             };
             
-            // Prononcer le texte
-            this.synth.speak(utterance);
+            // Prononcer le texte avec un léger délai pour stabiliser
+            safeSetTimeout(() => {
+                this.synth.speak(utterance);
+            }, 50);
             
         } catch (error) {
             console.error('Erreur de synthèse vocale:', error);
@@ -698,14 +795,28 @@ const speech = {
         }
     },
     
-    // Arrêter toute la synthèse vocale proprement - VERSION SIMPLIFIÉE
+    // Arrêter toute la synthèse vocale proprement - AMÉLIORÉ
     stop: function() {
         try {
-            console.log("Arrêt de la synthèse vocale");
+            console.log("Arrêt complet de toute synthèse vocale");
+            
+            // Arrêter tous les minuteurs
+            if (this.resumeTimer) {
+                clearTimeout(this.resumeTimer);
+                this.resumeTimer = null;
+            }
             
             // Annuler toutes les paroles
             if (this.synth) {
+                // Double annulation pour s'assurer que tout est bien arrêté
                 this.synth.cancel();
+                
+                // Seconde annulation après un bref délai pour garantir l'arrêt complet
+                safeSetTimeout(() => {
+                    if (this.synth) {
+                        this.synth.cancel();
+                    }
+                }, 100);
             }
             
             // Réinitialiser les états
@@ -715,7 +826,7 @@ const speech = {
                 speakingIndicator.classList.remove('active');
             }
             
-            console.log("Synthèse vocale arrêtée");
+            console.log("Synthèse vocale arrêtée avec succès");
         } catch (error) {
             console.error('Erreur lors de l\'arrêt de la synthèse vocale:', error);
         }
@@ -774,11 +885,6 @@ function initDOMReferences() {
     // Boutons
     startBtn = document.getElementById('startBtn');
     startCoherenceBtn = document.getElementById('startCoherenceBtn');
-    nextPrepBtn = document.getElementById('nextPrepBtn');
-    skipInductionBtn = document.getElementById('skipInductionBtn');
-    skipDeepeningBtn = document.getElementById('skipDeepeningBtn');
-    nextExplorationBtn = document.getElementById('nextExplorationBtn');
-    completeBtn = document.getElementById('completeBtn');
     restartBtn = document.getElementById('restartBtn');
     homeBtn = document.getElementById('homeBtn');
 
@@ -794,60 +900,14 @@ function initDOMReferences() {
 
 // Fonction pour configurer tous les écouteurs d'événements
 function setupEventListeners() {
-    // Boutons de navigation avec système anti-double-clic
-    if (startBtn) startBtn.addEventListener('click', () => safeShowPage(2));
+    // Conservation uniquement des boutons pour la première page, 
+    // la partie préparation et la partie "séance complétée"
+    if (startBtn) startBtn.addEventListener('click', () => showPage(2));
     if (startCoherenceBtn) startCoherenceBtn.addEventListener('click', startCoherenceCardiaque);
-    if (nextPrepBtn) nextPrepBtn.addEventListener('click', () => safeShowPage(3));
+    if (restartBtn) restartBtn.addEventListener('click', () => showPage(2));
+    if (homeBtn) homeBtn.addEventListener('click', () => showPage(1));
     
-    // Activer les sons binauraux lors du clic sur les boutons spécifiques (seulement si le bouton est activé)
-    if (skipInductionBtn) {
-        skipInductionBtn.addEventListener('click', () => {
-            // Vérifier l'état du bouton binauralToggle avant d'activer les sons
-            const binauralToggle = document.getElementById('binauralToggle');
-            if (binauralToggle && binauralToggle.checked) {
-                startBinauralBeats();
-            }
-            safeShowPage(4);
-        });
-    }
-    
-    if (skipDeepeningBtn) {
-        skipDeepeningBtn.addEventListener('click', () => {
-            // Vérifier l'état du bouton binauralToggle avant d'activer les sons
-            const binauralToggle = document.getElementById('binauralToggle');
-            if (binauralToggle && binauralToggle.checked) {
-                startBinauralBeats();
-            }
-            safeShowPage(5);
-        });
-    }
-    
-    if (nextExplorationBtn) nextExplorationBtn.addEventListener('click', () => safeShowPage(6));
-    
-    // Arrêter les sons binauraux à la fin du programme
-    if (completeBtn) {
-        completeBtn.addEventListener('click', () => {
-            if (binauralActive) {
-                // Arrêter progressivement les sons binauraux
-                if (binauralGain) {
-                    binauralGain.gain.linearRampToValueAtTime(0, binauralContext.currentTime + 2);
-                }
-                // Après la diminution du volume, arrêter complètement
-                safeSetTimeout(() => {
-                    stopBinauralBeats();
-                    binauralActive = false;
-                    safeShowPage(7);
-                }, 2000);
-            } else {
-                safeShowPage(7);
-            }
-        });
-    }
-    
-    if (restartBtn) restartBtn.addEventListener('click', () => safeShowPage(2));
-    if (homeBtn) homeBtn.addEventListener('click', () => safeShowPage(1));
-    
-    // Sons binauraux - Modification pour activation immédiate et continue
+    // Sons binauraux
     const binauralToggle = document.getElementById('binauralToggle');
     if (binauralToggle) {
         binauralToggle.addEventListener('change', function() {
@@ -1603,26 +1663,76 @@ function getCountText(count) {
     }[count] || "";
 }
 
-// Version simplifiée de queueSpeech pour éviter les problèmes
+// Version améliorée avec meilleure gestion de la fluidité
 function queueSpeech(text, delay, textElement) {
     try {
         if (!text || text.trim() === '') return;
         
-        // Remplir l'élément de texte immédiatement si fourni
-        if (textElement && typeof textElement === 'object') {
-            textElement.textContent = text;
+        if (delay === undefined) delay = 0;
+        
+        speechQueue.push({text, delay, textElement});
+        
+        // Si rien n'est en cours, démarrer le traitement
+        if (!isSpeaking && !waitingForNextSpeech) {
+            processSpeechQueue();
         }
-        
-        // Si l'audio n'est pas activé, ne pas continuer
-        if (!audioToggle || !audioToggle.checked) return;
-        
-        // Parler directement
-        safeSetTimeout(() => {
-            speech.speak(text);
-        }, delay || 0);
-        
     } catch (error) {
         console.error('Erreur dans queueSpeech:', error);
+    }
+}
+
+// Traitement amélioré de la file d'attente vocale
+function processSpeechQueue() {
+    try {
+        if (speechQueue.length === 0) {
+            isSpeaking = false;
+            waitingForNextSpeech = false;
+            return;
+        }
+        
+        isSpeaking = true;
+        const nextSpeech = speechQueue.shift();
+        
+        // Mettre à jour l'élément de texte avant de commencer à parler
+        if (nextSpeech.textElement && typeof nextSpeech.textElement === 'object') {
+            nextSpeech.textElement.textContent = nextSpeech.text;
+        }
+        
+        // Attendre le délai spécifié avant de parler
+        safeSetTimeout(function() {
+            // Si le texte est trop long, le diviser pour une meilleure fluidité
+            const textSegments = segmentTextForBetterSpeech(nextSpeech.text);
+            
+            if (textSegments.length === 1) {
+                // Texte court, prononcer directement
+                if (nextSpeech.text) {
+                    speech.speak(nextSpeech.text);
+                }
+                
+                // Attendre que la parole soit terminée avant de continuer
+                const estimatedDuration = calculateEstimatedDuration(nextSpeech.text);
+                
+                waitingForNextSpeech = true;
+                
+                safeSetTimeout(function() {
+                    waitingForNextSpeech = false;
+                    processSpeechQueue();
+                }, estimatedDuration);
+            } else {
+                // Texte long, prononcer en segments
+                waitingForNextSpeech = true;
+                speakTextSegments(textSegments, 0, () => {
+                    waitingForNextSpeech = false;
+                    processSpeechQueue();
+                });
+            }
+            
+        }, nextSpeech.delay);
+    } catch (error) {
+        console.error('Erreur dans processSpeechQueue:', error);
+        // Réinitialiser les états pour éviter un blocage
+        isSpeaking = false;
+        waitingForNextSpeech = false;
     }
 }
 
@@ -1691,10 +1801,10 @@ function startCoherenceCardiaque() {
                     coherenceInstruction.textContent = completionText;
                     queueSpeech(completionText);
                     
-                    // Mettre en évidence le bouton suivant s'il existe
-                    if (nextPrepBtn) {
-                        nextPrepBtn.classList.add('pulse-animation');
-                    }
+                    // Passer automatiquement à la page suivante après un délai
+                    safeSetTimeout(function() {
+                        showPage(3);
+                    }, 8000);
                 }
             }, 1000);
         }, 5000);
@@ -1761,21 +1871,15 @@ function animateBreath() {
                     coherenceInstruction.textContent = "Expirez doucement...";
                     
                     // Utiliser un délai pour éviter de couper la voix précédente
-               // Mettre à jour l'instruction pour l'expiration
-                    if (step === 0) {
-                        coherenceInstruction.textContent = "Expirez doucement...";
-                        
-                        // Utiliser un délai pour éviter de couper la voix précédente
-                        if (audioToggle && audioToggle.checked && !speakingInProgress) {
-                            speech.speak("Expirez");
-                        }
+                    if (audioToggle && audioToggle.checked && !speakingInProgress) {
+                        speech.speak("Expirez");
                     }
-                    
-                    step++;
-                    if (step >= totalSteps) {
-                        phase = 'in';
-                        step = 0;
-                    }
+                }
+                
+                step++;
+                if (step >= totalSteps) {
+                    phase = 'in';
+                    step = 0;
                 }
             }
         }, 100); // 10 frames par seconde
@@ -1831,11 +1935,6 @@ function resetCoherenceCardiaque() {
         
         secondsRemaining = 120;
         updateTimerDisplay();
-        
-        // Retirer l'animation du bouton s'il existe
-        if (nextPrepBtn) {
-            nextPrepBtn.classList.remove('pulse-animation');
-        }
     } catch (error) {
         console.error("Erreur dans resetCoherenceCardiaque:", error);
     }
@@ -1904,7 +2003,7 @@ function startInduction() {
                     queueSpeech(finalText, 0, inductionInstruction);
                     
                     safeSetTimeout(function() {
-                        safeShowPage(4); // Passer à la profondeur
+                        showPage(4); // Passer à la profondeur
                     }, 7000);
                     return;
                 }
@@ -2035,7 +2134,7 @@ function startDeepening() {
                 speakTextSegments(textSegments, 0, () => {
                     // Transition à la prochaine page après un délai suffisant
                     safeSetTimeout(function() {
-                        safeShowPage(5); // Passer à l'exploration
+                        showPage(5); // Passer à l'exploration
                     }, 5000);
                 });
             }
@@ -2303,7 +2402,7 @@ function startExploration() {
                                         }, 3000);
                                     } else {
                                         // Dernier message, préparer la transition vers la page suivante
-                                        safeSetTimeout(() => safeShowPage(6), 8000);
+                                        safeSetTimeout(() => showPage(6), 8000);
                                     }
                                 });
                             }
@@ -2354,6 +2453,7 @@ function startAwakening() {
         
         // Réinitialiser tous les états et éléments
         speech.stop();
+        speechQueue = [];
         
         const mainInstruction = document.querySelector('#page6 .instruction');
         if (!mainInstruction) {
@@ -2387,13 +2487,16 @@ function startAwakening() {
                         const text = "Préparez-vous à revenir doucement à votre état de conscience habituel.";
                         mainInstruction.textContent = text;
                         
-                        // Parler directement pour éviter les problèmes
-                        speech.speak(text);
+                        // Utiliser la segmentation pour une meilleure fluidité
+                        const segments = segmentTextForBetterSpeech(text);
                         
-                        // Passer à la phase suivante après un délai
-                        safeSetTimeout(() => {
-                            nextPhase();
-                        }, 5000);
+                        // Utiliser la nouvelle méthode pour une meilleure prononciation
+                        speakTextSegments(segments, 0, () => {
+                            if (!phaseComplete) {
+                                phaseComplete = true;
+                                safeSetTimeout(nextPhase, 1000); // Pause entre les phrases
+                            }
+                        });
                     }, 2000);
                     break;
                     
@@ -2401,13 +2504,16 @@ function startAwakening() {
                     const text = "À chaque compte, vous vous sentirez de plus en plus éveillé et alerte.";
                     mainInstruction.textContent = text;
                     
-                    // Parler directement
-                    speech.speak(text);
+                    // Utiliser la segmentation pour une meilleure fluidité
+                    const segments = segmentTextForBetterSpeech(text);
                     
-                    // Passer à la phase suivante après un délai
-                    safeSetTimeout(() => {
-                        nextPhase();
-                    }, 5000);
+                    // Utiliser la nouvelle méthode pour une meilleure prononciation
+                    speakTextSegments(segments, 0, () => {
+                        if (!phaseComplete) {
+                            phaseComplete = true;
+                            safeSetTimeout(nextPhase, 1000);
+                        }
+                    });
                     break;
                     
                 case 2: // Début du décompte
@@ -2416,18 +2522,19 @@ function startAwakening() {
             }
         }
         
-        // Fonction pour gérer le décompte du réveil - VERSION SIMPLIFIÉE
+        // Fonction pour gérer le décompte du réveil - VERSION AMÉLIORÉE
         function startAwakeningCountdown() {
             if (count < 0) {
                 // Fin du décompte
                 const finalText = "Vous êtes maintenant complètement réveillé, présent et alerte, tout en conservant cette sensation de bien-être et de calme.";
                 mainInstruction.textContent = finalText;
                 
-                // Parler directement
-                speech.speak(finalText);
-                
-                // Passer à la page finale après un délai
-                safeSetTimeout(() => safeShowPage(7), 8000);
+                // Utiliser la segmentation pour le texte final
+                const segments = segmentTextForBetterSpeech(finalText);
+                speakTextSegments(segments, 0, () => {
+                    // Passer à la page finale après un délai
+                    safeSetTimeout(() => showPage(7), 5000);
+                });
                 return;
             }
             
@@ -2438,14 +2545,23 @@ function startAwakening() {
             const countText = getCountText(count);
             mainInstruction.textContent = countText;
             
-            // Parler directement
-            speech.speak(countText);
-            
-            // Programmer le prochain chiffre après un délai fixe
-            safeSetTimeout(() => {
+            // Utiliser la méthode speak directement pour les nombres, pour une meilleure prononciation
+            if (count > 0) {
+                // Assurer une synchronisation parfaite pour le chiffre et son texte associé
+                speech.speak(countText);
+                
+                // Calculer la durée estimée pour déterminer quand passer au chiffre suivant
+                const estimatedDuration = calculateEstimatedDuration(countText);
+                
+                // Programmer le prochain chiffre après la durée calculée
+                safeSetTimeout(() => {
+                    count--;
+                    safeSetTimeout(startAwakeningCountdown, 1000);
+                }, estimatedDuration + 500); // Ajouter une pause supplémentaire pour rendre le rythme plus naturel
+            } else {
                 count--;
                 safeSetTimeout(startAwakeningCountdown, 1000);
-            }, 6000); // Délai fixe suffisamment long
+            }
         }
         
         // Démarrer la séquence
@@ -2453,121 +2569,6 @@ function startAwakening() {
         
     } catch (error) {
         console.error("Erreur dans startAwakening:", error);
-    }
-}
-
-// Fonction pour afficher une page - AMÉLIORÉE
-function showPage(pageNumber) {
-    try {
-        console.log(`Changement vers la page ${pageNumber}`);
-        
-        // Annuler TOUS les timers en cours pour éviter les chevauchements
-        clearAllTimeouts();
-        clearAllIntervals();
-        
-        // Interrompre proprement TOUTE synthèse vocale
-        if (speech && typeof speech.stop === 'function') {
-            speech.stop();
-        }
-        
-        // MODIFICATION: Ne pas arrêter les sons binauraux lors des changements de page
-        // Seulement à la fin du programme (page 7)
-        if (typeof stopBinauralBeats === 'function' && pageNumber === 7) {
-            stopBinauralBeats();
-            binauralActive = false;
-        }
-        
-        // Arrêter les intervalles de la cohérence cardiaque si actifs
-        if (coherenceInterval) {
-            clearInterval(coherenceInterval);
-            coherenceInterval = null;
-        }
-        
-        if (coherenceTimer) {
-            clearInterval(coherenceTimer);
-            coherenceTimer = null;
-        }
-        
-        // Masquer toutes les pages
-        pages.forEach(function(page) {
-            page.classList.remove('active');
-        });
-        
-        // Afficher la page demandée
-        const pageElement = document.getElementById('page' + pageNumber);
-        if (pageElement) {
-            pageElement.classList.add('active');
-        } else {
-            console.error('Page non trouvée:', 'page' + pageNumber);
-            return;
-        }
-        
-        // Mettre à jour la navigation
-        updateSteps(pageNumber);
-        
-        // Mettre à jour l'état actuel
-        currentPage = pageNumber;
-        
-        // Défiler vers le haut
-        window.scrollTo(0, 0);
-        
-        // Exécuter les actions spécifiques à la page après un délai
-        safeSetTimeout(function() {
-            switch (pageNumber) {
-                case 1:
-                    // Page d'accueil
-                    const welcomeElement = document.querySelector('#page1 .intro-text p:first-child');
-                    const homeText = "Bienvenue dans votre séance d'auto-hypnose guidée.";
-                    if (welcomeElement) {
-                        welcomeElement.textContent = homeText;
-                    }
-                    queueSpeech(homeText);
-                    break;
-                    
-                case 2:
-                    // Page de préparation
-                    resetCoherenceCardiaque();
-                    break;
-                    
-                case 3:
-                    // Induction
-                    startInduction();
-                    // Activer le système anti-veille au début de la séance
-                    enableKeepAwake();
-                    break;
-                
-                case 4:
-                    // Profondeur
-                    startDeepening();
-                    // S'assurer que le système anti-veille reste actif
-                    enableKeepAwake();
-                    break;
-                    
-                case 5:
-                    // Exploration
-                    startExploration();
-                    // S'assurer que le système anti-veille reste actif
-                    enableKeepAwake();
-                    break;
-                    
-                case 6:
-                    // Retour
-                    startAwakening();
-                    // S'assurer que le système anti-veille reste actif
-                    enableKeepAwake();
-                    break;
-                    
-                case 7:
-                    // Page finale
-                    // Appliquer les ajustements de style mobile
-                    adjustMobileStyles();
-                    // Désactiver le système anti-veille à la fin de la séance
-                    disableKeepAwake();
-                    break;
-            }
-        }, 600); // Délai optimisé pour la réactivité
-    } catch (error) {
-        console.error('Erreur lors du changement de page:', error);
     }
 }
 
