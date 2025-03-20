@@ -44,7 +44,989 @@ Signature: JR-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p-2025
             'color: red; font-size: 20px; font-weight: bold;');
         console.log('%cCopyright © 2025 ' + _0xf5e8[0] + ' ' + _0xf5e8[1] + ' (' + _0xf5e8[2] + ')', 
             'color: blue; font-size: 14px;');
-    };
+    // Animation de respiration
+function animateBreath() {
+    try {
+        // Vérifier que les éléments existent
+        if (!breathCircle || !breathInLabel || !breathOutLabel || !coherenceInstruction) {
+            console.error("Éléments de respiration manquants");
+            return;
+        }
+        
+        let phase = 'in'; // 'in' pour inspiration, 'out' pour expiration
+        let step = 0;
+        const totalSteps = 50; // 5 secondes à 10 étapes par seconde
+        
+        // Arrêter l'intervalle précédent si existant
+        if (coherenceInterval) {
+            clearInterval(coherenceInterval);
+        }
+        
+        // Démarrer l'animation
+        coherenceInterval = safeSetInterval(function() {
+            if (phase === 'in') {
+                // Animation d'inspiration (monter)
+                const progress = step / totalSteps;
+                breathCircle.style.transform = `translate(-50%, calc(-50% - ${80 * progress}px))`;
+                
+                // Afficher le label d'inspiration
+                breathInLabel.style.opacity = 1;
+                breathOutLabel.style.opacity = 0;
+                
+                // Mettre à jour l'instruction pour l'inspiration
+                if (step === 0) {
+                    coherenceInstruction.textContent = "Inspirez lentement...";
+                    
+                    // Utiliser un délai pour éviter de couper la voix précédente
+                    if (audioToggle && audioToggle.checked && !speakingInProgress) {
+                        speech.speak("Inspirez");
+                    }
+                }
+                
+                step++;
+                if (step >= totalSteps) {
+                    phase = 'out';
+                    step = 0;
+                }
+            } else {
+                // Animation d'expiration (descendre)
+                const progress = step / totalSteps;
+                breathCircle.style.transform = `translate(-50%, calc(-50% + ${80 * progress}px))`;
+                
+                // Afficher le label d'expiration
+                breathInLabel.style.opacity = 0;
+                breathOutLabel.style.opacity = 1;
+                
+                // Mettre à jour l'instruction pour l'expiration
+                if (step === 0) {
+                    coherenceInstruction.textContent = "Expirez doucement...";
+                    
+                    // Utiliser un délai pour éviter de couper la voix précédente
+                    if (audioToggle && audioToggle.checked && !speakingInProgress) {
+                        speech.speak("Expirez");
+                    }
+                }
+                
+                step++;
+                if (step >= totalSteps) {
+                    phase = 'in';
+                    step = 0;
+                }
+            }
+        }, 100); // 10 frames par seconde
+    } catch (error) {
+        console.error("Erreur dans animateBreath:", error);
+    }
+}
+
+// Mettre à jour l'affichage du minuteur
+function updateTimerDisplay() {
+    if (!timerDisplay) return;
+    
+    const minutes = Math.floor(secondsRemaining / 60);
+    const seconds = secondsRemaining % 60;
+    timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+// Arrêter la cohérence cardiaque
+function stopCoherenceCardiaque() {
+    try {
+        // Arrêter les intervalles
+        if (coherenceInterval) {
+            clearInterval(coherenceInterval);
+            coherenceInterval = null;
+        }
+        
+        if (coherenceTimer) {
+            clearInterval(coherenceTimer);
+            coherenceTimer = null;
+        }
+        
+        // Réinitialiser l'affichage
+        if (breathCircle) {
+            breathCircle.style.transform = 'translate(-50%, -50%)';
+        }
+        
+        if (breathInLabel) breathInLabel.style.opacity = 0;
+        if (breathOutLabel) breathOutLabel.style.opacity = 0;
+    } catch (error) {
+        console.error("Erreur dans stopCoherenceCardiaque:", error);
+    }
+}
+
+// Réinitialiser la cohérence cardiaque
+function resetCoherenceCardiaque() {
+    try {
+        // Arrêter tout
+        stopCoherenceCardiaque();
+        
+        // Réinitialiser l'affichage si les éléments existent
+        if (coherenceIntro) coherenceIntro.style.display = 'block';
+        if (coherenceContainer) coherenceContainer.style.display = 'none';
+        
+        secondsRemaining = 120;
+        updateTimerDisplay();
+        
+        // Retirer l'animation du bouton s'il existe
+        if (nextPrepBtn) {
+            nextPrepBtn.classList.remove('pulse-animation');
+        }
+    } catch (error) {
+        console.error("Erreur dans resetCoherenceCardiaque:", error);
+    }
+}
+
+// Démarrer l'induction avec activation conditionnelle des sons binauraux
+function startInduction() {
+    try {
+        // Vérifier que les éléments existent
+        if (!inductionCounter || !inductionInstruction) {
+            console.error("Éléments d'induction manquants");
+            return;
+        }
+        
+        // Activer explicitement le système anti-veille pour éviter la mise en veille
+        enableKeepAwake();
+        
+        // Vérifier si le bouton binaural est activé avant de démarrer les sons
+        const binauralToggle = document.getElementById('binauralToggle');
+        if (binauralToggle && binauralToggle.checked) {
+            startBinauralBeats();
+        }
+        
+        const inductionTexts = [
+            "Fixez votre regard sur le point central de la spirale, laissez-vous absorber par ce point",
+            "Laissez votre vision périphérique capter naturellement le mouvement circulaire",
+            "Respirez tranquillement en vous concentrant sur la spirale qui tourne doucement",
+            "Vos paupières peuvent devenir lourdes, c'est tout à fait normal",
+            "Laissez-vous absorber complètement par ce motif hypnotique"
+        ];
+        
+        let count = 10;
+        let currentInstruction = 0;
+        let instructionInterval;
+        
+        // Initialiser l'affichage
+        inductionCounter.textContent = count;
+        inductionInstruction.textContent = inductionTexts[0];
+        
+        // Attendre que la page soit bien chargée
+        safeSetTimeout(function() {
+            // Début de la séquence
+            queueSpeech(inductionTexts[0], 0, inductionInstruction);
+            
+            // Progression des instructions
+            instructionInterval = safeSetInterval(function() {
+                currentInstruction++;
+                
+                if (currentInstruction < inductionTexts.length) {
+                    queueSpeech(inductionTexts[currentInstruction], 0, inductionInstruction);
+                } else {
+                    clearInterval(instructionInterval);
+                }
+            }, 8000);
+            
+            // Décompte
+            safeSetTimeout(function() {
+                startCountdown();
+            }, 5000);
+            
+            function startCountdown() {
+                if (count <= 0) {
+                    clearInterval(instructionInterval);
+                    
+                    const finalText = "Vous entrez maintenant dans un état plus profond de relaxation";
+                    queueSpeech(finalText, 0, inductionInstruction);
+                    
+                    safeSetTimeout(function() {
+                        safeShowPage(4); // Passer à la profondeur
+                    }, 7000);
+                    return;
+                }
+                
+                count--;
+                inductionCounter.textContent = count;
+                
+                safeSetTimeout(startCountdown, 4500);
+            }
+        }, 1000);
+    } catch (error) {
+        console.error("Erreur dans startInduction:", error);
+    }
+}
+
+// Démarrer l'approfondissement avec une synchronisation parfaite et des sons binauraux conditionnels
+function startDeepening() {
+    try {
+        // Vérifier que les éléments existent
+        if (!deepeningInstruction || !stairsCounter) {
+            console.error("Éléments d'approfondissement manquants");
+            return;
+        }
+        
+        // S'assurer que le système anti-veille reste actif
+        enableKeepAwake();
+        
+        // Vérifier si le bouton binaural est activé avant de démarrer les sons
+        const binauralToggle = document.getElementById('binauralToggle');
+        if (binauralToggle && binauralToggle.checked) {
+            startBinauralBeats();
+        }
+        
+        const deepeningTexts = [
+            "Maintenant, je vous invite à imaginer un escalier. Un escalier qui descend en spirale, confortablement.",
+            "Vous allez descendre cet escalier, marche par marche, et à chaque marche, vous vous sentirez plus détendu, plus calme.",
+            "Nous allons compter de 10 à 1, et à chaque chiffre, vous descendrez une marche, vous enfonçant plus profondément dans un état d'hypnose agréable.",
+            "Quand nous arriverons à 1, vous pourrez fermer les yeux si ce n'est pas déjà fait, et vous serez dans un état de transe profonde et confortable."
+        ];
+        
+        // Préparer les compteurs
+        let currentPhase = "intro"; // "intro", "countdown", "finale"
+        let currentStep = 0; // pour les textes d'intro
+        let stairCount = 10; // pour les marches
+        
+        // Cacher le compteur au début
+        stairsCounter.style.visibility = 'hidden';
+        stairsCounter.textContent = stairCount;
+        
+        // Créer les points lumineux pour l'animation d'escalier
+        createStairDots();
+        
+        // Attendre que la page soit bien initialisée
+        safeSetTimeout(function() {
+            // Démarrer la séquence
+            progressSequence();
+        }, 1000);
+        
+        // Fonction récursive pour progresser dans la séquence
+        function progressSequence() {
+            if (currentPhase === "intro") {
+                // Phase d'introduction - 4 textes d'introduction
+                if (currentStep < deepeningTexts.length) {
+                    // Afficher et prononcer le texte actuel
+                    deepeningInstruction.textContent = deepeningTexts[currentStep];
+                    
+                    // Utiliser la segmentation pour les textes longs
+                    const textSegments = segmentTextForBetterSpeech(deepeningTexts[currentStep]);
+                    speakTextSegments(textSegments, 0, () => {
+                        currentStep++;
+                        // Programmer la prochaine étape
+                        safeSetTimeout(progressSequence, 3000);
+                    });
+                } else {
+                    // Fin de l'introduction, commencer le décompte
+                    currentPhase = "countdown";
+                    
+                    // Petit délai avant de commencer le décompte
+                    safeSetTimeout(progressSequence, 2000);
+                }
+            }
+            else if (currentPhase === "countdown") {
+                // Phase de décompte - marches de 10 à 1
+                if (stairCount > 0) {
+                    // Afficher le compteur pour le décompte
+                    stairsCounter.style.visibility = 'visible';
+                    stairsCounter.textContent = stairCount;
+                    
+                    // Obtenir et afficher le texte pour cette marche
+                    const stairText = getStairText(stairCount);
+                    deepeningInstruction.textContent = stairText;
+                    
+                    // IMPORTANT: S'assurer que "marche une" est bien prononcé pour la marche 1
+                    if (stairCount === 1) {
+                        speech.speak("Marche une. Vous êtes arrivé dans cet état d'hypnose profond et agréable.");
+                        
+                        safeSetTimeout(() => {
+                            stairCount--;
+                            safeSetTimeout(progressSequence, 3000);
+                        }, calculateEstimatedDuration("Marche une. Vous êtes arrivé dans cet état d'hypnose profond et agréable."));
+                    } else {
+                        // Lire le texte de la marche avec la nouvelle méthode
+                        const textSegments = segmentTextForBetterSpeech(stairText);
+                        speakTextSegments(textSegments, 0, () => {
+                            stairCount--;
+                            // Programmer la prochaine marche
+                            safeSetTimeout(progressSequence, 3000);
+                        });
+                    }
+                } else {
+                    // Fin du décompte, passer à la finale
+                    currentPhase = "finale";
+                    
+                    // Cacher le compteur à la fin
+                    stairsCounter.style.visibility = 'hidden';
+                    
+                    // Petit délai avant le message final
+                    safeSetTimeout(progressSequence, 2000);
+                }
+            }
+            else if (currentPhase === "finale") {
+                // Phase finale - message de conclusion et transition
+                const finalMessage = "Vous êtes maintenant dans un état de relaxation profonde. Si ce n'est pas déjà fait, fermez doucement vos yeux et laissez-vous porter par ma voix.";
+                deepeningInstruction.textContent = finalMessage;
+                
+                // Utiliser la segmentation pour le message final
+                const textSegments = segmentTextForBetterSpeech(finalMessage);
+                speakTextSegments(textSegments, 0, () => {
+                    // Transition à la prochaine page après un délai suffisant
+                    safeSetTimeout(function() {
+                        safeShowPage(5); // Passer à l'exploration
+                    }, 5000);
+                });
+            }
+        }
+    } catch (error) {
+        console.error("Erreur dans startDeepening:", error);
+    }
+}
+
+// Création dynamique des points lumineux pour l'escalier
+function createStairDots() {
+    try {
+        const container = document.getElementById('stairDotsContainer');
+        if (!container) {
+            console.error("Container de points d'escalier manquant");
+            return;
+        }
+        
+        // Vider le container d'abord
+        container.innerHTML = '';
+        
+        // Créer 20 points à des positions aléatoires
+        for (let i = 0; i < 20; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'stair-dot';
+            
+            // Position aléatoire
+            const x = Math.random() * 100;
+            const y = Math.random() * 100;
+            const delay = Math.random() * 8; // Délai aléatoire pour l'animation
+            
+            dot.style.left = x + '%';
+            dot.style.top = y + '%';
+            dot.style.animationDelay = delay + 's';
+            
+            container.appendChild(dot);
+        }
+    } catch (error) {
+        console.error("Erreur dans createStairDots:", error);
+    }
+}
+
+// Fonction complète d'exploration avec animations et effets visuels
+function startExploration() {
+    try {
+        // Vérifier que les éléments existent
+        if (!explorationInstruction || !energyScene) {
+            console.error("Éléments d'exploration manquants");
+            return;
+        }
+        
+        // S'assurer que le système anti-veille reste actif
+        enableKeepAwake();
+        
+        // Vérifier si le bouton binaural est activé avant de démarrer les sons
+        const binauralToggle = document.getElementById('binauralToggle');
+        if (binauralToggle && binauralToggle.checked) {
+            startBinauralBeats();
+        }
+        
+        // Utiliser les textes améliorés pour de meilleures liaisons
+        const explorationTexts = improveExplorationTexts();
+        
+        // Récupérer les éléments d'animation
+        const explorationScene = document.getElementById('explorationScene');
+        const explorationProgress = document.getElementById('explorationProgress');
+        
+        // Variables de contrôle
+        let currentTextIndex = 0;
+        let particlesInterval;
+        const totalTexts = explorationTexts.length;
+        
+        // Fonction pour créer une particule avec des couleurs et formes variées
+        function createParticle() {
+            if (!explorationScene) return null;
+            
+            const particle = document.createElement('div');
+            particle.className = 'exploration-particle';
+            
+            // Variations de couleurs pour des particules plus diversifiées
+            const colors = [
+                'rgba(255, 255, 255, 0.8)', // blanc
+                'rgba(173, 216, 230, 0.8)', // bleu clair
+                'rgba(255, 223, 186, 0.8)', // orange pâle
+                'rgba(152, 251, 152, 0.8)', // vert pâle
+                'rgba(238, 130, 238, 0.8)', // violet pâle
+                'rgba(255, 182, 193, 0.8)', // rose pâle
+                'rgba(240, 230, 140, 0.8)'  // jaune pâle
+            ];
+            
+            // Variations de taille
+            const size = 3 + Math.random() * 8; // entre 3px et 11px
+            
+            // Appliquer les styles
+            particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            
+            // 50% de chance d'avoir une particule ronde ou carrée
+            if (Math.random() > 0.5) {
+                particle.style.borderRadius = '50%';
+            }
+            
+            // Position aléatoire
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 50 + Math.random() * 150; // Distance plus variée
+            const x = Math.cos(angle) * distance + 150;
+            const y = Math.sin(angle) * distance + 150;
+            
+            particle.style.left = x + 'px';
+            particle.style.top = y + 'px';
+            
+            explorationScene.appendChild(particle);
+            
+            // Animation plus variée
+            safeSetTimeout(() => {
+                particle.style.opacity = 0.6 + Math.random() * 0.4; // Opacité variée
+                
+                // Mouvements plus organiques
+                const targetX = 150 + (Math.random() * 60 - 30);
+                const targetY = 150 + (Math.random() * 60 - 30);
+                const rotation = Math.random() * 360; // Rotation aléatoire
+                const scale = 0.8 + Math.random() * 0.5; // Échelle aléatoire
+                
+                particle.style.transform = `translate(${targetX - x}px, ${targetY - y}px) rotate(${rotation}deg) scale(${scale})`;
+                
+                // Durée de vie variable des particules
+                const duration = 8000 + Math.random() * 7000;
+                
+                // Disparition progressive
+                safeSetTimeout(() => {
+                    particle.style.opacity = 0;
+                    safeSetTimeout(() => {
+                        if (explorationScene.contains(particle)) {
+                            explorationScene.removeChild(particle);
+                        }
+                    }, 1000);
+                }, duration);
+            }, 100);
+            
+            return particle;
+        }
+        
+        // Fonction pour créer des particules périodiquement
+        function startParticlesAnimation() {
+            return safeSetInterval(() => {
+                if (currentTextIndex < totalTexts) {
+                    // Augmenter progressivement le nombre de particules créées
+                    const particleCount = 1 + Math.floor(currentTextIndex / 2);
+                    
+                    for (let i = 0; i < particleCount; i++) {
+                        safeSetTimeout(() => createParticle(), i * 200);
+                    }
+                }
+            }, 1500);
+        }
+        
+        // Créer un effet de vagues pour le fond
+        function createBackgroundEffect() {
+            if (!explorationScene) return null;
+            
+            // Créer un élément pour l'effet de vague
+            const waveEffect = document.createElement('div');
+            waveEffect.className = 'wave-effect';
+            waveEffect.style.position = 'absolute';
+            waveEffect.style.top = '50%';
+            waveEffect.style.left = '50%';
+            waveEffect.style.transform = 'translate(-50%, -50%)';
+            waveEffect.style.width = '200px';
+            waveEffect.style.height = '200px';
+            waveEffect.style.borderRadius = '50%';
+            waveEffect.style.background = 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%)';
+            waveEffect.style.boxShadow = '0 0 50px rgba(255, 255, 255, 0.3)';
+            waveEffect.style.transition = 'all 0.5s ease';
+            waveEffect.style.zIndex = '1';
+            waveEffect.style.pointerEvents = 'none';
+            
+            explorationScene.appendChild(waveEffect);
+            
+            // Animation de pulsation
+            let scale = 1;
+            let growing = true;
+            
+            const pulseInterval = safeSetInterval(() => {
+                if (growing) {
+                    scale += 0.01;
+                    if (scale >= 1.2) growing = false;
+                } else {
+                    scale -= 0.01;
+                    if (scale <= 1) growing = true;
+                }
+                
+                waveEffect.style.transform = `translate(-50%, -50%) scale(${scale})`;
+                waveEffect.style.opacity = 0.1 + Math.sin(scale * Math.PI) * 0.05;
+            }, 100);
+            
+            return {
+                element: waveEffect,
+                interval: pulseInterval
+            };
+        }
+        
+        // Attendre que la page soit bien initialisée
+        safeSetTimeout(function() {
+            // Afficher la scène d'exploration
+            if (explorationScene) {
+                explorationScene.style.opacity = '1';
+                
+                // Ajouter l'effet de fond
+                const backgroundEffect = createBackgroundEffect();
+                
+                // Démarrer l'animation des particules
+                particlesInterval = startParticlesAnimation();
+                
+                // Commencer la séquence d'exploration
+                safeSetTimeout(() => progressExploration(), 2000);
+                
+                function progressExploration() {
+                    if (currentTextIndex < totalTexts) {
+                        // Mettre à jour le texte
+                        explorationInstruction.textContent = explorationTexts[currentTextIndex];
+                        
+                        // Mettre à jour la barre de progression
+                        if (explorationProgress) {
+                            const progressPercent = ((currentTextIndex + 1) / totalTexts) * 100;
+                            explorationProgress.style.width = progressPercent + '%';
+                        }
+                        
+                        // AMÉLIORATION: Utiliser la segmentation pour une meilleure fluidité
+                        const textSegments = segmentTextForBetterSpeech(explorationTexts[currentTextIndex]);
+                        
+                        // Créer un effet spécial pour cette phase
+                        createParticleBurst(10 + currentTextIndex * 2, 150);
+                        
+                        // Utiliser la nouvelle méthode de segments pour parler
+                        speakTextSegments(textSegments, 0, () => {
+                            currentTextIndex++;
+                            // Pause plus longue entre les textes pour l'immersion
+                            safeSetTimeout(progressExploration, 4000);
+                        });
+                    } else {
+                        // Fin de l'exploration, message de transition
+                        safeSetTimeout(function() {
+                            const transitionMessages = [
+                                "Prenez encore quelques instants pour profiter pleinement de cet espace intérieur...",
+                                "Ressentez cette paix, ce calme qui est maintenant ancré en vous...",
+                                "Lorsque vous serez prêt, nous reviendrons doucement à un état de conscience ordinaire, en conservant cette sérénité."
+                            ];
+                            
+                            // Premier message de transition
+                            explorationInstruction.textContent = transitionMessages[0];
+                            
+                            let transitionIndex = 0;
+                            
+                            function playTransition() {
+                                // Utiliser la segmentation pour la transition
+                                const segments = segmentTextForBetterSpeech(transitionMessages[transitionIndex]);
+                                
+                                speakTextSegments(segments, 0, () => {
+                                    if (transitionIndex < transitionMessages.length - 1) {
+                                        transitionIndex++;
+                                        safeSetTimeout(() => {
+                                            explorationInstruction.textContent = transitionMessages[transitionIndex];
+                                            playTransition();
+                                        }, 3000);
+                                    } else {
+                                        // Dernier message, préparer la transition vers la page suivante
+                                        safeSetTimeout(() => safeShowPage(6), 8000);
+                                    }
+                                });
+                            }
+                            
+                            // Démarrer la séquence de transition
+                            playTransition();
+                            
+                        }, 3000);
+                        
+                        // Nettoyer les animations
+                        if (particlesInterval) {
+                            clearInterval(particlesInterval);
+                        }
+                        
+                        if (backgroundEffect && backgroundEffect.interval) {
+                            clearInterval(backgroundEffect.interval);
+                        }
+                    }
+                }
+            }
+        }, 1500);
+        
+        // Fonction pour créer une explosion de particules
+        function createParticleBurst(count, delay) {
+            for (let i = 0; i < count; i++) {
+                safeSetTimeout(() => {
+                    createParticle();
+                }, i * delay);
+            }
+        }
+        
+    } catch (error) {
+        console.error("Erreur dans startExploration:", error);
+    }
+}
+
+// Démarrer le réveil avec une progression plus naturelle - VERSION AMÉLIORÉE
+function startAwakening() {
+    try {
+        // Vérifier que les éléments existent
+        if (!awakeningCounter || !energyScene) {
+            console.error("Éléments de réveil manquants");
+            return;
+        }
+        
+        // S'assurer que le système anti-veille reste actif
+        enableKeepAwake();
+        
+        // Réinitialiser tous les états et éléments
+        speech.stop();
+        speechQueue = [];
+        
+        const mainInstruction = document.querySelector('#page6 .instruction');
+        if (!mainInstruction) {
+            console.error("Élément d'instruction de réveil manquant");
+            return;
+        }
+        
+        let count = 5;
+        awakeningCounter.textContent = count;
+        
+        // Faire apparaître progressivement la scène d'énergie
+        energyScene.style.transition = 'opacity 3s ease';
+        energyScene.style.opacity = '1';
+        
+        // Variables pour contrôler le flux et les délais
+        let phase = 0;
+        let phaseComplete = false;
+        
+        // Fonction pour avancer à la phase suivante
+        function nextPhase() {
+            phase++;
+            phaseComplete = false;
+            executeCurrentPhase();
+        }
+        
+        // Cette fonction permet de structurer les phases avec des rappels sur la fin
+        function executeCurrentPhase() {
+            switch(phase) {
+                case 0: // Phase initiale - Introduction
+                    safeSetTimeout(() => {
+                        const text = "Préparez-vous à revenir doucement à votre état de conscience habituel.";
+                        mainInstruction.textContent = text;
+                        
+                        // Utiliser la segmentation pour une meilleure fluidité
+                        const segments = segmentTextForBetterSpeech(text);
+                        
+                        // Utiliser la nouvelle méthode pour une meilleure prononciation
+                        speakTextSegments(segments, 0, () => {
+                            if (!phaseComplete) {
+                                phaseComplete = true;
+                                safeSetTimeout(nextPhase, 1000); // Pause entre les phrases
+                            }
+                        });
+                    }, 2000);
+                    break;
+                    
+                case 1: // Seconde instruction
+                    const text = "À chaque compte, vous vous sentirez de plus en plus éveillé et alerte.";
+                    mainInstruction.textContent = text;
+                    
+                    // Utiliser la segmentation pour une meilleure fluidité
+                    const segments = segmentTextForBetterSpeech(text);
+                    
+                    // Utiliser la nouvelle méthode pour une meilleure prononciation
+                    speakTextSegments(segments, 0, () => {
+                        if (!phaseComplete) {
+                            phaseComplete = true;
+                            safeSetTimeout(nextPhase, 1000);
+                        }
+                    });
+                    break;
+                    
+                case 2: // Début du décompte
+                    startAwakeningCountdown();
+                    break;
+            }
+        }
+        
+        // Fonction pour gérer le décompte du réveil - VERSION AMÉLIORÉE
+        function startAwakeningCountdown() {
+            if (count < 0) {
+                // Fin du décompte
+                const finalText = "Vous êtes maintenant complètement réveillé, présent et alerte, tout en conservant cette sensation de bien-être et de calme.";
+                mainInstruction.textContent = finalText;
+                
+                // Utiliser la segmentation pour le texte final
+                const segments = segmentTextForBetterSpeech(finalText);
+                speakTextSegments(segments, 0, () => {
+                    // Passer à la page finale après un délai
+                    safeSetTimeout(() => safeShowPage(7), 5000);
+                });
+                return;
+            }
+            
+            // Afficher le compteur
+            awakeningCounter.textContent = count;
+            
+            // Obtenir et afficher le texte pour ce compte
+            const countText = getCountText(count);
+            mainInstruction.textContent = countText;
+            
+            // Utiliser la méthode speak directement pour les nombres, pour une meilleure prononciation
+            if (count > 0) {
+                // Assurer une synchronisation parfaite pour le chiffre et son texte associé
+                speech.speak(countText);
+                
+                // Calculer la durée estimée pour déterminer quand passer au chiffre suivant
+                const estimatedDuration = calculateEstimatedDuration(countText);
+                
+                // Programmer le prochain chiffre après la durée calculée
+                safeSetTimeout(() => {
+                    count--;
+                    safeSetTimeout(startAwakeningCountdown, 1000);
+                }, estimatedDuration + 500); // Ajouter une pause supplémentaire pour rendre le rythme plus naturel
+            } else {
+                count--;
+                safeSetTimeout(startAwakeningCountdown, 1000);
+            }
+        }
+        
+        // Démarrer la séquence
+        executeCurrentPhase();
+        
+    } catch (error) {
+        console.error("Erreur dans startAwakening:", error);
+    }
+}
+
+// Fonction pour afficher une page - AMÉLIORÉE
+function showPage(pageNumber) {
+    try {
+        console.log(`Changement vers la page ${pageNumber}`);
+        
+        // Annuler TOUS les timers en cours pour éviter les chevauchements
+        clearAllTimeouts();
+        clearAllIntervals();
+        
+        // Interrompre proprement TOUTE synthèse vocale en vidant complètement les files d'attente
+        speech.stop();
+        
+        // IMPORTANT: Vider explicitement toutes les files d'attente
+        speechQueue = [];
+        
+        // Réinitialiser TOUS les états liés à la parole
+        isSpeaking = false;
+        waitingForNextSpeech = false;
+        speakingInProgress = false;
+        
+        // MODIFICATION: Ne pas arrêter les sons binauraux lors des changements de page
+        // Seulement à la fin du programme (page 7)
+        if (typeof stopBinauralBeats === 'function' && pageNumber === 7) {
+            stopBinauralBeats();
+            binauralActive = false;
+        }
+        
+        // Stopper toutes les animations et séquences
+        speech.utteranceQueue = [];
+        speechQueue = [];
+        isSpeaking = false;
+        waitingForNextSpeech = false;
+        speakingInProgress = false;
+        
+        // Arrêter les intervalles de la cohérence cardiaque si actifs
+        if (coherenceInterval) {
+            clearInterval(coherenceInterval);
+            coherenceInterval = null;
+        }
+        
+        if (coherenceTimer) {
+            clearInterval(coherenceTimer);
+            coherenceTimer = null;
+        }
+        
+        // Masquer toutes les pages
+        pages.forEach(function(page) {
+            page.classList.remove('active');
+        });
+        
+        // Afficher la page demandée
+        const pageElement = document.getElementById('page' + pageNumber);
+        if (pageElement) {
+            pageElement.classList.add('active');
+        } else {
+            console.error('Page non trouvée:', 'page' + pageNumber);
+            return;
+        }
+        
+        // Mettre à jour la navigation
+        updateSteps(pageNumber);
+        
+        // Mettre à jour l'état actuel
+        currentPage = pageNumber;
+        
+        // Défiler vers le haut
+        window.scrollTo(0, 0);
+        
+        // Exécuter les actions spécifiques à la page après un délai
+        // pour s'assurer que toutes les voix précédentes sont bien arrêtées
+        safeSetTimeout(function() {
+            switch (pageNumber) {
+                case 1:
+                    // Page d'accueil
+                    const welcomeElement = document.querySelector('#page1 .intro-text p:first-child');
+                    const homeText = "Bienvenue dans votre séance d'auto-hypnose guidée.";
+                    if (welcomeElement) {
+                        welcomeElement.textContent = homeText;
+                    }
+                    queueSpeech(homeText);
+                    break;
+                    
+                case 2:
+                    // Page de préparation
+                    resetCoherenceCardiaque();
+                    break;
+                    
+                case 3:
+                    // Induction
+                    startInduction();
+                    // Activer le système anti-veille au début de la séance
+                    enableKeepAwake();
+                    break;
+                
+                case 4:
+                    // Profondeur
+                    startDeepening();
+                    // S'assurer que le système anti-veille reste actif
+                    enableKeepAwake();
+                    break;
+                    
+                case 5:
+                    // Exploration
+                    startExploration();
+                    // S'assurer que le système anti-veille reste actif
+                    enableKeepAwake();
+                    break;
+                    
+                case 6:
+                    // Retour
+                    startAwakening();
+                    // S'assurer que le système anti-veille reste actif
+                    enableKeepAwake();
+                    break;
+                    
+                case 7:
+                    // Page finale
+                    // Appliquer les ajustements de style mobile
+                    adjustMobileStyles();
+                    // Désactiver le système anti-veille à la fin de la séance
+                    disableKeepAwake();
+                    break;
+            }
+        }, 800); // Délai optimisé pour la réactivité
+    } catch (error) {
+        console.error('Erreur lors du changement de page:', error);
+    }
+}
+
+// Mettre à jour les étapes de navigation
+function updateSteps(currentStep) {
+    try {
+        // Limiter à 6 étapes max (inclut la nouvelle étape d'approfondissement)
+        if (currentStep > 6) currentStep = 6;
+        
+        // Réinitialiser toutes les étapes
+        steps.forEach(function(step) {
+            step.classList.remove('active');
+        });
+        
+        // Activer l'étape actuelle
+        const stepElement = document.getElementById('step' + currentStep);
+        if (stepElement) {
+            stepElement.classList.add('active');
+        }
+        
+        // Mettre à jour la barre de progression
+        if (progressFill) {
+            const progressPercent = ((currentStep - 1) / 5) * 100;  // 5 étapes au total (de 1 à 6)
+            progressFill.style.width = progressPercent + '%';
+        }
+    } catch (error) {
+        console.error('Erreur dans updateSteps:', error);
+    }
+}
+
+// Styles CSS requis pour l'animation des particules
+function addCSSAnimations() {
+    // Créer les styles nécessaires pour les animations et particules
+    const styleElement = document.createElement('style');
+    styleElement.textContent = `
+        @keyframes fadeInOut {
+            0% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+            100% { opacity: 0.3; }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.5); opacity: 0.9; }
+            100% { transform: scale(1); opacity: 0.7; }
+        }
+        
+        .exploration-particle {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.8);
+            width: 5px;
+            height: 5px;
+            transition: all 2.5s cubic-bezier(0.2, 0.8, 0.3, 1);
+            z-index: 5;
+            pointer-events: none;
+        }
+    `;
+    
+    document.head.appendChild(styleElement);
+    console.log("Animations CSS ajoutées");
+}
+
+// Ajouter une fonction pour nettoyer l'application avant de quitter la page
+window.addEventListener('beforeunload', function() {
+    // Arrêter tous les sons binauraux
+    if (typeof stopBinauralBeats === 'function') {
+        stopBinauralBeats();
+    }
+    
+    // Arrêter la synthèse vocale
+    if (speech && typeof speech.stop === 'function') {
+        speech.stop();
+    }
+    
+    // Vider toutes les files d'attente
+    speechQueue = [];
+    
+    // Désactiver le système anti-veille
+    if (typeof disableKeepAwake === 'function') {
+        disableKeepAwake();
+    }
+    
+    // Nettoyer tous les timeouts et intervalles
+    clearAllTimeouts();
+    clearAllIntervals();
+});
+
+// Initialiser les animations CSS au chargement
+document.addEventListener('DOMContentLoaded', function() {
+    addCSSAnimations();
+    initializeApp();
+});
+};
     // Signature invisible
     window._jr_signature = {
         author: _0xf5e8[0] + ' ' + _0xf5e8[1],
@@ -153,7 +1135,7 @@ function clearAllIntervals() {
     allIntervals.clear();
 }
 
-// Version sécurisée de showPage avec anti-double-clic
+// Version sécurisée de showPage avec anti-double-clic - AMÉLIORÉE
 function safeShowPage(pageNumber) {
     if (pageTransitionInProgress) {
         console.log("Transition de page déjà en cours, demande ignorée");
@@ -163,13 +1145,24 @@ function safeShowPage(pageNumber) {
     // Verrouiller les transitions pendant un court moment
     pageTransitionInProgress = true;
     
-    // Appeler la fonction réelle de changement de page
-    showPage(pageNumber);
+    // Arrêter immédiatement toute synthèse vocale
+    speech.stop();
     
-    // Déverrouiller après un court délai
-    pageTransitionTimeout = safeSetTimeout(() => {
-        pageTransitionInProgress = false;
-    }, 1000); // 1 seconde de "cooldown" entre les transitions
+    // Vider toutes les files d'attente immédiatement
+    speechQueue = [];
+    isSpeaking = false;
+    waitingForNextSpeech = false;
+    
+    // Appeler la fonction réelle de changement de page après un court délai
+    // pour s'assurer que tout est bien arrêté
+    safeSetTimeout(() => {
+        showPage(pageNumber);
+        
+        // Déverrouiller après un délai plus long
+        pageTransitionTimeout = safeSetTimeout(() => {
+            pageTransitionInProgress = false;
+        }, 1000); // 1 seconde de "cooldown" entre les transitions
+    }, 300);
 }
 
 // Initialisation de la synthèse vocale AMÉLIORÉE
@@ -697,7 +1690,7 @@ const speech = {
         }
     },
     
-    // Arrêter toute la synthèse vocale proprement - AMÉLIORÉ
+    // Arrêter toute la synthèse vocale proprement - VERSION AMÉLIORÉE
     stop: function() {
         try {
             console.log("Arrêt complet de toute synthèse vocale");
@@ -713,15 +1706,22 @@ const speech = {
                 // Double annulation pour s'assurer que tout est bien arrêté
                 this.synth.cancel();
                 
-                // Seconde annulation après un bref délai pour garantir l'arrêt complet
+                // Seconde annulation après un délai plus long pour garantir l'arrêt complet
                 safeSetTimeout(() => {
                     if (this.synth) {
                         this.synth.cancel();
+                        
+                        // Troisième annulation pour être absolument sûr
+                        safeSetTimeout(() => {
+                            if (this.synth) {
+                                this.synth.cancel();
+                            }
+                        }, 200);
                     }
-                }, 100);
+                }, 300); // Augmenté à 300ms pour être plus efficace
             }
             
-            // Réinitialiser les états
+            // Réinitialiser les états immédiatement
             this.utteranceQueue = [];
             speakingInProgress = false;
             if (speakingIndicator) {
@@ -1621,6 +2621,12 @@ function queueSpeech(text, delay, textElement) {
     try {
         if (!text || text.trim() === '') return;
         
+        // Vérifier si nous sommes en train de changer de page
+        if (pageTransitionInProgress) {
+            console.log("Transition de page en cours, demande de parole ignorée");
+            return;
+        }
+        
         if (delay === undefined) delay = 0;
         
         speechQueue.push({text, delay, textElement});
@@ -1765,975 +2771,3 @@ function startCoherenceCardiaque() {
         console.error("Erreur dans startCoherenceCardiaque:", error);
     }
 }
-
-// Animation de respiration
-function animateBreath() {
-    try {
-        // Vérifier que les éléments existent
-        if (!breathCircle || !breathInLabel || !breathOutLabel || !coherenceInstruction) {
-            console.error("Éléments de respiration manquants");
-            return;
-        }
-        
-        let phase = 'in'; // 'in' pour inspiration, 'out' pour expiration
-        let step = 0;
-        const totalSteps = 50; // 5 secondes à 10 étapes par seconde
-        
-        // Arrêter l'intervalle précédent si existant
-        if (coherenceInterval) {
-            clearInterval(coherenceInterval);
-        }
-        
-        // Démarrer l'animation
-        coherenceInterval = safeSetInterval(function() {
-            if (phase === 'in') {
-                // Animation d'inspiration (monter)
-                const progress = step / totalSteps;
-                breathCircle.style.transform = `translate(-50%, calc(-50% - ${80 * progress}px))`;
-                
-                // Afficher le label d'inspiration
-                breathInLabel.style.opacity = 1;
-                breathOutLabel.style.opacity = 0;
-                
-                // Mettre à jour l'instruction pour l'inspiration
-                if (step === 0) {
-                    coherenceInstruction.textContent = "Inspirez lentement...";
-                    
-                    // Utiliser un délai pour éviter de couper la voix précédente
-                    if (audioToggle && audioToggle.checked && !speakingInProgress) {
-                        speech.speak("Inspirez");
-                    }
-                }
-                
-                step++;
-                if (step >= totalSteps) {
-                    phase = 'out';
-                    step = 0;
-                }
-            } else {
-                // Animation d'expiration (descendre)
-                const progress = step / totalSteps;
-                breathCircle.style.transform = `translate(-50%, calc(-50% + ${80 * progress}px))`;
-                
-                // Afficher le label d'expiration
-                breathInLabel.style.opacity = 0;
-                breathOutLabel.style.opacity = 1;
-                
-                // Mettre à jour l'instruction pour l'expiration
-                if (step === 0) {
-                    coherenceInstruction.textContent = "Expirez doucement...";
-                    
-                    // Utiliser un délai pour éviter de couper la voix précédente
-                    if (audioToggle && audioToggle.checked && !speakingInProgress) {
-                        speech.speak("Expirez");
-                    }
-                }
-                
-                step++;
-                if (step >= totalSteps) {
-                    phase = 'in';
-                    step = 0;
-                }
-            }
-        }, 100); // 10 frames par seconde
-    } catch (error) {
-        console.error("Erreur dans animateBreath:", error);
-    }
-}
-
-// Mettre à jour l'affichage du minuteur
-function updateTimerDisplay() {
-    if (!timerDisplay) return;
-    
-    const minutes = Math.floor(secondsRemaining / 60);
-    const seconds = secondsRemaining % 60;
-    timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-}
-
-// Arrêter la cohérence cardiaque
-function stopCoherenceCardiaque() {
-    try {
-        // Arrêter les intervalles
-        if (coherenceInterval) {
-            clearInterval(coherenceInterval);
-            coherenceInterval = null;
-        }
-        
-        if (coherenceTimer) {
-            clearInterval(coherenceTimer);
-            coherenceTimer = null;
-        }
-        
-        // Réinitialiser l'affichage
-        if (breathCircle) {
-            breathCircle.style.transform = 'translate(-50%, -50%)';
-        }
-        
-        if (breathInLabel) breathInLabel.style.opacity = 0;
-        if (breathOutLabel) breathOutLabel.style.opacity = 0;
-    } catch (error) {
-        console.error("Erreur dans stopCoherenceCardiaque:", error);
-    }
-}
-
-// Réinitialiser la cohérence cardiaque
-function resetCoherenceCardiaque() {
-    try {
-        // Arrêter tout
-        stopCoherenceCardiaque();
-        
-        // Réinitialiser l'affichage si les éléments existent
-        if (coherenceIntro) coherenceIntro.style.display = 'block';
-        if (coherenceContainer) coherenceContainer.style.display = 'none';
-        
-        secondsRemaining = 120;
-        updateTimerDisplay();
-        
-        // Retirer l'animation du bouton s'il existe
-        if (nextPrepBtn) {
-            nextPrepBtn.classList.remove('pulse-animation');
-        }
-    } catch (error) {
-        console.error("Erreur dans resetCoherenceCardiaque:", error);
-    }
-}
-
-// Démarrer l'induction avec activation conditionnelle des sons binauraux
-function startInduction() {
-    try {
-        // Vérifier que les éléments existent
-        if (!inductionCounter || !inductionInstruction) {
-            console.error("Éléments d'induction manquants");
-            return;
-        }
-        
-        // Activer explicitement le système anti-veille pour éviter la mise en veille
-        enableKeepAwake();
-        
-        // Vérifier si le bouton binaural est activé avant de démarrer les sons
-        const binauralToggle = document.getElementById('binauralToggle');
-        if (binauralToggle && binauralToggle.checked) {
-            startBinauralBeats();
-        }
-        
-        const inductionTexts = [
-            "Fixez votre regard sur le point central de la spirale, laissez-vous absorber par ce point",
-            "Laissez votre vision périphérique capter naturellement le mouvement circulaire",
-            "Respirez tranquillement en vous concentrant sur la spirale qui tourne doucement",
-            "Vos paupières peuvent devenir lourdes, c'est tout à fait normal",
-            "Laissez-vous absorber complètement par ce motif hypnotique"
-        ];
-        
-        let count = 10;
-        let currentInstruction = 0;
-        let instructionInterval;
-        
-        // Initialiser l'affichage
-        inductionCounter.textContent = count;
-        inductionInstruction.textContent = inductionTexts[0];
-        
-        // Attendre que la page soit bien chargée
-        safeSetTimeout(function() {
-            // Début de la séquence
-            queueSpeech(inductionTexts[0], 0, inductionInstruction);
-            
-            // Progression des instructions
-            instructionInterval = safeSetInterval(function() {
-                currentInstruction++;
-                
-                if (currentInstruction < inductionTexts.length) {
-                    queueSpeech(inductionTexts[currentInstruction], 0, inductionInstruction);
-                } else {
-                    clearInterval(instructionInterval);
-                }
-            }, 8000);
-            
-            // Décompte
-            safeSetTimeout(function() {
-                startCountdown();
-            }, 5000);
-            
-            function startCountdown() {
-                if (count <= 0) {
-                    clearInterval(instructionInterval);
-                    
-                    const finalText = "Vous entrez maintenant dans un état plus profond de relaxation";
-                    queueSpeech(finalText, 0, inductionInstruction);
-                    
-                    safeSetTimeout(function() {
-                        safeShowPage(4); // Passer à la profondeur
-                    }, 7000);
-                    return;
-                }
-                
-                count--;
-                inductionCounter.textContent = count;
-                
-                safeSetTimeout(startCountdown, 4500);
-            }
-        }, 1000);
-    } catch (error) {
-        console.error("Erreur dans startInduction:", error);
-    }
-}
-
-// Démarrer l'approfondissement avec une synchronisation parfaite et des sons binauraux conditionnels
-function startDeepening() {
-    try {
-        // Vérifier que les éléments existent
-        if (!deepeningInstruction || !stairsCounter) {
-            console.error("Éléments d'approfondissement manquants");
-            return;
-        }
-        
-        // S'assurer que le système anti-veille reste actif
-        enableKeepAwake();
-        
-        // Vérifier si le bouton binaural est activé avant de démarrer les sons
-        const binauralToggle = document.getElementById('binauralToggle');
-        if (binauralToggle && binauralToggle.checked) {
-            startBinauralBeats();
-        }
-        
-        const deepeningTexts = [
-            "Maintenant, je vous invite à imaginer un escalier. Un escalier qui descend en spirale, confortablement.",
-            "Vous allez descendre cet escalier, marche par marche, et à chaque marche, vous vous sentirez plus détendu, plus calme.",
-            "Nous allons compter de 10 à 1, et à chaque chiffre, vous descendrez une marche, vous enfonçant plus profondément dans un état d'hypnose agréable.",
-            "Quand nous arriverons à 1, vous pourrez fermer les yeux si ce n'est pas déjà fait, et vous serez dans un état de transe profonde et confortable."
-        ];
-        
-        // Préparer les compteurs
-        let currentPhase = "intro"; // "intro", "countdown", "finale"
-        let currentStep = 0; // pour les textes d'intro
-        let stairCount = 10; // pour les marches
-        
-        // Cacher le compteur au début
-        stairsCounter.style.visibility = 'hidden';
-        stairsCounter.textContent = stairCount;
-        
-        // Créer les points lumineux pour l'animation d'escalier
-        createStairDots();
-        
-        // Attendre que la page soit bien initialisée
-        safeSetTimeout(function() {
-            // Démarrer la séquence
-            progressSequence();
-        }, 1000);
-        
-        // Fonction récursive pour progresser dans la séquence
-        function progressSequence() {
-            if (currentPhase === "intro") {
-                // Phase d'introduction - 4 textes d'introduction
-                if (currentStep < deepeningTexts.length) {
-                    // Afficher et prononcer le texte actuel
-                    deepeningInstruction.textContent = deepeningTexts[currentStep];
-                    
-                    // Utiliser la segmentation pour les textes longs
-                    const textSegments = segmentTextForBetterSpeech(deepeningTexts[currentStep]);
-                    speakTextSegments(textSegments, 0, () => {
-                        currentStep++;
-                        // Programmer la prochaine étape
-                        safeSetTimeout(progressSequence, 3000);
-                    });
-                } else {
-                    // Fin de l'introduction, commencer le décompte
-                    currentPhase = "countdown";
-                    
-                    // Petit délai avant de commencer le décompte
-                    safeSetTimeout(progressSequence, 2000);
-                }
-            }
-            else if (currentPhase === "countdown") {
-                // Phase de décompte - marches de 10 à 1
-                if (stairCount > 0) {
-                    // Afficher le compteur pour le décompte
-                    stairsCounter.style.visibility = 'visible';
-                    stairsCounter.textContent = stairCount;
-                    
-                    // Obtenir et afficher le texte pour cette marche
-                    const stairText = getStairText(stairCount);
-                    deepeningInstruction.textContent = stairText;
-                    
-                    // IMPORTANT: S'assurer que "marche une" est bien prononcé pour la marche 1
-                    if (stairCount === 1) {
-                        speech.speak("Marche une. Vous êtes arrivé dans cet état d'hypnose profond et agréable.");
-                        
-                        safeSetTimeout(() => {
-                            stairCount--;
-                            safeSetTimeout(progressSequence, 3000);
-                        }, calculateEstimatedDuration("Marche une. Vous êtes arrivé dans cet état d'hypnose profond et agréable."));
-                    } else {
-                        // Lire le texte de la marche avec la nouvelle méthode
-                        const textSegments = segmentTextForBetterSpeech(stairText);
-                        speakTextSegments(textSegments, 0, () => {
-                            stairCount--;
-                            // Programmer la prochaine marche
-                            safeSetTimeout(progressSequence, 3000);
-                        });
-                    }
-                } else {
-                    // Fin du décompte, passer à la finale
-                    currentPhase = "finale";
-                    
-                    // Cacher le compteur à la fin
-                    stairsCounter.style.visibility = 'hidden';
-                    
-                    // Petit délai avant le message final
-                    safeSetTimeout(progressSequence, 2000);
-                }
-            }
-            else if (currentPhase === "finale") {
-                // Phase finale - message de conclusion et transition
-                const finalMessage = "Vous êtes maintenant dans un état de relaxation profonde. Si ce n'est pas déjà fait, fermez doucement vos yeux et laissez-vous porter par ma voix.";
-                deepeningInstruction.textContent = finalMessage;
-                
-                // Utiliser la segmentation pour le message final
-                const textSegments = segmentTextForBetterSpeech(finalMessage);
-                speakTextSegments(textSegments, 0, () => {
-                    // Transition à la prochaine page après un délai suffisant
-                    safeSetTimeout(function() {
-                        safeShowPage(5); // Passer à l'exploration
-                    }, 5000);
-                });
-            }
-        }
-    } catch (error) {
-        console.error("Erreur dans startDeepening:", error);
-    }
-}
-
-// Création dynamique des points lumineux pour l'escalier
-function createStairDots() {
-    try {
-        const container = document.getElementById('stairDotsContainer');
-        if (!container) {
-            console.error("Container de points d'escalier manquant");
-            return;
-        }
-        
-        // Vider le container d'abord
-        container.innerHTML = '';
-        
-        // Créer 20 points à des positions aléatoires
-        for (let i = 0; i < 20; i++) {
-            const dot = document.createElement('div');
-            dot.className = 'stair-dot';
-            
-            // Position aléatoire
-            const x = Math.random() * 100;
-            const y = Math.random() * 100;
-            const delay = Math.random() * 8; // Délai aléatoire pour l'animation
-            
-            dot.style.left = x + '%';
-            dot.style.top = y + '%';
-            dot.style.animationDelay = delay + 's';
-            
-            container.appendChild(dot);
-        }
-    } catch (error) {
-        console.error("Erreur dans createStairDots:", error);
-    }
-}
-
-// Fonction complète d'exploration avec animations et effets visuels
-function startExploration() {
-    try {
-        // Vérifier que les éléments existent
-        if (!explorationInstruction || !energyScene) {
-            console.error("Éléments d'exploration manquants");
-            return;
-        }
-        
-        // S'assurer que le système anti-veille reste actif
-        enableKeepAwake();
-        
-        // Vérifier si le bouton binaural est activé avant de démarrer les sons
-        const binauralToggle = document.getElementById('binauralToggle');
-        if (binauralToggle && binauralToggle.checked) {
-            startBinauralBeats();
-        }
-        
-        // Utiliser les textes améliorés pour de meilleures liaisons
-        const explorationTexts = improveExplorationTexts();
-        
-        // Récupérer les éléments d'animation
-        const explorationScene = document.getElementById('explorationScene');
-        const explorationProgress = document.getElementById('explorationProgress');
-        
-        // Variables de contrôle
-        let currentTextIndex = 0;
-        let particlesInterval;
-        const totalTexts = explorationTexts.length;
-        
-        // Fonction pour créer une particule avec des couleurs et formes variées
-        function createParticle() {
-            if (!explorationScene) return null;
-            
-            const particle = document.createElement('div');
-            particle.className = 'exploration-particle';
-            
-            // Variations de couleurs pour des particules plus diversifiées
-            const colors = [
-                'rgba(255, 255, 255, 0.8)', // blanc
-                'rgba(173, 216, 230, 0.8)', // bleu clair
-                'rgba(255, 223, 186, 0.8)', // orange pâle
-                'rgba(152, 251, 152, 0.8)', // vert pâle
-                'rgba(238, 130, 238, 0.8)', // violet pâle
-                'rgba(255, 182, 193, 0.8)', // rose pâle
-                'rgba(240, 230, 140, 0.8)'  // jaune pâle
-            ];
-            
-            // Variations de taille
-            const size = 3 + Math.random() * 8; // entre 3px et 11px
-            
-            // Appliquer les styles
-            particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-            particle.style.width = `${size}px`;
-            particle.style.height = `${size}px`;
-            
-            // 50% de chance d'avoir une particule ronde ou carrée
-            if (Math.random() > 0.5) {
-                particle.style.borderRadius = '50%';
-            }
-            
-            // Position aléatoire
-            const angle = Math.random() * Math.PI * 2;
-            const distance = 50 + Math.random() * 150; // Distance plus variée
-            const x = Math.cos(angle) * distance + 150;
-            const y = Math.sin(angle) * distance + 150;
-            
-            particle.style.left = x + 'px';
-            particle.style.top = y + 'px';
-            
-            explorationScene.appendChild(particle);
-            
-            // Animation plus variée
-            safeSetTimeout(() => {
-                particle.style.opacity = 0.6 + Math.random() * 0.4; // Opacité variée
-                
-                // Mouvements plus organiques
-                const targetX = 150 + (Math.random() * 60 - 30);
-                const targetY = 150 + (Math.random() * 60 - 30);
-                const rotation = Math.random() * 360; // Rotation aléatoire
-                const scale = 0.8 + Math.random() * 0.5; // Échelle aléatoire
-                
-                particle.style.transform = `translate(${targetX - x}px, ${targetY - y}px) rotate(${rotation}deg) scale(${scale})`;
-                
-                // Durée de vie variable des particules
-                const duration = 8000 + Math.random() * 7000;
-                
-                // Disparition progressive
-                safeSetTimeout(() => {
-                    particle.style.opacity = 0;
-                    safeSetTimeout(() => {
-                        if (explorationScene.contains(particle)) {
-                            explorationScene.removeChild(particle);
-                        }
-                    }, 1000);
-                }, duration);
-            }, 100);
-            
-            return particle;
-        }
-        
-        // Fonction pour créer des particules périodiquement
-        function startParticlesAnimation() {
-            return safeSetInterval(() => {
-                if (currentTextIndex < totalTexts) {
-                    // Augmenter progressivement le nombre de particules créées
-                    const particleCount = 1 + Math.floor(currentTextIndex / 2);
-                    
-                    for (let i = 0; i < particleCount; i++) {
-                        safeSetTimeout(() => createParticle(), i * 200);
-                    }
-                }
-            }, 1500);
-        }
-        
-        // Créer un effet de vagues pour le fond
-        function createBackgroundEffect() {
-            if (!explorationScene) return null;
-            
-            // Créer un élément pour l'effet de vague
-            const waveEffect = document.createElement('div');
-            waveEffect.className = 'wave-effect';
-            waveEffect.style.position = 'absolute';
-            waveEffect.style.top = '50%';
-            waveEffect.style.left = '50%';
-            waveEffect.style.transform = 'translate(-50%, -50%)';
-            waveEffect.style.width = '200px';
-            waveEffect.style.height = '200px';
-            waveEffect.style.borderRadius = '50%';
-            waveEffect.style.background = 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%)';
-            waveEffect.style.boxShadow = '0 0 50px rgba(255, 255, 255, 0.3)';
-            waveEffect.style.transition = 'all 0.5s ease';
-            waveEffect.style.zIndex = '1';
-            waveEffect.style.pointerEvents = 'none';
-            
-            explorationScene.appendChild(waveEffect);
-            
-            // Animation de pulsation
-            let scale = 1;
-            let growing = true;
-            
-            const pulseInterval = safeSetInterval(() => {
-                if (growing) {
-                    scale += 0.01;
-                    if (scale >= 1.2) growing = false;
-                } else {
-                    scale -= 0.01;
-                    if (scale <= 1) growing = true;
-                }
-                
-                waveEffect.style.transform = `translate(-50%, -50%) scale(${scale})`;
-                waveEffect.style.opacity = 0.1 + Math.sin(scale * Math.PI) * 0.05;
-            }, 100);
-            
-            return {
-                element: waveEffect,
-                interval: pulseInterval
-            };
-        }
-        
-        // Attendre que la page soit bien initialisée
-        safeSetTimeout(function() {
-            // Afficher la scène d'exploration
-            if (explorationScene) {
-                explorationScene.style.opacity = '1';
-                
-                // Ajouter l'effet de fond
-                const backgroundEffect = createBackgroundEffect();
-                
-                // Démarrer l'animation des particules
-                particlesInterval = startParticlesAnimation();
-                
-                // Commencer la séquence d'exploration
-                safeSetTimeout(() => progressExploration(), 2000);
-                
-                function progressExploration() {
-                    if (currentTextIndex < totalTexts) {
-                        // Mettre à jour le texte
-                        explorationInstruction.textContent = explorationTexts[currentTextIndex];
-                        
-                        // Mettre à jour la barre de progression
-                        if (explorationProgress) {
-                            const progressPercent = ((currentTextIndex + 1) / totalTexts) * 100;
-                            explorationProgress.style.width = progressPercent + '%';
-                        }
-                        
-                        // AMÉLIORATION: Utiliser la segmentation pour une meilleure fluidité
-                        const textSegments = segmentTextForBetterSpeech(explorationTexts[currentTextIndex]);
-                        
-                        // Créer un effet spécial pour cette phase
-                        createParticleBurst(10 + currentTextIndex * 2, 150);
-                        
-                        // Utiliser la nouvelle méthode de segments pour parler
-                        speakTextSegments(textSegments, 0, () => {
-                            currentTextIndex++;
-                            // Pause plus longue entre les textes pour l'immersion
-                            safeSetTimeout(progressExploration, 4000);
-                        });
-                    } else {
-                        // Fin de l'exploration, message de transition
-                        safeSetTimeout(function() {
-                            const transitionMessages = [
-                                "Prenez encore quelques instants pour profiter pleinement de cet espace intérieur...",
-                                "Ressentez cette paix, ce calme qui est maintenant ancré en vous...",
-                                "Lorsque vous serez prêt, nous reviendrons doucement à un état de conscience ordinaire, en conservant cette sérénité."
-                            ];
-                            
-                            // Premier message de transition
-                            explorationInstruction.textContent = transitionMessages[0];
-                            
-                            let transitionIndex = 0;
-                            
-                            function playTransition() {
-                                // Utiliser la segmentation pour la transition
-                                const segments = segmentTextForBetterSpeech(transitionMessages[transitionIndex]);
-                                
-                                speakTextSegments(segments, 0, () => {
-                                    if (transitionIndex < transitionMessages.length - 1) {
-                                        transitionIndex++;
-                                        safeSetTimeout(() => {
-                                            explorationInstruction.textContent = transitionMessages[transitionIndex];
-                                            playTransition();
-                                        }, 3000);
-                                    } else {
-                                        // Dernier message, préparer la transition vers la page suivante
-                                        safeSetTimeout(() => safeShowPage(6), 8000);
-                                    }
-                                });
-                            }
-                            
-                            // Démarrer la séquence de transition
-                            playTransition();
-                            
-                        }, 3000);
-                        
-                        // Nettoyer les animations
-                        if (particlesInterval) {
-                            clearInterval(particlesInterval);
-                        }
-                        
-                        if (backgroundEffect && backgroundEffect.interval) {
-                            clearInterval(backgroundEffect.interval);
-                        }
-                    }
-                }
-            }
-        }, 1500);
-        
-        // Fonction pour créer une explosion de particules
-        function createParticleBurst(count, delay) {
-            for (let i = 0; i < count; i++) {
-                safeSetTimeout(() => {
-                    createParticle();
-                }, i * delay);
-            }
-        }
-        
-    } catch (error) {
-        console.error("Erreur dans startExploration:", error);
-    }
-}
-
-// Démarrer le réveil avec une progression plus naturelle - VERSION AMÉLIORÉE
-function startAwakening() {
-    try {
-        // Vérifier que les éléments existent
-        if (!awakeningCounter || !energyScene) {
-            console.error("Éléments de réveil manquants");
-            return;
-        }
-        
-        // S'assurer que le système anti-veille reste actif
-        enableKeepAwake();
-        
-        // Réinitialiser tous les états et éléments
-        speech.stop();
-        speechQueue = [];
-        
-        const mainInstruction = document.querySelector('#page6 .instruction');
-        if (!mainInstruction) {
-            console.error("Élément d'instruction de réveil manquant");
-            return;
-        }
-        
-        let count = 5;
-        awakeningCounter.textContent = count;
-        
-        // Faire apparaître progressivement la scène d'énergie
-        energyScene.style.transition = 'opacity 3s ease';
-        energyScene.style.opacity = '1';
-        
-        // Variables pour contrôler le flux et les délais
-        let phase = 0;
-        let phaseComplete = false;
-        
-        // Fonction pour avancer à la phase suivante
-        function nextPhase() {
-            phase++;
-            phaseComplete = false;
-            executeCurrentPhase();
-        }
-        
-        // Cette fonction permet de structurer les phases avec des rappels sur la fin
-        function executeCurrentPhase() {
-            switch(phase) {
-                case 0: // Phase initiale - Introduction
-                    safeSetTimeout(() => {
-                        const text = "Préparez-vous à revenir doucement à votre état de conscience habituel.";
-                        mainInstruction.textContent = text;
-                        
-                        // Utiliser la segmentation pour une meilleure fluidité
-                        const segments = segmentTextForBetterSpeech(text);
-                        
-                        // Utiliser la nouvelle méthode pour une meilleure prononciation
-                        speakTextSegments(segments, 0, () => {
-                            if (!phaseComplete) {
-                                phaseComplete = true;
-                                safeSetTimeout(nextPhase, 1000); // Pause entre les phrases
-                            }
-                        });
-                    }, 2000);
-                    break;
-                    
-                case 1: // Seconde instruction
-                    const text = "À chaque compte, vous vous sentirez de plus en plus éveillé et alerte.";
-                    mainInstruction.textContent = text;
-                    
-                    // Utiliser la segmentation pour une meilleure fluidité
-                    const segments = segmentTextForBetterSpeech(text);
-                    
-                    // Utiliser la nouvelle méthode pour une meilleure prononciation
-                    speakTextSegments(segments, 0, () => {
-                        if (!phaseComplete) {
-                            phaseComplete = true;
-                            safeSetTimeout(nextPhase, 1000);
-                        }
-                    });
-                    break;
-                    
-                case 2: // Début du décompte
-                    startAwakeningCountdown();
-                    break;
-            }
-        }
-        
-        // Fonction pour gérer le décompte du réveil - VERSION AMÉLIORÉE
-        function startAwakeningCountdown() {
-            if (count < 0) {
-                // Fin du décompte
-                const finalText = "Vous êtes maintenant complètement réveillé, présent et alerte, tout en conservant cette sensation de bien-être et de calme.";
-                mainInstruction.textContent = finalText;
-                
-                // Utiliser la segmentation pour le texte final
-                const segments = segmentTextForBetterSpeech(finalText);
-                speakTextSegments(segments, 0, () => {
-                    // Passer à la page finale après un délai
-                    safeSetTimeout(() => safeShowPage(7), 5000);
-                });
-                return;
-            }
-            
-            // Afficher le compteur
-            awakeningCounter.textContent = count;
-            
-            // Obtenir et afficher le texte pour ce compte
-            const countText = getCountText(count);
-            mainInstruction.textContent = countText;
-            
-            // Utiliser la méthode speak directement pour les nombres, pour une meilleure prononciation
-            if (count > 0) {
-                // Assurer une synchronisation parfaite pour le chiffre et son texte associé
-                speech.speak(countText);
-                
-                // Calculer la durée estimée pour déterminer quand passer au chiffre suivant
-                const estimatedDuration = calculateEstimatedDuration(countText);
-                
-                // Programmer le prochain chiffre après la durée calculée
-                safeSetTimeout(() => {
-                    count--;
-                    safeSetTimeout(startAwakeningCountdown, 1000);
-                }, estimatedDuration + 500); // Ajouter une pause supplémentaire pour rendre le rythme plus naturel
-            } else {
-                count--;
-                safeSetTimeout(startAwakeningCountdown, 1000);
-            }
-        }
-        
-        // Démarrer la séquence
-        executeCurrentPhase();
-        
-    } catch (error) {
-        console.error("Erreur dans startAwakening:", error);
-    }
-}
-
-// Fonction pour afficher une page - AMÉLIORÉE
-function showPage(pageNumber) {
-    try {
-        console.log(`Changement vers la page ${pageNumber}`);
-        
-        // Annuler TOUS les timers en cours pour éviter les chevauchements
-        clearAllTimeouts();
-        clearAllIntervals();
-        
-        // Interrompre proprement TOUTE synthèse vocale en vidant complètement les files d'attente
-        speech.stop();
-        
-        // MODIFICATION: Ne pas arrêter les sons binauraux lors des changements de page
-        // Seulement à la fin du programme (page 7)
-        if (typeof stopBinauralBeats === 'function' && pageNumber === 7) {
-            stopBinauralBeats();
-            binauralActive = false;
-        }
-        
-        // Stopper toutes les animations et séquences
-        speech.utteranceQueue = [];
-        speechQueue = [];
-        isSpeaking = false;
-        waitingForNextSpeech = false;
-        speakingInProgress = false;
-        
-        // Arrêter les intervalles de la cohérence cardiaque si actifs
-        if (coherenceInterval) {
-            clearInterval(coherenceInterval);
-            coherenceInterval = null;
-        }
-        
-        if (coherenceTimer) {
-            clearInterval(coherenceTimer);
-            coherenceTimer = null;
-        }
-        
-        // Masquer toutes les pages
-        pages.forEach(function(page) {
-            page.classList.remove('active');
-        });
-        
-        // Afficher la page demandée
-        const pageElement = document.getElementById('page' + pageNumber);
-        if (pageElement) {
-            pageElement.classList.add('active');
-        } else {
-            console.error('Page non trouvée:', 'page' + pageNumber);
-            return;
-        }
-        
-        // Mettre à jour la navigation
-        updateSteps(pageNumber);
-        
-        // Mettre à jour l'état actuel
-        currentPage = pageNumber;
-        
-        // Défiler vers le haut
-        window.scrollTo(0, 0);
-        
-        // Exécuter les actions spécifiques à la page après un délai
-        // pour s'assurer que toutes les voix précédentes sont bien arrêtées
-        safeSetTimeout(function() {
-            switch (pageNumber) {
-                case 1:
-                    // Page d'accueil
-                    const welcomeElement = document.querySelector('#page1 .intro-text p:first-child');
-                    const homeText = "Bienvenue dans votre séance d'auto-hypnose guidée.";
-                    if (welcomeElement) {
-                        welcomeElement.textContent = homeText;
-                    }
-                    queueSpeech(homeText);
-                    break;
-                    
-                case 2:
-                    // Page de préparation
-                    resetCoherenceCardiaque();
-                    break;
-                    
-                case 3:
-                    // Induction
-                    startInduction();
-                    // Activer le système anti-veille au début de la séance
-                    enableKeepAwake();
-                    break;
-                
-                case 4:
-                    // Profondeur
-                    startDeepening();
-                    // S'assurer que le système anti-veille reste actif
-                    enableKeepAwake();
-                    break;
-                    
-                case 5:
-                    // Exploration
-                    startExploration();
-                    // S'assurer que le système anti-veille reste actif
-                    enableKeepAwake();
-                    break;
-                    
-                case 6:
-                    // Retour
-                    startAwakening();
-                    // S'assurer que le système anti-veille reste actif
-                    enableKeepAwake();
-                    break;
-                    
-                case 7:
-                    // Page finale
-                    // Appliquer les ajustements de style mobile
-                    adjustMobileStyles();
-                    // Désactiver le système anti-veille à la fin de la séance
-                    disableKeepAwake();
-                    break;
-            }
-        }, 800); // Délai optimisé pour la réactivité
-    } catch (error) {
-        console.error('Erreur lors du changement de page:', error);
-    }
-}
-
-// Mettre à jour les étapes de navigation
-function updateSteps(currentStep) {
-    try {
-        // Limiter à 6 étapes max (inclut la nouvelle étape d'approfondissement)
-        if (currentStep > 6) currentStep = 6;
-        
-        // Réinitialiser toutes les étapes
-        steps.forEach(function(step) {
-            step.classList.remove('active');
-        });
-        
-        // Activer l'étape actuelle
-        const stepElement = document.getElementById('step' + currentStep);
-        if (stepElement) {
-            stepElement.classList.add('active');
-        }
-        
-        // Mettre à jour la barre de progression
-        if (progressFill) {
-            const progressPercent = ((currentStep - 1) / 5) * 100;  // 5 étapes au total (de 1 à 6)
-            progressFill.style.width = progressPercent + '%';
-        }
-    } catch (error) {
-        console.error('Erreur dans updateSteps:', error);
-    }
-}
-
-// Styles CSS requis pour l'animation des particules
-function addCSSAnimations() {
-    // Créer les styles nécessaires pour les animations et particules
-    const styleElement = document.createElement('style');
-    styleElement.textContent = `
-        @keyframes fadeInOut {
-            0% { opacity: 0.3; }
-            50% { opacity: 0.8; }
-            100% { opacity: 0.3; }
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.7; }
-            50% { transform: scale(1.5); opacity: 0.9; }
-            100% { transform: scale(1); opacity: 0.7; }
-        }
-        
-        .exploration-particle {
-            position: absolute;
-            background-color: rgba(255, 255, 255, 0.8);
-            width: 5px;
-            height: 5px;
-            transition: all 2.5s cubic-bezier(0.2, 0.8, 0.3, 1);
-            z-index: 5;
-            pointer-events: none;
-        }
-    `;
-    
-    document.head.appendChild(styleElement);
-    console.log("Animations CSS ajoutées");
-}
-
-// Ajouter une fonction pour nettoyer l'application avant de quitter la page
-window.addEventListener('beforeunload', function() {
-    // Arrêter tous les sons binauraux
-    if (typeof stopBinauralBeats === 'function') {
-        stopBinauralBeats();
-    }
-    
-    // Arrêter la synthèse vocale
-    if (speech && typeof speech.stop === 'function') {
-        speech.stop();
-    }
-    
-    // Désactiver le système anti-veille
-    if (typeof disableKeepAwake === 'function') {
-        disableKeepAwake();
-    }
-    
-    // Nettoyer tous les timeouts et intervalles
-    clearAllTimeouts();
-    clearAllIntervals();
-});
-
-// Initialiser les animations CSS au chargement
-document.addEventListener('DOMContentLoaded', function() {
-    addCSSAnimations();
-    initializeApp();
-});
