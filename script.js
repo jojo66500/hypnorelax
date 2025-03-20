@@ -1790,7 +1790,7 @@ function startCoherenceCardiaque() {
             // Suite de la fonction startCoherenceCardiaque
             // Démarrer le décompte
             coherenceTimer = safeSetInterval(function() {
-                secondsRemaining--;
+               secondsRemaining--;
                 updateTimerDisplay();
                 
                 // Si le temps est écoulé
@@ -2018,7 +2018,422 @@ function startInduction() {
     }
 }
 
-// Démarrer l'approfondissement avec une synchronisation parfaite et des sons binauraux conditionnels
+// Fonction améliorée pour gérer l'escalator
+function initializeEscalator() {
+    try {
+        console.log("Initialisation de l'escalator");
+        
+        const escalatorContainer = document.querySelector('.escalator-container');
+        if (!escalatorContainer) {
+            console.error("Container de l'escalator non trouvé");
+            return false;
+        }
+        
+        // Utiliser SVG ou DOM selon la capacité du navigateur
+        if (window.SVGSVGElement && !isLowEndDevice()) {
+            // Intégrer l'escalator SVG pour les navigateurs modernes
+            initializeSVGEscalator(escalatorContainer);
+        } else {
+            // Fallback pour les navigateurs plus anciens ou appareils à faibles performances
+            initializeDOMEscalator(escalatorContainer);
+        }
+
+        // Optimiser pour l'appareil
+        optimizeEscalatorForDevice();
+        
+        return true;
+    } catch (error) {
+        console.error("Erreur lors de l'initialisation de l'escalator:", error);
+        // Fallback en cas d'erreur
+        createFallbackEscalator();
+        return false;
+    }
+}
+
+// Détection des appareils à faibles performances
+function isLowEndDevice() {
+    return (
+        typeof navigator.hardwareConcurrency !== 'undefined' && 
+        navigator.hardwareConcurrency <= 2
+    ) || 
+    /Android 4|Android 5|iPhone 5|iPhone 6/i.test(navigator.userAgent);
+}
+
+// Initialiser l'escalator avec SVG (version moderne)
+function initializeSVGEscalator(container) {
+    // Code SVG complet à insérer
+    const svgCode = `
+    <svg class="escalator-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+      <!-- Fond avec gradient -->
+      <defs>
+        <radialGradient id="bgGradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+          <stop offset="0%" stop-color="#A8D0E6" stop-opacity="0.3" />
+          <stop offset="100%" stop-color="#0A2463" stop-opacity="0.1" />
+        </radialGradient>
+        
+        <linearGradient id="stepGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#0A2463" stop-opacity="0.3" />
+          <stop offset="100%" stop-color="#0A2463" stop-opacity="0.1" />
+        </linearGradient>
+        
+        <linearGradient id="stepGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#A8D0E6" stop-opacity="0.3" />
+          <stop offset="100%" stop-color="#A8D0E6" stop-opacity="0.1" />
+        </linearGradient>
+        
+        <linearGradient id="stepGradient3" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#FF7F50" stop-opacity="0.3" />
+          <stop offset="100%" stop-color="#FF7F50" stop-opacity="0.1" />
+        </linearGradient>
+        
+        <!-- Filtre de lueur -->
+        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="2.5" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+      </defs>
+      
+      <!-- Cercle de fond -->
+      <circle cx="200" cy="200" r="180" fill="url(#bgGradient)" />
+      
+      <!-- Groupe de l'escalier avec rotation -->
+      <g id="staircase" transform="rotate(30 200 200)">
+        <animateTransform
+          attributeName="transform"
+          attributeType="XML"
+          type="rotate"
+          from="0 200 200"
+          to="360 200 200"
+          dur="30s"
+          repeatCount="indefinite"
+        />
+        
+        <!-- Marches de l'escalier en spirale -->
+        <ellipse cx="200" cy="200" rx="160" ry="80" fill="url(#stepGradient1)" transform="rotate(0 200 200)" />
+        <ellipse cx="200" cy="200" rx="150" ry="75" fill="url(#stepGradient2)" transform="rotate(0 200 200) translate(0 10)" />
+        <ellipse cx="200" cy="200" rx="140" ry="70" fill="url(#stepGradient3)" transform="rotate(0 200 200) translate(0 20)" />
+        <ellipse cx="200" cy="200" rx="130" ry="65" fill="url(#stepGradient1)" transform="rotate(0 200 200) translate(0 30)" />
+        <ellipse cx="200" cy="200" rx="120" ry="60" fill="url(#stepGradient2)" transform="rotate(0 200 200) translate(0 40)" />
+        <ellipse cx="200" cy="200" rx="110" ry="55" fill="url(#stepGradient3)" transform="rotate(0 200 200) translate(0 50)" />
+        <ellipse cx="200" cy="200" rx="100" ry="50" fill="url(#stepGradient1)" transform="rotate(0 200 200) translate(0 60)" />
+        <ellipse cx="200" cy="200" rx="90" ry="45" fill="url(#stepGradient2)" transform="rotate(0 200 200) translate(0 70)" />
+        <ellipse cx="200" cy="200" rx="80" ry="40" fill="url(#stepGradient3)" transform="rotate(0 200 200) translate(0 80)" />
+        <ellipse cx="200" cy="200" rx="70" ry="35" fill="url(#stepGradient1)" transform="rotate(0 200 200) translate(0 90)" />
+      </g>
+      
+      <!-- Points lumineux sur le bord -->
+      <g id="lights">
+        <!-- 16 points lumineux répartis sur le cercle -->
+        <circle class="light" cx="200" cy="50" r="3" fill="#FF7F50" filter="url(#glow)">
+          <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="0s" />
+        </circle>
+        <circle class="light" cx="300" cy="80" r="3" fill="#FF7F50" filter="url(#glow)">
+          <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="0.125s" />
+        </circle>
+        <circle class="light" cx="350" cy="200" r="3" fill="#FF7F50" filter="url(#glow)">
+          <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="0.25s" />
+        </circle>
+        <circle class="light" cx="300" cy="320" r="3" fill="#FF7F50" filter="url(#glow)">
+          <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="0.375s" />
+        </circle>
+        <circle class="light" cx="200" cy="350" r="3" fill="#FF7F50" filter="url(#glow)">
+          <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="0.5s" />
+        </circle>
+        <circle class="light" cx="100" cy="320" r="3" fill="#FF7F50" filter="url(#glow)">
+          <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="0.625s" />
+        </circle>
+        <circle class="light" cx="50" cy="200" r="3" fill="#FF7F50" filter="url(#glow)">
+          <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="0.75s" />
+        </circle>
+        <circle class="light" cx="100" cy="80" r="3" fill="#FF7F50" filter="url(#glow)">
+          <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="0.875s" />
+        </circle>
+        <!-- Points intermédiaires -->
+        <circle class="light" cx="150" cy="60" r="3" fill="#FF7F50" filter="url(#glow)">
+          <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="1s" />
+        </circle>
+        <circle class="light" cx="250" cy="60" r="3" fill="#FF7F50" filter="url(#glow)">
+          <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="1.125s" />
+        </circle>
+        <circle class="light" cx="325" cy="140" r="3" fill="#FF7F50" filter="url(#glow)">
+          <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="1.25s" />
+        </circle>
+        <circle class="light" cx="325" cy="260" r="3" fill="#FF7F50" filter="url(#glow)">
+          <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="1.375s" />
+        </circle>
+        <circle class="light" cx="250" cy="340" r="3" fill="#FF7F50" filter="url(#glow)">
+          <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="1.5s" />
+        </circle>
+        <circle class="light" cx="150" cy="340" r="3" fill="#FF7F50" filter="url(#glow)">
+          <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="1.625s" />
+        </circle>
+        <circle class="light" cx="75" cy="260" r="3" fill="#FF7F50" filter="url(#glow)">
+          <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="1.75s" />
+        </circle>
+        <circle class="light" cx="75" cy="140" r="3" fill="#FF7F50" filter="url(#glow)">
+          <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="1.875s" />
+        </circle>
+      </g>
+      
+      <!-- Point lumineux central qui descend -->
+      <circle id="descender" cx="200" cy="200" r="8" fill="white" filter="url(#glow)">
+        <animate attributeName="r" values="8;10;8" dur="1.5s" repeatCount="indefinite" />
+        <animate attributeName="opacity" values="0;1;1;0" dur="10s" repeatCount="indefinite" />
+        <animateTransform
+          attributeName="transform"
+          attributeType="XML"
+          type="translate"
+          from="0 -80"
+          to="0 80"
+          dur="10s"
+          repeatCount="indefinite"
+        />
+      </circle>
+    </svg>
+    `;
+    
+    // Insérer le SVG dans le container
+    container.innerHTML = svgCode;
+    
+    // Configurer les animations pour le décompte
+    const descender = container.querySelector('#descender');
+    if (descender) {
+        // Initialiser l'animation en pause
+        const animations = descender.querySelectorAll('animate, animateTransform');
+        animations.forEach(anim => {
+            anim.setAttribute('begin', 'indefinite');
+        });
+    }
+}
+
+// Initialiser l'escalator avec DOM (version fallback)
+function initializeDOMEscalator(container) {
+    // Vider le container
+    container.innerHTML = '';
+    
+    // Créer les éléments de base
+    const escalator = document.createElement('div');
+    escalator.className = 'escalator';
+    
+    const stepsContainer = document.createElement('div');
+    stepsContainer.className = 'steps-container';
+    
+    // Ajouter les marches
+    for (let i = 0; i < 10; i++) {
+        const step = document.createElement('div');
+        step.className = 'escalator-step';
+        step.setAttribute('data-step', i + 1);
+        stepsContainer.appendChild(step);
+    }
+    
+    // Ajouter le "rider" (point qui descend)
+    const rider = document.createElement('div');
+    rider.className = 'escalator-rider';
+    rider.id = 'escalatorRider';
+    
+    // Assembler les éléments
+    escalator.appendChild(stepsContainer);
+    escalator.appendChild(rider);
+    container.appendChild(escalator);
+    
+    // Ajouter les lumières
+    createEscalatorLights(escalator);
+}
+
+// Créer une version minimaliste en cas d'échec
+function createFallbackEscalator() {
+    try {
+        const container = document.querySelector('.escalator-container, .staircase-container');
+        if (!container) return;
+        
+        // Vider et appliquer un style simple
+        container.innerHTML = '';
+        container.style.background = 'radial-gradient(circle, rgba(168, 208, 230, 0.3), rgba(10, 36, 99, 0.2))';
+        container.style.borderRadius = '50%';
+        container.style.boxShadow = '0 0 20px rgba(0, 0, 0, 0.2)';
+        
+        // Ajouter un cercle pulsant simple
+        const circle = document.createElement('div');
+        circle.style.position = 'absolute';
+        circle.style.top = '50%';
+        circle.style.left = '50%';
+        circle.style.transform = 'translate(-50%, -50%)';
+        circle.style.width = '50px';
+        circle.style.height = '50px';
+        circle.style.borderRadius = '50%';
+        circle.style.background = 'rgba(255, 127, 80, 0.3)';
+        circle.style.boxShadow = '0 0 15px rgba(255, 127, 80, 0.5)';
+        circle.style.animation = 'light-pulse 3s infinite alternate ease-in-out';
+        
+        container.appendChild(circle);
+        
+        console.log("Fallback d'escalator créé");
+    } catch (error) {
+        console.error("Échec du fallback:", error);
+    }
+}
+
+// Créer des lumières pour l'escalator (version DOM)
+function createEscalatorLights(escalator) {
+    try {
+        if (!escalator) return;
+        
+        // Déterminer le nombre de lumières en fonction de la taille de l'écran
+        const isMobile = window.innerWidth <= 768;
+        const lightsCount = isMobile ? 12 : 20;
+        
+        // Créer les lumières
+        for (let i = 0; i < lightsCount; i++) {
+            const light = document.createElement('div');
+            light.className = 'escalator-light';
+            
+            // Répartir les lumières en cercle autour de l'escalator
+            const angle = (i / lightsCount) * Math.PI * 2;
+            const radius = 45; // % du conteneur
+            
+            const x = 50 + Math.cos(angle) * radius;
+            const y = 50 + Math.sin(angle) * radius;
+            
+            light.style.left = x + '%';
+            light.style.top = y + '%';
+            
+            // Animation décalée
+            light.style.animationDelay = (i * 0.2) + 's';
+            
+            escalator.appendChild(light);
+        }
+    } catch (error) {
+        console.error("Erreur lors de la création des lumières de l'escalator:", error);
+    }
+}
+
+// Optimiser l'escalator en fonction de l'appareil
+function optimizeEscalatorForDevice() {
+    try {
+        const escalatorContainer = document.querySelector('.escalator-container');
+        if (!escalatorContainer) return;
+        
+        // Détecter la performance de l'appareil
+        const isLowPerformance = typeof navigator.hardwareConcurrency !== 'undefined' && 
+                               navigator.hardwareConcurrency <= 3;
+        
+        // Taille d'écran
+        const isSmallScreen = window.innerWidth <= 480;
+        const isMobile = window.innerWidth <= 768;
+        
+        // Appliquer les optimisations
+        if (isLowPerformance) {
+            escalatorContainer.classList.add('low-performance');
+            
+            // Si c'est un SVG, ajuster les animations
+            const svg = escalatorContainer.querySelector('svg');
+            if (svg) {
+                // Supprimer certaines animations
+                const animateTransforms = svg.querySelectorAll('animateTransform');
+                animateTransforms.forEach((anim, index) => {
+                    if (index > 0) { // Garder la première animation seulement
+                        anim.setAttribute('dur', '45s');
+                    }
+                });
+                
+                // Réduire les lumières
+                const lights = svg.querySelectorAll('.light');
+                lights.forEach((light, index) => {
+                    if (index % 2 !== 0) {
+                        light.style.display = 'none';
+                    }
+                });
+            }
+        }
+        
+        // Préférence utilisateur pour les animations réduites
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            escalatorContainer.classList.add('reduced-motion');
+            
+            const svg = escalatorContainer.querySelector('svg');
+            if (svg) {
+                // Désactiver les animations
+                const allAnimations = svg.querySelectorAll('animate, animateTransform');
+                allAnimations.forEach(anim => {
+                    anim.setAttribute('begin', 'indefinite');
+                });
+            }
+        }
+    } catch (error) {
+        console.error("Erreur lors de l'optimisation de l'escalator:", error);
+    }
+}
+
+// Démarrer ou reprendre l'animation du rider
+function startOrResumeRider() {
+    try {
+        // Version SVG
+        const svg = document.querySelector('.escalator-svg');
+        if (svg) {
+            const descender = svg.querySelector('#descender');
+            if (descender) {
+                const animations = descender.querySelectorAll('animate, animateTransform');
+                animations.forEach(anim => {
+                    anim.beginElement();
+                });
+                return;
+            }
+        }
+        
+        // Version DOM
+        const rider = document.getElementById('escalatorRider');
+        if (rider) {
+            rider.style.animationPlayState = 'running';
+        }
+    } catch (error) {
+        console.error("Erreur lors du démarrage de l'animation du rider:", error);
+    }
+}
+
+// Mettre en évidence une marche spécifique pendant le décompte
+function highlightCurrentStep(stepNumber) {
+    try {
+        // Version SVG
+        const svg = document.querySelector('.escalator-svg');
+        if (svg) {
+            // Réinitialiser toutes les marches
+            const steps = svg.querySelectorAll('ellipse');
+            steps.forEach(step => {
+                step.setAttribute('filter', '');
+                step.setAttribute('opacity', '1');
+            });
+            
+            // Trouver la marche actuelle (inversé car 10 est la première marche, 1 est la dernière)
+            const currentStepIndex = 10 - stepNumber;
+            if (currentStepIndex >= 0 && currentStepIndex < steps.length) {
+                steps[currentStepIndex].setAttribute('filter', 'url(#glow)');
+                steps[currentStepIndex].setAttribute('opacity', '1.2');
+            }
+            return;
+        }
+        
+        // Version DOM
+        const steps = document.querySelectorAll('.escalator-step');
+        if (steps.length === 0) return;
+        
+        // Réinitialiser toutes les marches
+        steps.forEach(step => {
+            step.style.boxShadow = '0 0 15px rgba(0, 0, 0, 0.2)';
+            step.style.opacity = '0.7';
+        });
+        
+        // Mettre en évidence la marche actuelle
+        const currentStep = document.querySelector(`.escalator-step[data-step="${11 - stepNumber}"]`);
+        if (currentStep) {
+            currentStep.style.boxShadow = '0 0 20px rgba(255, 127, 80, 0.6)';
+            currentStep.style.opacity = '1';
+        }
+    } catch (error) {
+        console.error("Erreur lors de la mise en évidence de la marche:", error);
+    }
+}
+
+// Fonction modifiée pour utiliser le nouvel escalator
 function startDeepening() {
     try {
         // Vérifier que les éléments existent
@@ -2036,6 +2451,9 @@ function startDeepening() {
             startBinauralBeats();
         }
         
+        // Initialiser le nouvel escalator
+        initializeEscalator();
+        
         const deepeningTexts = [
             "Maintenant, je vous invite à imaginer un escalier. Un escalier qui descend en spirale, confortablement.",
             "Vous allez descendre cet escalier, marche par marche, et à chaque marche, vous vous sentirez plus détendu, plus calme.",
@@ -2051,12 +2469,6 @@ function startDeepening() {
         // Cacher le compteur au début
         stairsCounter.style.visibility = 'hidden';
         stairsCounter.textContent = stairCount;
-        
-        // Créer les points lumineux pour l'animation d'escalier
-        createStairDots();
-        
-        // NOUVEAU: Adapter l'escalier aux appareils mobiles
-        adjustStaircaseForMobile();
         
         // Attendre que la page soit bien initialisée
         safeSetTimeout(function() {
@@ -2083,6 +2495,9 @@ function startDeepening() {
                     // Fin de l'introduction, commencer le décompte
                     currentPhase = "countdown";
                     
+                    // Démarrer l'animation du rider
+                    startOrResumeRider();
+                    
                     // Petit délai avant de commencer le décompte
                     safeSetTimeout(progressSequence, 2000);
                 }
@@ -2093,6 +2508,9 @@ function startDeepening() {
                     // Afficher le compteur pour le décompte
                     stairsCounter.style.visibility = 'visible';
                     stairsCounter.textContent = stairCount;
+                    
+                    // Mettre en évidence la marche actuelle
+                    highlightCurrentStep(stairCount);
                     
                     // Obtenir et afficher le texte pour cette marche
                     const stairText = getStairText(stairCount);
@@ -2143,181 +2561,16 @@ function startDeepening() {
         }
     } catch (error) {
         console.error("Erreur dans startDeepening:", error);
-    }
-}
-
-// Version optimisée pour créer les points lumineux
-function createStairDots() {
-    try {
-        const container = document.getElementById('stairDotsContainer');
-        if (!container) {
-            console.error("Container de points d'escalier manquant");
-            return;
+        
+        // En cas d'erreur, afficher un message et continuer la séquence
+        if (deepeningInstruction) {
+            deepeningInstruction.textContent = "Imaginez un escalier qui descend doucement...";
         }
         
-        // Vider le container d'abord
-        container.innerHTML = '';
-        
-        // Détecter si nous sommes sur mobile
-        const isMobile = window.innerWidth <= 768 || 
-                        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        
-        // Ajuster le nombre de points en fonction de l'appareil
-        const dotsCount = isMobile ? 12 : 20;
-        
-        // Créer les points avec une taille ajustée
-        for (let i = 0; i < dotsCount; i++) {
-            const dot = document.createElement('div');
-            dot.className = 'stair-dot';
-            
-            // Position calculée plutôt qu'aléatoire pure pour stabilité
-            // Utiliser une distribution plus précise pour éviter les calculs intensifs
-            const segment = (i / dotsCount) * Math.PI * 2;
-            const variance = 0.2;  // Ajouter un peu de variation
-            const angle = segment + (Math.random() * variance - variance/2);
-            
-            // Distance du centre variée mais contrôlée
-            const layer = i % 3;  // 0, 1 ou 2
-            const baseDistance = 30 + layer * 20;
-            const distance = baseDistance + (Math.random() * 15);
-            
-            const x = 50 + Math.cos(angle) * distance;
-            const y = 50 + Math.sin(angle) * distance;
-            
-            // Délai calculé par segment pour une animation plus fluide
-            const delay = (i / dotsCount) * 6;
-            
-            // Définir les styles
-            dot.style.left = x + '%';
-            dot.style.top = y + '%';
-            
-            // Points plus gros sur mobile pour meilleure visibilité
-            if (isMobile) {
-                dot.style.width = '6px';
-                dot.style.height = '6px';
-                dot.style.background = 'rgba(255, 127, 80, 0.7)'; // Plus visible
-            }
-            
-            dot.style.animationDelay = delay + 's';
-            container.appendChild(dot);
-        }
-    } catch (error) {
-        console.error("Erreur dans createStairDots:", error);
-    }
-}
-
-// Fonction pour adapter l'escalier aux appareils mobiles
-function adjustStaircaseForMobile() {
-    try {
-        console.log("Adaptation de l'escalier pour mobile");
-        
-        // Vérifier si nous sommes sur mobile
-        const isMobile = window.innerWidth <= 768 || 
-                        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        
-        if (!isMobile) return; // Ne rien faire si on n'est pas sur mobile
-        
-        // Récupérer les éléments
-        const staircase = document.querySelector('.staircase');
-        const stairDotsContainer = document.getElementById('stairDotsContainer');
-        const staircaseContainer = document.querySelector('.staircase-container');
-        
-        if (!staircase || !staircaseContainer) {
-            console.warn("Éléments de l'escalier non trouvés");
-            return;
-        }
-        
-        // Détecter la performance de l'appareil
-        const isLowEnd = typeof navigator.hardwareConcurrency !== 'undefined' && 
-                         navigator.hardwareConcurrency <= 3;
-        
-        // TRÈS faible performance
-        const isVeryLowEnd = isLowEnd && (
-            /Android [4-5]|iOS [7-9]/i.test(navigator.userAgent) ||
-            typeof navigator.hardwareConcurrency !== 'undefined' && navigator.hardwareConcurrency <= 2
-        );
-        
-        // Tester le support 3D
-        const supports3D = (function() {
-            try {
-                const el = document.createElement('div');
-                el.style.transform = 'translate3d(1px,1px,1px)';
-                const has3d = getComputedStyle(el).getPropertyValue('transform');
-                return has3d !== 'none' && has3d.indexOf('3d') !== -1;
-            } catch(e) {
-                return false;
-            }
-        })();
-        
-        // Ajuster les propriétés
-        if (staircase) {
-            if (isVeryLowEnd || !supports3D) {
-                // Désactiver l'animation sur appareils très faibles
-                staircase.style.animation = 'none';
-                staircase.style.transform = 'rotateX(45deg)';
-                
-                // Ajouter une animation légère de pulsation
-                const stairs = document.querySelectorAll('.stair');
-                stairs.forEach((stair, index) => {
-                    stair.style.animation = `pulseStair ${5 + index % 3}s infinite alternate`;
-                    stair.style.animationDelay = `${index * 0.5}s`;
-                });
-                
-                // Cacher complètement les points qui demandent trop de ressources
-                if (stairDotsContainer) {
-                    stairDotsContainer.style.display = 'none';
-                }
-            } else if (isLowEnd) {
-                // Juste ralentir l'animation pour les appareils à performances modérées
-                staircase.style.animationDuration = '35s';
-                
-                // Réduire le nombre de points
-                if (stairDotsContainer) {
-                    const dots = stairDotsContainer.querySelectorAll('.stair-dot');
-                    // Ne garder que la moitié des points
-                    for (let i = 0; i < dots.length; i++) {
-                        if (i % 2 !== 0) {
-                            dots[i].style.display = 'none';
-                        }
-                    }
-                }
-            } else {
-                // Pour les mobiles standard, juste ralentir un peu
-                staircase.style.animationDuration = '25s';
-            }
-        }
-        
-        // Ajuster le containeur
-        if (staircaseContainer) {
-            if (isVeryLowEnd) {
-                staircaseContainer.style.height = '140px';
-                staircaseContainer.style.perspective = '600px';
-            } else if (window.innerWidth < 360) {
-                // Très petits écrans
-                staircaseContainer.style.height = '160px';
-                staircaseContainer.style.width = '160px';
-            }
-        }
-        
-        console.log("Adaptation de l'escalier pour mobile terminée");
-    } catch (error) {
-        console.error("Erreur dans adjustStaircaseForMobile:", error);
-    }
-}
-
-// Fonction auxiliaire pour réduire le nombre de points lumineux
-function reduceStairDots() {
-    const stairDotsContainer = document.getElementById('stairDotsContainer');
-    if (!stairDotsContainer) return;
-    
-    // Ne garder que 8 points maximum
-    const dots = stairDotsContainer.querySelectorAll('.stair-dot');
-    if (dots.length > 8) {
-        for (let i = 8; i < dots.length; i++) {
-            if (dots[i]) {
-                dots[i].remove();
-            }
-        }
+        // Passer à la page suivante après un délai de récupération
+        safeSetTimeout(function() {
+            showPage(5);
+        }, 20000);
     }
 }
 
