@@ -1018,7 +1018,7 @@ footer {
     animation: gentlePulse 4s infinite ease-in-out;
 }
 
-/* Animation d'escalier hypnotique */
+/* Animation d'escalier hypnotique - MISE À JOUR AVEC OPTIMISATIONS MOBILES */
 .staircase-container {
     width: 200px;
     height: 200px;
@@ -1026,6 +1026,7 @@ footer {
     margin: 20px auto;
     perspective: 1000px;
     transform-style: preserve-3d;
+    overflow: hidden;
 }
 
 .staircase {
@@ -1099,6 +1100,154 @@ footer {
     background: var(--orange);
     border-radius: 50%;
     box-shadow: 0 0 5px var(--orange);
+    animation: fadeInOut 3s infinite alternate;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0.3; transform: scale(0.8); }
+    50% { opacity: 0.8; transform: scale(1.2); }
+    100% { opacity: 0.3; transform: scale(0.8); }
+}
+
+/* OPTIMISATIONS MOBILES POUR L'ANIMATION DE L'ESCALIER */
+@media screen and (max-width: 768px) {
+    .staircase-container {
+        width: 180px;    /* Légèrement plus petit */
+        height: 180px;
+        perspective: 800px; /* Perspective réduite */
+    }
+
+    .staircase {
+        animation-duration: 30s;  /* Animation plus lente pour éviter les saccades */
+    }
+
+    /* Animation alternative pour mobile */
+    @keyframes rotateStairs_mobile {
+        0% {
+            transform: rotateY(0) rotateX(55deg) scale(0.95);
+        }
+        100% {
+            transform: rotateY(360deg) rotateX(55deg) scale(0.95);
+        }
+    }
+
+    /* Styles pour les points lumineux sur mobile */
+    .stair-dot {
+        width: 5px;
+        height: 5px;
+        animation-duration: 4s;
+        box-shadow: 0 0 8px var(--orange);
+    }
+}
+
+/* Styles pour les très petits écrans */
+@media screen and (max-width: 480px) {
+    .staircase-container {
+        width: 160px;
+        height: 160px;
+    }
+
+    /* Simplifier encore plus l'animation */
+    .staircase {
+        animation-duration: 40s;
+    }
+
+    /* Réduire davantage le nombre de marches visibles */
+    .stair-10, .stair-9 {
+        opacity: 0.5 !important;
+    }
+}
+
+/* Styles pour les appareils à très faibles performances */
+.very-low-performance .staircase-container {
+    height: 140px !important;
+}
+
+.very-low-performance .staircase {
+    animation: none !important;
+    transform: rotateX(45deg) scale(0.85);
+}
+
+.very-low-performance .stair-dots-container {
+    display: none !important;
+}
+
+/* Styles simplifiés pour les appareils à faibles performances */
+.low-performance .staircase {
+    animation: none !important;
+    transform: rotateX(55deg) scale(0.9);
+}
+
+.low-performance .stair {
+    opacity: 0.7 !important;
+    transition: none !important;
+}
+
+.low-performance .stair-dots-container {
+    opacity: 0.6;
+}
+
+/* Styles alternatifs pour les appareils qui ne supportent pas bien transform-style: preserve-3d */
+.fallback-3d .staircase-container {
+    perspective: none;
+}
+
+.fallback-3d .staircase {
+    transform-style: flat;
+    animation: fadeStairs 15s infinite alternate;
+}
+
+@keyframes fadeStairs {
+    0% {
+        opacity: 0.7;
+        transform: scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+}
+
+.fallback-3d .stair {
+    border-radius: 50%;
+    transform: none !important;
+    opacity: 0.6;
+}
+
+.fallback-3d .stair-1 { animation: pulseStair 8s infinite alternate; }
+.fallback-3d .stair-3 { animation: pulseStair 8s infinite alternate-reverse; }
+.fallback-3d .stair-5 { animation: pulseStair 10s infinite alternate; }
+.fallback-3d .stair-7 { animation: pulseStair 10s infinite alternate-reverse; }
+.fallback-3d .stair-9 { animation: pulseStair 12s infinite alternate; }
+
+@keyframes pulseStair {
+    0% {
+        transform: scale(0.8);
+        opacity: 0.4;
+    }
+    100% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+}
+
+/* Optimisations pour iOS */
+@supports (-webkit-overflow-scrolling: touch) {
+    /* Ciblage spécifique iOS pour les problèmes courants */
+    .staircase-container {
+        -webkit-transform-style: preserve-3d;
+        -webkit-perspective: 800px;
+    }
+    
+    .staircase {
+        -webkit-transform-style: preserve-3d;
+    }
+    
+    .stair {
+        -webkit-transform-style: preserve-3d;
+        transform-origin: center;
+        -webkit-transform-origin: center;
+    }
 }
 
 /* Container de la barre de progression */
@@ -1228,6 +1377,13 @@ footer {
     .step-label {
         font-size: 0.55rem;
         width: 50px;
+    }
+    
+    /* Réduire encore la taille de l'escalier */
+    .staircase-container {
+        width: 140px;
+        height: 140px;
+        transform: scale(0.9);
     }
 }
 
@@ -1398,10 +1554,20 @@ select:focus, input:focus {
     /* Désactiver certaines animations complexes sur les très petits écrans */
     .staircase {
         animation: none !important;
+        transform: rotateX(45deg);
     }
     
     .staircase .stair {
         opacity: 0.6 !important;
+    }
+    
+    /* Animation simplifiée pour les escaliers */
+    .stair-1, .stair-3, .stair-5, .stair-7, .stair-9 {
+        animation: pulseStair 6s infinite alternate;
+    }
+    
+    .stair-2, .stair-4, .stair-6, .stair-8, .stair-10 {
+        animation: pulseStair 6s infinite alternate-reverse;
     }
 }
 
