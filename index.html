@@ -2,22 +2,19 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>Auto-Hypnose Guidée</title>
-    
-    <!-- Intégration PWA -->
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0A2463">
-    <link rel="apple-touch-icon" href="/icon-192.png">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
     <!-- CSS de base -->
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="mobile-optimization.css">
     
-    <!-- Préchargement des ressources critiques -->
-    <link rel="preload" href="styles.css" as="style">
-    <link rel="preload" href="script.js" as="script">
+    <!-- PWA Meta tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0A2463">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
     <!-- NoSleep.js pour empêcher l'écran de se mettre en veille -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/nosleep/0.12.0/NoSleep.min.js"></script>
@@ -63,16 +60,6 @@ Signature: JR-f5e8a4d1b6c7e9f0a3d2b1c8e7d6a5f4-2025
     background-color: rgba(0,0,0,0.5); color: white; font-size: 10px; 
     padding: 4px 8px; border-radius: 10px; display: none; z-index: 9999;">
     Écran actif 🔆
-</div>
-
-<!-- Splash screen pour PWA -->
-<div id="splash-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-    background-color: #0A2463; display: flex; justify-content: center; align-items: center; 
-    z-index: 10000; opacity: 1; transition: opacity 0.5s ease; color: white;">
-    <div style="text-align: center;">
-        <div style="font-size: 2rem; font-weight: bold; margin-bottom: 20px;">Hypnorelax</div>
-        <div>Chargement en cours...</div>
-    </div>
 </div>
 
 <div class="container">
@@ -358,7 +345,6 @@ Signature: JR-f5e8a4d1b6c7e9f0a3d2b1c8e7d6a5f4-2025
         <div class="btn-container">
             <button class="btn" id="restartBtn">Refaire la séance</button>
             <button class="btn btn-blue" id="homeBtn">Retour à l'accueil</button>
-            <button class="btn btn-install" id="installBtn" style="display: none;">Installer l'application</button>
         </div>
         
         <!-- Section promotionnelle déplacée après les boutons -->
@@ -409,18 +395,6 @@ Signature: JR-f5e8a4d1b6c7e9f0a3d2b1c8e7d6a5f4-2025
     © 2025 Joffrey ROS
 </div>
 
-<!-- Notification pour inciter à l'installation -->
-<div id="install-prompt" class="install-prompt" style="display: none;">
-    <div class="install-prompt-content">
-        <h3>Installez Hypnorelax</h3>
-        <p>Pour une meilleure expérience, installez cette application sur votre appareil.</p>
-        <div class="install-buttons">
-            <button id="install-yes" class="btn btn-blue">Installer</button>
-            <button id="install-no" class="btn">Plus tard</button>
-        </div>
-    </div>
-</div>
-
 <!-- 
 Code développé par Joffrey ROS (joffrey66@gmail.com) - SIGNATURE: JR-07032025-7842
 Ce commentaire fait partie de la signature numérique et ne doit pas être supprimé.
@@ -428,28 +402,85 @@ Ce commentaire fait partie de la signature numérique et ne doit pas être suppr
 
 <!-- Script pour NoSleep.js et le code JavaScript principal -->
 <script src="script.js"></script>
+<script src="mobile-optimization.js"></script>
 
-<!-- Enregistrement du Service Worker -->
+<!-- PWA Service Worker Registration -->
 <script>
   // Enregistrer le service worker
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js')
-        .then(reg => console.log('Service worker enregistré avec succès'))
-        .catch(err => console.log('Erreur lors de l\'enregistrement du service worker', err));
+      navigator.serviceWorker.register('service-worker.js')
+        .then(reg => console.log('Service worker enregistré!'))
+        .catch(err => console.log('Erreur d\'enregistrement du service worker', err));
     });
   }
-  
-  // Masquer l'écran de démarrage après chargement
-  window.addEventListener('load', () => {
-    const splashScreen = document.getElementById('splash-screen');
-    if (splashScreen) {
-      splashScreen.style.opacity = '0';
-      setTimeout(() => {
-        splashScreen.style.display = 'none';
-      }, 500);
+</script>
+
+<!-- Notification d'installation PWA -->
+<div id="pwa-install-prompt" style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); 
+    background-color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 10px; padding: 15px; 
+    max-width: 90%; width: 300px; z-index: 9999; text-align: center;">
+    <p style="margin-bottom: 10px;">Installez cette application sur votre appareil pour une meilleure expérience.</p>
+    <div style="display: flex; justify-content: space-between;">
+        <button id="pwa-install-no" style="padding: 8px 12px; background: #eee; border: none; border-radius: 5px; cursor: pointer;">Pas maintenant</button>
+        <button id="pwa-install-yes" style="padding: 8px 12px; background: #0A2463; color: white; border: none; border-radius: 5px; cursor: pointer;">Installer</button>
+    </div>
+</div>
+
+<script>
+// Gestion du prompt d'installation PWA
+let deferredPrompt;
+const pwaPrompt = document.getElementById('pwa-install-prompt');
+const btnInstallYes = document.getElementById('pwa-install-yes');
+const btnInstallNo = document.getElementById('pwa-install-no');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  // Empêcher Chrome de montrer automatiquement le prompt
+  e.preventDefault();
+  // Stocker l'événement pour pouvoir le déclencher plus tard
+  deferredPrompt = e;
+  // Afficher notre prompt personnalisé
+  setTimeout(() => {
+    if (deferredPrompt) {
+      pwaPrompt.style.display = 'block';
     }
-  });
+  }, 30000); // Afficher après 30 secondes
+});
+
+btnInstallYes.addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  
+  // Afficher le prompt natif
+  deferredPrompt.prompt();
+  // Attendre que l'utilisateur réponde
+  const { outcome } = await deferredPrompt.userChoice;
+  console.log(`User response: ${outcome}`);
+  // Effacer le prompt car il ne peut pas être réutilisé
+  deferredPrompt = null;
+  // Cacher notre prompt personnalisé
+  pwaPrompt.style.display = 'none';
+});
+
+btnInstallNo.addEventListener('click', () => {
+  // Cacher le prompt
+  pwaPrompt.style.display = 'none';
+  // Sauvegarder que l'utilisateur a refusé
+  localStorage.setItem('pwa-prompt-declined', 'true');
+});
+
+// Ne pas montrer le prompt si l'app est déjà installée
+window.addEventListener('appinstalled', () => {
+  console.log('Application installée !');
+  deferredPrompt = null;
+  pwaPrompt.style.display = 'none';
+});
+
+// Détecter si l'app est déjà lancée en mode standalone/PWA
+if (window.matchMedia('(display-mode: standalone)').matches || 
+    window.navigator.standalone === true) {
+  // L'application est déjà installée et lancée comme PWA
+  console.log('Application lancée en mode PWA');
+}
 </script>
 
 </body>
