@@ -1800,10 +1800,10 @@ function startCoherenceCardiaque() {
                     coherenceInstruction.textContent = completionText;
                     queueSpeech(completionText);
                     
-                    // Passer automatiquement à la page suivante après un délai
+                    // Passer automatiquement à la page suivante après un délai plus long (10 secondes)
                     safeSetTimeout(function() {
                         showPage(3);
-                    }, 8000);
+                    }, 10000);
                 }
             }, 1000);
         }, 5000);
@@ -2002,8 +2002,8 @@ function startInduction() {
                     queueSpeech(finalText, 0, inductionInstruction);
                     
                     safeSetTimeout(function() {
-                        showPage(4); // Passer à la profondeur
-                    }, 7000);
+                        showPage(4); // Passer à la profondeur avec un délai plus long
+                    }, 10000);
                     return;
                 }
                 
@@ -2133,8 +2133,8 @@ function startDeepening() {
                 speakTextSegments(textSegments, 0, () => {
                     // Transition à la prochaine page après un délai suffisant
                     safeSetTimeout(function() {
-                        showPage(5); // Passer à l'exploration
-                    }, 5000);
+                        showPage(5); // Passer à l'exploration avec un délai plus long
+                    }, 12000);
                 });
             }
         }
@@ -2400,8 +2400,8 @@ function startExploration() {
                                             playTransition();
                                         }, 3000);
                                     } else {
-                                        // Dernier message, préparer la transition vers la page suivante
-                                        safeSetTimeout(() => showPage(6), 8000);
+                                        // Dernier message, préparer la transition vers la page suivante avec délai plus long
+                                        safeSetTimeout(() => showPage(6), 15000);
                                     }
                                 });
                             }
@@ -2531,8 +2531,8 @@ function startAwakening() {
                 // Utiliser la segmentation pour le texte final
                 const segments = segmentTextForBetterSpeech(finalText);
                 speakTextSegments(segments, 0, () => {
-                    // Passer à la page finale après un délai
-                    safeSetTimeout(() => showPage(7), 5000);
+                    // Passer à la page finale après un délai plus long
+                    safeSetTimeout(() => showPage(7), 12000);
                 });
                 return;
             }
