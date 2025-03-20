@@ -1784,7 +1784,7 @@ function startCoherenceCardiaque() {
         
         // Démarrer l'animation après un court délai
         safeSetTimeout(function() {
-            // Animer la respiration
+           // Animer la respiration
             animateBreath();
             
             // Suite de la fonction startCoherenceCardiaque
@@ -2055,6 +2055,9 @@ function startDeepening() {
         // Créer les points lumineux pour l'animation d'escalier
         createStairDots();
         
+        // NOUVEAU: Adapter l'escalier aux appareils mobiles
+        adjustStaircaseForMobile();
+        
         // Attendre que la page soit bien initialisée
         safeSetTimeout(function() {
             // Démarrer la séquence
@@ -2143,7 +2146,7 @@ function startDeepening() {
     }
 }
 
-// Création dynamique des points lumineux pour l'escalier
+// Version optimisée pour créer les points lumineux
 function createStairDots() {
     try {
         const container = document.getElementById('stairDotsContainer');
@@ -2155,24 +2158,166 @@ function createStairDots() {
         // Vider le container d'abord
         container.innerHTML = '';
         
-        // Créer 20 points à des positions aléatoires
-        for (let i = 0; i < 20; i++) {
+        // Détecter si nous sommes sur mobile
+        const isMobile = window.innerWidth <= 768 || 
+                        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        // Ajuster le nombre de points en fonction de l'appareil
+        const dotsCount = isMobile ? 12 : 20;
+        
+        // Créer les points avec une taille ajustée
+        for (let i = 0; i < dotsCount; i++) {
             const dot = document.createElement('div');
             dot.className = 'stair-dot';
             
-            // Position aléatoire
-            const x = Math.random() * 100;
-            const y = Math.random() * 100;
-            const delay = Math.random() * 8; // Délai aléatoire pour l'animation
+            // Position calculée plutôt qu'aléatoire pure pour stabilité
+            // Utiliser une distribution plus précise pour éviter les calculs intensifs
+            const segment = (i / dotsCount) * Math.PI * 2;
+            const variance = 0.2;  // Ajouter un peu de variation
+            const angle = segment + (Math.random() * variance - variance/2);
             
+            // Distance du centre variée mais contrôlée
+            const layer = i % 3;  // 0, 1 ou 2
+            const baseDistance = 30 + layer * 20;
+            const distance = baseDistance + (Math.random() * 15);
+            
+            const x = 50 + Math.cos(angle) * distance;
+            const y = 50 + Math.sin(angle) * distance;
+            
+            // Délai calculé par segment pour une animation plus fluide
+            const delay = (i / dotsCount) * 6;
+            
+            // Définir les styles
             dot.style.left = x + '%';
             dot.style.top = y + '%';
-            dot.style.animationDelay = delay + 's';
             
+            // Points plus gros sur mobile pour meilleure visibilité
+            if (isMobile) {
+                dot.style.width = '6px';
+                dot.style.height = '6px';
+                dot.style.background = 'rgba(255, 127, 80, 0.7)'; // Plus visible
+            }
+            
+            dot.style.animationDelay = delay + 's';
             container.appendChild(dot);
         }
     } catch (error) {
         console.error("Erreur dans createStairDots:", error);
+    }
+}
+
+// Fonction pour adapter l'escalier aux appareils mobiles
+function adjustStaircaseForMobile() {
+    try {
+        console.log("Adaptation de l'escalier pour mobile");
+        
+        // Vérifier si nous sommes sur mobile
+        const isMobile = window.innerWidth <= 768 || 
+                        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        if (!isMobile) return; // Ne rien faire si on n'est pas sur mobile
+        
+        // Récupérer les éléments
+        const staircase = document.querySelector('.staircase');
+        const stairDotsContainer = document.getElementById('stairDotsContainer');
+        const staircaseContainer = document.querySelector('.staircase-container');
+        
+        if (!staircase || !staircaseContainer) {
+            console.warn("Éléments de l'escalier non trouvés");
+            return;
+        }
+        
+        // Détecter la performance de l'appareil
+        const isLowEnd = typeof navigator.hardwareConcurrency !== 'undefined' && 
+                         navigator.hardwareConcurrency <= 3;
+        
+        // TRÈS faible performance
+        const isVeryLowEnd = isLowEnd && (
+            /Android [4-5]|iOS [7-9]/i.test(navigator.userAgent) ||
+            typeof navigator.hardwareConcurrency !== 'undefined' && navigator.hardwareConcurrency <= 2
+        );
+        
+        // Tester le support 3D
+        const supports3D = (function() {
+            try {
+                const el = document.createElement('div');
+                el.style.transform = 'translate3d(1px,1px,1px)';
+                const has3d = getComputedStyle(el).getPropertyValue('transform');
+                return has3d !== 'none' && has3d.indexOf('3d') !== -1;
+            } catch(e) {
+                return false;
+            }
+        })();
+        
+        // Ajuster les propriétés
+        if (staircase) {
+            if (isVeryLowEnd || !supports3D) {
+                // Désactiver l'animation sur appareils très faibles
+                staircase.style.animation = 'none';
+                staircase.style.transform = 'rotateX(45deg)';
+                
+                // Ajouter une animation légère de pulsation
+                const stairs = document.querySelectorAll('.stair');
+                stairs.forEach((stair, index) => {
+                    stair.style.animation = `pulseStair ${5 + index % 3}s infinite alternate`;
+                    stair.style.animationDelay = `${index * 0.5}s`;
+                });
+                
+                // Cacher complètement les points qui demandent trop de ressources
+                if (stairDotsContainer) {
+                    stairDotsContainer.style.display = 'none';
+                }
+            } else if (isLowEnd) {
+                // Juste ralentir l'animation pour les appareils à performances modérées
+                staircase.style.animationDuration = '35s';
+                
+                // Réduire le nombre de points
+                if (stairDotsContainer) {
+                    const dots = stairDotsContainer.querySelectorAll('.stair-dot');
+                    // Ne garder que la moitié des points
+                    for (let i = 0; i < dots.length; i++) {
+                        if (i % 2 !== 0) {
+                            dots[i].style.display = 'none';
+                        }
+                    }
+                }
+            } else {
+                // Pour les mobiles standard, juste ralentir un peu
+                staircase.style.animationDuration = '25s';
+            }
+        }
+        
+        // Ajuster le containeur
+        if (staircaseContainer) {
+            if (isVeryLowEnd) {
+                staircaseContainer.style.height = '140px';
+                staircaseContainer.style.perspective = '600px';
+            } else if (window.innerWidth < 360) {
+                // Très petits écrans
+                staircaseContainer.style.height = '160px';
+                staircaseContainer.style.width = '160px';
+            }
+        }
+        
+        console.log("Adaptation de l'escalier pour mobile terminée");
+    } catch (error) {
+        console.error("Erreur dans adjustStaircaseForMobile:", error);
+    }
+}
+
+// Fonction auxiliaire pour réduire le nombre de points lumineux
+function reduceStairDots() {
+    const stairDotsContainer = document.getElementById('stairDotsContainer');
+    if (!stairDotsContainer) return;
+    
+    // Ne garder que 8 points maximum
+    const dots = stairDotsContainer.querySelectorAll('.stair-dot');
+    if (dots.length > 8) {
+        for (let i = 8; i < dots.length; i++) {
+            if (dots[i]) {
+                dots[i].remove();
+            }
+        }
     }
 }
 
