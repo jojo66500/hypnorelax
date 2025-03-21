@@ -109,6 +109,18 @@ let speechQueue = [];
 let isSpeaking = false;
 let waitingForNextSpeech = false;
 
+// === NOUVELLES VARIABLES POUR LA GESTION AMÉLIORÉE DE LA VOIX ===
+let voiceInitRetryCount = 0;
+const maxVoiceInitRetries = 5;
+let voiceInitTimer = null;
+let lastSpeechTime = 0;
+let voiceKeepAliveInterval = null;
+let speechFailureCount = 0;
+const maxSpeechFailures = 3;
+let voiceDebounceTimer = null;
+let lastSelectedVoiceName = '';
+let speechEngineReady = false;
+
 // Fonction sécurisée pour setTimeout qui garde une référence
 function safeSetTimeout(callback, delay) {
     if (typeof callback !== 'function') {
@@ -188,140 +200,7 @@ function clearAllIntervals() {
     }
 }
 
-// Fonction simplifiée pour afficher une page
-function showPage(pageNumber) {
-    try {
-        console.log(`Changement vers la page ${pageNumber}`);
-        
-        // Vérifier que la page existe avant de continuer
-        const pageElement = document.getElementById('page' + pageNumber);
-        if (!pageElement) {
-            console.error('Page non trouvée:', 'page' + pageNumber);
-            return;
-        }
-        
-        // Annuler TOUS les timers en cours pour éviter les chevauchements
-        clearAllTimeouts();
-        clearAllIntervals();
-        
-        // Interrompre proprement TOUTE synthèse vocale en vidant complètement les files d'attente
-        speech.stop();
-        
-        // MODIFICATION: Ne pas arrêter les sons binauraux lors des changements de page
-        // Seulement à la fin du programme (page 7)
-        if (typeof stopBinauralBeats === 'function' && pageNumber === 7) {
-            stopBinauralBeats();
-            binauralActive = false;
-        }
-        
-        // Stopper toutes les animations et séquences
-        speech.utteranceQueue = [];
-        speechQueue = [];
-        isSpeaking = false;
-        waitingForNextSpeech = false;
-        speakingInProgress = false;
-        
-        // Arrêter les intervalles de la cohérence cardiaque si actifs
-        if (coherenceInterval) {
-            clearInterval(coherenceInterval);
-            coherenceInterval = null;
-        }
-        
-        if (coherenceTimer) {
-            clearInterval(coherenceTimer);
-            coherenceTimer = null;
-        }
-        
-        // Masquer toutes les pages
-        pages.forEach(function(page) {
-            page.classList.remove('active');
-        });
-        
-        // Afficher la page demandée
-        pageElement.classList.add('active');
-        
-        // Mettre à jour la navigation
-        updateSteps(pageNumber);
-        
-        // Mettre à jour l'état actuel
-        currentPage = pageNumber;
-        
-        // Défiler vers le haut
-        window.scrollTo(0, 0);
-        
-        // Exécuter les actions spécifiques à la page après un délai
-        // pour s'assurer que toutes les voix précédentes sont bien arrêtées
-        safeSetTimeout(function() {
-            switch (pageNumber) {
-                case 1:
-                    // Page d'accueil
-                    const welcomeElement = document.querySelector('#page1 .intro-text p:first-child');
-                    const homeText = "Bienvenue dans votre séance d'auto-hypnose guidée.";
-                    if (welcomeElement) {
-                        welcomeElement.textContent = homeText;
-                    }
-                    queueSpeech(homeText);
-                    break;
-                    
-                case 2:
-                    // Page de préparation
-                    resetCoherenceCardiaque();
-                    break;
-                    
-                case 3:
-                    // Induction
-                    startInduction();
-                    // Activer le système anti-veille au début de la séance
-                    enableKeepAwake();
-                    break;
-                
-                case 4:
-                    // Profondeur
-                    startDeepening();
-                    // S'assurer que le système anti-veille reste actif
-                    enableKeepAwake();
-                    break;
-                    
-                case 5:
-                    // Exploration
-                    startExploration();
-                    // S'assurer que le système anti-veille reste actif
-                    enableKeepAwake();
-                    break;
-                    
-                case 6:
-                    // Retour
-                    startAwakening();
-                    // S'assurer que le système anti-veille reste actif
-                    enableKeepAwake();
-                    break;
-                    
-                case 7:
-                    // Page finale
-                    // Appliquer les ajustements de style mobile
-                    adjustMobileStyles();
-                    // Désactiver le système anti-veille à la fin de la séance
-                    disableKeepAwake();
-                    break;
-            }
-        }, 800); // Délai optimisé pour la réactivité
-    } catch (error) {
-        console.error('Erreur lors du changement de page:', error);
-        // Essayer de récupérer en affichant la page d'accueil
-        try {
-            const homePage = document.getElementById('page1');
-            if (homePage) {
-                pages.forEach(page => page.classList.remove('active'));
-                homePage.classList.add('active');
-                currentPage = 1;
-            }
-        } catch (e) {
-            console.error('Échec de la récupération après erreur:', e);
-        }
-    }
-}
-
-// Initialisation de la synthèse vocale AMÉLIORÉE
+// Initialisation améliorée de la synthèse vocale
 const speech = {
     synth: null,
     voices: [],
@@ -332,6 +211,10 @@ const speech = {
     pauseBetweenSentences: 350, // Pause entre les phrases (en ms)
     resumeTimer: null,
     utteranceQueue: [], // Pour suivre les utterances en cours
+    lastInitTime: 0,
+    initAttempts: 0,
+    maxInitAttempts: 5,
+    failbackVoiceUsed: false,
     
     // Textes spécifiques avec prononciation améliorée
     pronunciationFixes: {
@@ -344,7 +227,30 @@ const speech = {
         "vous enveloppent": "vouZenveloppent",
         "est ici": "estici",
         "état profonde": "état profond",
-        "marche un": "marche une"
+        "marche un": "marche une",
+        "petit à petit": "petiTapeti",
+        "bien être": "bien nêtre",
+        "peu à peu": "peuWapeu",
+        "plus en plus": "pluZenplu",
+        "de plus en plus": "deplussenplu",
+        "étape par étape": "étappareétap",
+        "profond et": "profonTé",
+        "grand air": "granTair",
+        "grand écran": "granTécran",
+        "second état": "segonTéta"
+    },
+    
+    // AMÉLIORÉ: Plus de substitutions de prononciation pour le français
+    frenchPhoneticFixes: {
+        "aient": "è",
+        "ais": "è",
+        "ait": "è",
+        "dans un": "dan-zun",
+        "en un": "en-nun",
+        "vingt": "vin",
+        "second": "segon",
+        "instinct": "instein",
+        "indistinct": "indistein"
     },
     
     // Convertir un nombre en texte français
@@ -369,8 +275,14 @@ const speech = {
     
     init: function() {
         try {
+            // Mémoriser le temps d'initialisation
+            this.lastInitTime = Date.now();
+            this.initAttempts++;
+            
             // Initialiser la synthèse vocale
-            this.synth = window.speechSynthesis;
+            if (!this.synth) {
+                this.synth = window.speechSynthesis;
+            }
             
             // Vérifier si la synthèse vocale est disponible
             if (!this.synth) {
@@ -382,59 +294,109 @@ const speech = {
                 return false;
             }
             
-            // Fonction pour charger les voix avec tentatives multiples
-            let voicesLoaded = false;
-            let attempts = 0;
-            const maxAttempts = 3;
+            // NOUVEAU: Réinitialiser l'état de la synthèse vocale
+            this.synth.cancel();
             
-            const tryLoadVoices = () => {
-                attempts++;
-                console.log(`Tentative ${attempts} de chargement des voix`);
+            // Fonction pour charger les voix avec tentatives multiples et délai progressif
+            const loadVoices = () => {
+                console.log(`Tentative ${this.initAttempts} de chargement des voix`);
                 
-                const voices = this.synth.getVoices();
-                if (voices && voices.length > 0) {
-                    this.voices = voices;
+                // Récupérer toutes les voix disponibles
+                const availableVoices = this.synth.getVoices();
+                
+                if (availableVoices && availableVoices.length > 0) {
+                    this.voices = availableVoices;
                     console.log(`${this.voices.length} voix disponibles`);
+                    
+                    // NOUVEAU: Montrer plus d'informations sur les voix en debug
+                    this.voices.forEach((voice, index) => {
+                        console.log(`Voix #${index}: ${voice.name} (${voice.lang}) - ${voice.localService ? 'Locale' : 'Distante'}`);
+                    });
+                    
+                    // Peupler la liste et sélectionner la voix
                     this.populateVoiceList();
                     this.selectBestFrenchVoice();
-                    voicesLoaded = true;
+                    
+                    // Marquer l'initialisation comme réussie
+                    speechEngineReady = true;
+                    
+                    // NOUVEAU: Mettre en place le mécanisme de keep-alive
+                    this.setupVoiceKeepAlive();
+                    
                     return true;
                 }
                 
-                if (attempts < maxAttempts) {
-                    safeSetTimeout(tryLoadVoices, 1000);
+                // Si pas de voix et max tentatives non atteint, réessayer avec un délai exponentiel
+                if (this.initAttempts < this.maxInitAttempts) {
+                    const delayMs = Math.min(2000 * Math.pow(1.5, this.initAttempts - 1), 10000);
+                    console.log(`Pas de voix trouvée, nouvel essai dans ${delayMs}ms`);
+                    
+                    voiceInitTimer = setTimeout(() => {
+                        this.init();
+                    }, delayMs);
                 } else {
-                    console.warn("Impossible de charger les voix après plusieurs tentatives");
-                    // Continuer avec une expérience dégradée
-                    if (audioToggle) {
-                        audioToggle.checked = false;
-                    }
+                    console.warn(`Échec de chargement des voix après ${this.initAttempts} tentatives.`);
+                    
+                    // Utiliser une approche de fallback
+                    this.useFallbackVoice();
                 }
+                
                 return false;
             };
             
-            // Essayer immédiatement
-            if (!tryLoadVoices()) {
-                // Configurer l'événement voiceschanged comme backup
-                if (this.synth.onvoiceschanged !== undefined) {
-                    this.synth.onvoiceschanged = () => {
-                        if (!voicesLoaded) {
-                            tryLoadVoices();
-                        }
-                    };
+            // NOUVEAU: Essayer immédiatement, puis configurer l'événement onvoiceschanged
+            if (!loadVoices() && this.synth.onvoiceschanged !== undefined) {
+                this.synth.onvoiceschanged = () => {
+                    // Éviter les appels multiples trop rapprochés
+                    if (Date.now() - this.lastInitTime > 500) {
+                        this.lastInitTime = Date.now();
+                        loadVoices();
+                    }
+                };
+            }
+            
+            // Configurer les événements UI
+            this.setupUIEvents();
+            
+            return true;
+        } catch (error) {
+            console.error('Erreur d\'initialisation de la synthèse vocale:', error);
+            
+            // Essayer de récupérer après une erreur
+            if (this.initAttempts < this.maxInitAttempts) {
+                const recoveryDelay = 2000 * this.initAttempts;
+                console.log(`Tentative de récupération dans ${recoveryDelay}ms`);
+                
+                voiceInitTimer = setTimeout(() => {
+                    this.init();
+                }, recoveryDelay);
+            } else {
+                // Désactiver l'audio en cas d'échec persistant
+                if (audioToggle) {
+                    audioToggle.checked = false;
                 }
             }
             
-            // Événements de contrôle
+            return false;
+        }
+    },
+    
+    // NOUVEAU: Configuration des événements UI pour la synthèse vocale
+    setupUIEvents: function() {
+        try {
+            // Écouteur pour le sélecteur de voix
             if (voiceSelect) {
                 voiceSelect.addEventListener('change', () => {
                     const selectedIndex = voiceSelect.selectedIndex;
-                    if (selectedIndex >= 0 && selectedIndex < this.voices.length) {
+                    if (selectedIndex >= 0 && selectedIndex < voiceSelect.options.length) {
                         const voiceIndex = parseInt(voiceSelect.options[selectedIndex].getAttribute('data-voice-index'));
                         if (!isNaN(voiceIndex) && voiceIndex >= 0 && voiceIndex < this.voices.length) {
                             this.selectedVoice = this.voices[voiceIndex];
                             
-                            // Enregistrer la préférence de voix dans le localStorage
+                            // Mémoriser le nom de la voix sélectionnée
+                            lastSelectedVoiceName = this.selectedVoice.name;
+                            
+                            // Enregistrer la préférence
                             this.saveVoicePreference(voiceIndex);
                             
                             // Tester la voix
@@ -444,38 +406,32 @@ const speech = {
                 });
             }
             
-            // Gestionnaire amélioré pour le contrôle du volume
+            // Gestionnaire pour le contrôle du volume
             if (volumeSlider) {
-                // Initialiser le slider avec la valeur par défaut
+                // Initialiser le slider
                 volumeSlider.value = this.volume;
-                
-                // AMÉLIORATION: Ajouter l'attribut step pour un contrôle plus fin
                 volumeSlider.setAttribute('step', '0.05');
                 
-                // AMÉLIORATION: Gérer les événements input et change pour réactivité immédiate
+                // Écouter les changements
                 volumeSlider.addEventListener('input', () => {
                     const newVolume = parseFloat(volumeSlider.value);
                     this.volume = newVolume;
                     
-                    // Enregistrer la préférence de volume dans le localStorage
+                    // Enregistrer la préférence
                     localStorage.setItem('voiceVolume', newVolume);
                     
-                    // NOUVEAU: Mettre à jour le volume pour toutes les utterances actives
-                    this.updateActiveUtterancesVolume(newVolume);
-                    
-                    // NOUVEAU: Afficher un retour visuel pour le volume
+                    // Mettre à jour l'UI
                     this.updateVolumeDisplay(newVolume);
                 });
                 
-                // AMÉLIORATION: Tester immédiatement le volume lors d'un changement complet
+                // Tester le volume après changement
                 volumeSlider.addEventListener('change', () => {
-                    // Jouer un son bref pour démontrer le niveau de volume
                     if (this.synth && !this.synth.speaking) {
                         this.speak("Volume ajusté");
                     }
                 });
                 
-                // Charger la préférence de volume sauvegardée
+                // Charger préférence sauvegardée
                 const savedVolume = localStorage.getItem('voiceVolume');
                 if (savedVolume !== null) {
                     const parsedVolume = parseFloat(savedVolume);
@@ -487,109 +443,254 @@ const speech = {
                 }
             }
             
-            // Prévenir la suspension de la synthèse vocale
-            this.setupVoiceKeepAlive();
-            
-            return true;
+            // NOUVEAU: Écouter les événements de visibilité du document
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    console.log("Document redevenu visible, réveiller la synthèse vocale");
+                    
+                    // Réinitialiser complètement en cas de problème
+                    if (speechFailureCount > 0) {
+                        this.resetSpeechEngine();
+                    } else if (this.synth && this.synth.speaking) {
+                        // Simple réveil si la synthèse est en cours
+                        this.pingVoiceEngine();
+                    }
+                }
+            });
         } catch (error) {
-            console.error('Erreur d\'initialisation de la synthèse vocale:', error);
-            // Désactiver l'audio en cas d'erreur
-            if (audioToggle) {
-                audioToggle.checked = false;
-            }
-            return false;
+            console.error("Erreur lors de la configuration des événements UI:", error);
         }
     },
     
-    // NOUVEAU: Sélectionner la meilleure voix française disponible
+    // NOUVEAU: Utiliser une voix de fallback quand rien d'autre ne fonctionne
+    useFallbackVoice: function() {
+        try {
+            console.warn("Activation du mode de fallback pour la synthèse vocale");
+            
+            // Marquer que nous utilisons une voix de fallback
+            this.failbackVoiceUsed = true;
+            
+            // Même sans voix spécifique, on peut utiliser la synthèse vocale par défaut
+            this.selectedVoice = null;
+            
+            // Alerte visuelle minimale
+            if (voiceSelect) {
+                voiceSelect.innerHTML = '<option value="-1">Mode dégradé actif</option>';
+                voiceSelect.style.backgroundColor = '#fff3cd';
+                voiceSelect.style.color = '#856404';
+            }
+            
+            // Marquer que le moteur est prêt (en mode dégradé)
+            speechEngineReady = true;
+            
+            // Configurer le mécanisme de keep-alive même en mode fallback
+            this.setupVoiceKeepAlive();
+            
+            console.log("Mode de fallback vocal activé avec succès");
+        } catch (error) {
+            console.error("Erreur lors de l'activation du mode fallback:", error);
+            
+            // Dernier recours: désactiver l'audio
+            if (audioToggle) {
+                audioToggle.checked = false;
+                audioToggle.disabled = true;
+            }
+        }
+    },
+    
+    // NOUVEAU: Reset complet du moteur de synthèse vocale
+    resetSpeechEngine: function() {
+        try {
+            console.log("Réinitialisation complète du moteur de synthèse vocale");
+            
+            // Annuler toutes les synthèses en cours
+            if (this.synth) {
+                this.synth.cancel();
+            }
+            
+            // Nettoyer les intervalles et timers
+            if (voiceKeepAliveInterval) {
+                clearInterval(voiceKeepAliveInterval);
+                voiceKeepAliveInterval = null;
+            }
+            
+            if (voiceInitTimer) {
+                clearTimeout(voiceInitTimer);
+                voiceInitTimer = null;
+            }
+            
+            if (this.resumeTimer) {
+                clearTimeout(this.resumeTimer);
+                this.resumeTimer = null;
+            }
+            
+            // Réinitialiser les compteurs
+            speechFailureCount = 0;
+            this.initAttempts = 0;
+            this.lastInitTime = 0;
+            
+            // Vider les files d'attente
+            this.utteranceQueue = [];
+            speechQueue = [];
+            isSpeaking = false;
+            waitingForNextSpeech = false;
+            speakingInProgress = false;
+            
+            // Réinitialiser l'état visuel
+            if (speakingIndicator) {
+                speakingIndicator.classList.remove('active');
+            }
+            
+            // Réinitialiser complètement
+            speechEngineReady = false;
+            this.synth = null;
+            this.voices = [];
+            this.selectedVoice = null;
+            
+            // Petit délai puis relancer l'initialisation
+            setTimeout(() => {
+                this.init();
+            }, 500);
+            
+            console.log("Réinitialisation du moteur de synthèse vocale terminée");
+        } catch (error) {
+            console.error("Erreur lors de la réinitialisation du moteur vocal:", error);
+        }
+    },
+    
+    // AMÉLIORÉ: Sélection de la meilleure voix française disponible
     selectBestFrenchVoice: function() {
         try {
-            // Priorité des voix françaises: voix neuronales > voix natives > autres voix françaises
+            // Priorité des voix françaises:
+            // 1. Voix précédemment sélectionnée par l'utilisateur
+            // 2. Voix neuronales/premium françaises
+            // 3. Voix natives françaises
+            // 4. Autres voix françaises
+            // 5. Première voix disponible (fallback)
+            
+            // Filtrer toutes les voix françaises (inclut fr-FR, fr-CA, etc.)
             const frenchVoices = this.voices.filter(voice => 
-                voice.lang && (voice.lang.includes('fr') || voice.lang.includes('FR'))
+                voice.lang && (voice.lang.toLowerCase().includes('fr'))
             );
+            
+            console.log(`${frenchVoices.length} voix françaises identifiées`);
             
             // Vérifier d'abord s'il y a une préférence sauvegardée
             const savedVoiceIndex = localStorage.getItem('selectedVoiceIndex');
+            
             if (savedVoiceIndex !== null) {
                 const index = parseInt(savedVoiceIndex);
                 if (!isNaN(index) && index >= 0 && index < this.voices.length) {
                     this.selectedVoice = this.voices[index];
+                    console.log(`Voix précédemment sélectionnée chargée: ${this.selectedVoice.name}`);
                     
                     // Mettre à jour l'UI
-                    if (voiceSelect) {
-                        for (let i = 0; i < voiceSelect.options.length; i++) {
-                            if (parseInt(voiceSelect.options[i].getAttribute('data-voice-index')) === index) {
-                                voiceSelect.selectedIndex = i;
-                                break;
-                            }
-                        }
-                    }
+                    this.updateVoiceSelectionUI(index);
                     return;
                 }
             }
             
-            // Si aucune préférence ou préférence invalide, sélectionner la meilleure voix française
+            // Si dernier nom de voix mémorisé, essayer de retrouver cette voix
+            if (lastSelectedVoiceName && lastSelectedVoiceName.length > 0) {
+                const voiceByName = this.voices.find(v => v.name === lastSelectedVoiceName);
+                if (voiceByName) {
+                    this.selectedVoice = voiceByName;
+                    const index = this.voices.indexOf(voiceByName);
+                    this.updateVoiceSelectionUI(index);
+                    console.log(`Voix retrouvée par nom: ${lastSelectedVoiceName}`);
+                    return;
+                }
+            }
+            
+            // Si aucune préférence valide, sélectionner la meilleure voix française
             if (frenchVoices.length > 0) {
-                // Priorité 1: Chercher des voix neuronales/premium (souvent contiennent des mots clés)
-                const neuralVoice = frenchVoices.find(voice => 
-                    voice.name.includes('Neural') || 
-                    voice.name.includes('Premium') || 
-                    voice.name.includes('Enhanced')
+                // Chercher des voix premium/neuronales (meilleure qualité)
+                const premiumKeywords = ['neural', 'premium', 'enhanced', 'wavenet', 'studio'];
+                const premiumVoice = frenchVoices.find(voice => 
+                    premiumKeywords.some(keyword => 
+                        voice.name.toLowerCase().includes(keyword)
+                    )
                 );
                 
-                if (neuralVoice) {
-                    this.selectedVoice = neuralVoice;
+                if (premiumVoice) {
+                    this.selectedVoice = premiumVoice;
+                    console.log(`Voix premium française sélectionnée: ${premiumVoice.name}`);
                 } else {
-                    // Priorité 2: Voix natives (souvent sans accent)
+                    // Préférer les voix natives (souvent sans accent)
                     const nativeVoice = frenchVoices.find(voice => 
                         voice.localService === true || 
-                        voice.name.includes('Native') ||
+                        voice.name.toLowerCase().includes('native') ||
                         voice.name.toLowerCase().includes('français') ||
                         voice.name.toLowerCase().includes('france')
                     );
                     
                     if (nativeVoice) {
                         this.selectedVoice = nativeVoice;
+                        console.log(`Voix native française sélectionnée: ${nativeVoice.name}`);
                     } else {
-                        // Priorité 3: N'importe quelle voix française
+                        // N'importe quelle voix française
                         this.selectedVoice = frenchVoices[0];
+                        console.log(`Voix française générique sélectionnée: ${frenchVoices[0].name}`);
                     }
                 }
                 
-                // Mettre à jour l'UI si une voix française a été trouvée
-                if (this.selectedVoice && voiceSelect) {
-                    const voiceIndex = this.voices.indexOf(this.selectedVoice);
-                    for (let i = 0; i < voiceSelect.options.length; i++) {
-                        if (parseInt(voiceSelect.options[i].getAttribute('data-voice-index')) === voiceIndex) {
-                            voiceSelect.selectedIndex = i;
-                            break;
-                        }
-                    }
+                // Mettre à jour l'UI si une voix a été trouvée
+                if (this.selectedVoice) {
+                    const index = this.voices.indexOf(this.selectedVoice);
+                    this.updateVoiceSelectionUI(index);
                 }
             } else if (this.voices.length > 0) {
-                // Si aucune voix française n'est disponible, utiliser la première voix
+                // En dernier recours, utiliser la première voix disponible
                 this.selectedVoice = this.voices[0];
+                console.log(`Aucune voix française disponible, sélection par défaut: ${this.voices[0].name}`);
+                
+                // Mettre à jour l'UI
+                this.updateVoiceSelectionUI(0);
             }
         } catch (error) {
-            console.error("Erreur lors de la sélection de la meilleure voix française:", error);
-            // Fallback: utiliser n'importe quelle voix disponible
+            console.error("Erreur lors de la sélection de la voix:", error);
+            
+            // Fallback ultime: utiliser n'importe quelle voix disponible
             if (this.voices && this.voices.length > 0) {
                 this.selectedVoice = this.voices[0];
+                this.updateVoiceSelectionUI(0);
             }
         }
     },
     
-    // NOUVEAU: Sauvegarder la préférence de voix
+    // NOUVEAU: Mettre à jour l'UI du sélecteur de voix
+    updateVoiceSelectionUI: function(voiceIndex) {
+        try {
+            if (!voiceSelect) return;
+            
+            for (let i = 0; i < voiceSelect.options.length; i++) {
+                const optionIndex = parseInt(voiceSelect.options[i].getAttribute('data-voice-index'));
+                if (optionIndex === voiceIndex) {
+                    voiceSelect.selectedIndex = i;
+                    break;
+                }
+            }
+        } catch (error) {
+            console.error("Erreur lors de la mise à jour de l'UI de sélection de voix:", error);
+        }
+    },
+    
+    // Fonction pour sauvegarder la préférence de voix
     saveVoicePreference: function(voiceIndex) {
         try {
             localStorage.setItem('selectedVoiceIndex', voiceIndex);
+            
+            // Mémoriser aussi le nom de la voix comme backup
+            if (this.selectedVoice && this.selectedVoice.name) {
+                lastSelectedVoiceName = this.selectedVoice.name;
+                localStorage.setItem('selectedVoiceName', this.selectedVoice.name);
+            }
         } catch (error) {
             console.error("Erreur lors de la sauvegarde de la préférence de voix:", error);
         }
     },
     
-    // NOUVEAU: Mettre à jour l'affichage du volume
+    // Mettre à jour l'affichage du volume
     updateVolumeDisplay: function(volume) {
         try {
             const volumeValue = document.getElementById('volumeValue');
@@ -609,17 +710,7 @@ const speech = {
         }
     },
     
-    // Méthode pour mettre à jour le volume des utterances actives
-    updateActiveUtterancesVolume: function(newVolume) {
-        try {
-            // Malheureusement, on ne peut pas modifier le volume d'une utterance en cours
-            // On peut seulement s'assurer que les nouvelles utterances utilisent le bon volume
-            console.log(`Volume mis à jour: ${newVolume}`);
-        } catch (error) {
-            console.error("Erreur lors de la mise à jour du volume des utterances actives:", error);
-        }
-    },
-    
+    // AMÉLIORÉ: Configuration du système de keep alive pour la synthèse vocale
     setupVoiceKeepAlive: function() {
         try {
             if (!this.synth) {
@@ -627,46 +718,63 @@ const speech = {
                 return;
             }
             
-            // Mécanisme pour maintenir la synthèse vocale active en permanence
-            const keepAlive = () => {
-                // Si la synthèse est en cours, appliquer le hack pause/resume
-                if (this.synth && this.synth.speaking) {
-                    this.synth.pause();
-                    this.synth.resume();
-                }
-            };
+            // Nettoyer l'intervalle précédent si existant
+            if (voiceKeepAliveInterval) {
+                clearInterval(voiceKeepAliveInterval);
+            }
             
-            // Exécuter le keepAlive toutes les 250ms quand une synthèse est active
-            const keepAliveInterval = safeSetInterval(keepAlive, 250);
+            // Mécanisme pour maintenir la synthèse vocale active
+            voiceKeepAliveInterval = setInterval(() => {
+                this.pingVoiceEngine();
+            }, 250);
             
-            // Événement de changement de visibilité de la page
-            document.addEventListener('visibilitychange', () => {
-                if (!document.hidden && this.synth) {
-                    // L'utilisateur est revenu sur la page, réveiller la synthèse
-                    keepAlive();
-                }
-            });
-            
-            // Ping périodique pour garder le moteur de synthèse actif
-            const pingInterval = safeSetInterval(() => {
-                if (this.synth && !this.synth.speaking) {
-                    // Envoyer un signal silencieux pour maintenir le moteur actif
-                    const dummy = new SpeechSynthesisUtterance('');
-                    dummy.volume = 0;
-                    dummy.onend = function() {
-                        // Ne rien faire, juste pour maintenir le moteur actif
-                    };
-                    this.synth.speak(dummy);
-                }
-            }, 10000);
+            console.log("Système de keep-alive vocal configuré");
         } catch (error) {
             console.error("Erreur lors de la configuration du keepAlive vocal:", error);
         }
     },
     
+    // NOUVEAU: Fonction pour "ping" le moteur de synthèse vocale
+    pingVoiceEngine: function() {
+        try {
+            // Ne rien faire si le moteur n'est pas initialisé
+            if (!this.synth) return;
+            
+            // Si la synthèse est en cours, appliquer le hack pause/resume
+            if (this.synth.speaking) {
+                // Appliquer pause/resume seulement si nécessaire (pas trop fréquent)
+                const timeSinceLastSpeech = Date.now() - lastSpeechTime;
+                if (timeSinceLastSpeech > 2000) {
+                    this.synth.pause();
+                    this.synth.resume();
+                    lastSpeechTime = Date.now();
+                }
+            } else if (Date.now() - lastSpeechTime > 15000) {
+                // Si aucune parole depuis longtemps, envoyer un signal silencieux
+                const dummy = new SpeechSynthesisUtterance('');
+                dummy.volume = 0;
+                dummy.onend = function() {
+                    // Ne rien faire, juste pour maintenir le moteur actif
+                };
+                this.synth.speak(dummy);
+                lastSpeechTime = Date.now();
+            }
+        } catch (error) {
+            console.error("Erreur lors du ping du moteur vocal:", error);
+            speechFailureCount++;
+            
+            // Réinitialiser le moteur en cas d'échecs répétés
+            if (speechFailureCount >= maxSpeechFailures) {
+                console.warn(`Trop d'échecs de ping (${speechFailureCount}), réinitialisation du moteur vocal`);
+                this.resetSpeechEngine();
+            }
+        }
+    },
+    
+    // AMÉLIORÉ: Mise à jour de la liste des voix avec plus d'informations
     populateVoiceList: function() {
         try {
-            // Vérifier que le sélecteur de voix existe
+            // Vérifier que le sélecteur existe
             if (!voiceSelect) {
                 console.warn("Élément voiceSelect non trouvé");
                 return;
@@ -687,34 +795,76 @@ const speech = {
             
             // Filtrer uniquement les voix françaises
             const frenchVoices = this.voices.filter(voice => 
-                voice.lang && (voice.lang.includes('fr') || voice.lang.includes('FR'))
+                voice.lang && (voice.lang.toLowerCase().includes('fr'))
             );
             
-            // Si aucune voix française n'est disponible, utiliser toutes les voix
+            // Utiliser les voix françaises en priorité
             const voicesToUse = frenchVoices.length > 0 ? frenchVoices : this.voices;
+            
+            // NOUVEAU: Trier les voix par ordre de qualité et de préférence
+            voicesToUse.sort((a, b) => {
+                // Priorité 1: Les voix locales (meilleure performance)
+                if (a.localService && !b.localService) return -1;
+                if (!a.localService && b.localService) return 1;
+                
+                // Priorité 2: Les voix premium/neuronales
+                const premiumKeywords = ['neural', 'premium', 'enhanced', 'wavenet', 'studio'];
+                const aIsPremium = premiumKeywords.some(kw => a.name.toLowerCase().includes(kw));
+                const bIsPremium = premiumKeywords.some(kw => b.name.toLowerCase().includes(kw));
+                
+                if (aIsPremium && !bIsPremium) return -1;
+                if (!aIsPremium && bIsPremium) return 1;
+                
+                // Priorité 3: Les voix françaises de France (fr-FR)
+                const aIsFrFR = a.lang === 'fr-FR';
+                const bIsFrFR = b.lang === 'fr-FR';
+                
+                if (aIsFrFR && !bIsFrFR) return -1;
+                if (!aIsFrFR && bIsFrFR) return 1;
+                
+                // Par défaut: ordre alphabétique
+                return a.name.localeCompare(b.name);
+            });
             
             // Ajouter chaque voix à la liste
             voicesToUse.forEach((voice, index) => {
                 const option = document.createElement('option');
                 option.value = index;
                 
-                // Formater le nom de la voix avec la langue
+                // AMÉLIORÉ: Format du nom avec indicateurs de qualité
                 let displayName = voice.name || 'Voix sans nom';
+                
+                // Ajouter le code de langue
                 if (voice.lang) {
                     displayName += ` (${voice.lang})`;
                 }
                 
                 // Indiquer si la voix est native/locale
                 if (voice.localService) {
-                    displayName += ' [Locale]';
+                    displayName += ' ⚡'; // Icône d'éclair pour les voix locales (plus rapides)
+                }
+                
+                // Indiquer si c'est une voix premium
+                const premiumKeywords = ['neural', 'premium', 'enhanced', 'wavenet', 'studio'];
+                if (premiumKeywords.some(kw => voice.name.toLowerCase().includes(kw))) {
+                    displayName += ' ★'; // Étoile pour les voix premium (meilleure qualité)
                 }
                 
                 option.textContent = displayName;
-                option.setAttribute('data-voice-index', this.voices.indexOf(voice)); // Utiliser l'index réel dans le tableau original
+                option.setAttribute('data-voice-index', this.voices.indexOf(voice)); // Index original
+                
+                // NOUVEAU: Préférences visuelles pour les voix françaises
+                if (voice.lang && voice.lang.startsWith('fr-')) {
+                    option.style.fontWeight = 'bold';
+                }
+                
                 voiceSelect.appendChild(option);
             });
+            
+            console.log(`Liste de voix mise à jour avec ${voicesToUse.length} voix`);
         } catch (error) {
             console.error("Erreur lors du remplissage de la liste des voix:", error);
+            
             // Créer une option par défaut en cas d'erreur
             if (voiceSelect) {
                 voiceSelect.innerHTML = '<option value="-1">Erreur de chargement des voix</option>';
@@ -722,7 +872,7 @@ const speech = {
         }
     },
     
-    // Fonction spéciale pour prononcer les nombres
+    // AMÉLIORÉ: Fonction pour prononcer les nombres
     speakNumber: function(number, callback) {
         try {
             // Convertir le nombre en texte français explicite
@@ -746,6 +896,9 @@ const speech = {
                 utterance.onend = callback;
             }
             
+            // Mémoriser le temps de parole
+            lastSpeechTime = Date.now();
+            
             // Prononcer le nombre
             this.synth.speak(utterance);
             
@@ -757,11 +910,14 @@ const speech = {
         }
     },
     
-    // Nouvelle fonction pour corriger les problèmes de prononciation spécifiques
+    // AMÉLIORÉ: Correction complète des problèmes de prononciation en français
     fixSpecificPronunciations: function(text) {
         try {
             if (!text) return text;
-    
+            
+            // Copie du texte original pour la comparaison
+            const originalText = text;
+            
             // Fixer le problème de "marche un" en priorité
             text = text.replace(/\bmarche un\b/gi, "marche une");
             
@@ -773,22 +929,48 @@ const speech = {
                 text = text.replace(/^Un\./, "Numéro Un.");
             }
             
-            // Fixer les problèmes spécifiques de liaison et prononciation
+            // Fixer les liaisons courantes en français
             for (const [problem, solution] of Object.entries(this.pronunciationFixes)) {
                 // Utiliser une expression régulière pour trouver toutes les occurrences
                 const regex = new RegExp('\\b' + problem + '\\b', 'gi');
                 text = text.replace(regex, solution);
             }
             
+            // Appliquer les corrections phonétiques supplémentaires
+            for (const [problem, solution] of Object.entries(this.frenchPhoneticFixes)) {
+                const regex = new RegExp(problem, 'gi');
+                text = text.replace(regex, solution);
+            }
+            
             // Traitement spécial pour les cas qui nécessitent une insertion de caractère
-            text = text.replace(/\bvous entrez\b/gi, "vous-entrez");
-            text = text.replace(/\bvous enfonçant\b/gi, "vous-enfonçant");
-            text = text.replace(/\bnous arriverons\b/gi, "nous-arriverons");
-            text = text.replace(/\bde l'air\b/gi, "de-l'air");
-            text = text.replace(/\bvous apaise\b/gi, "vous-apaise");
-            text = text.replace(/\bvous ancrez\b/gi, "vous-ancrez");
-            text = text.replace(/\bvous enveloppent\b/gi, "vous-enveloppent");
-            text = text.replace(/\best ici\b/gi, "est-ici");
+            const specialCases = [
+                { pattern: /\bvous entrez\b/gi, replacement: "vous-entrez" },
+                { pattern: /\bvous enfonçant\b/gi, replacement: "vous-enfonçant" },
+                { pattern: /\bnous arriverons\b/gi, replacement: "nous-arriverons" },
+                { pattern: /\bde l'air\b/gi, replacement: "de-l'air" },
+                { pattern: /\bvous apaise\b/gi, replacement: "vous-apaise" },
+                { pattern: /\bvous ancrez\b/gi, replacement: "vous-ancrez" },
+                { pattern: /\bvous enveloppent\b/gi, replacement: "vous-enveloppent" },
+                { pattern: /\best ici\b/gi, replacement: "est-ici" },
+                { pattern: /\bplus en plus\b/gi, replacement: "plus-en-plus" },
+                { pattern: /\bpeu à peu\b/gi, replacement: "peu-à-peu" },
+                { pattern: /\bpetit à petit\b/gi, replacement: "petit-à-petit" }
+            ];
+            
+            specialCases.forEach(({ pattern, replacement }) => {
+                text = text.replace(pattern, replacement);
+            });
+            
+            // NOUVEAU: Correction des nombres
+            text = text.replace(/(\d+)([,.])(\d+)/g, (match, p1, p2, p3) => {
+                // Pour les nombres décimaux, ajouter des espaces pour améliorer la prononciation
+                return `${p1} virgule ${p3}`;
+            });
+            
+            // NOUVEAU: Détecter si des corrections ont été appliquées
+            if (text !== originalText) {
+                console.log("Corrections de prononciation appliquées");
+            }
             
             return text;
         } catch (error) {
@@ -797,15 +979,32 @@ const speech = {
         }
     },
     
-    // Méthode speak améliorée avec correction des problèmes de prononciation
+    // AMÉLIORÉ: Méthode speak avec plus de robustesse et de performance
     speak: function(text) {
         try {
-            // Vérifier si le son est activé
-            if (!audioToggle || !audioToggle.checked || !this.synth || !text) {
+            // Vérifier si le son est activé et si le texte est valide
+            if (!audioToggle || !audioToggle.checked || !this.synth || !text || !speechEngineReady) {
+                if (!audioToggle || !audioToggle.checked) {
+                    console.log("Synthèse vocale désactivée");
+                } else if (!speechEngineReady) {
+                    console.warn("Moteur de synthèse vocale non prêt");
+                }
                 return;
             }
             
-            // Prétraiter le texte pour les problèmes de prononciation spécifiques
+            // Anti-doublon: éviter de répéter exactement la même phrase trop rapidement
+            if (text === this._lastSpokenText && Date.now() - lastSpeechTime < 1000) {
+                console.log("Texte identique ignoré (anti-doublon)");
+                return;
+            }
+            
+            // Mémoriser le dernier texte prononcé
+            this._lastSpokenText = text;
+            
+            // Mémoriser le temps de parole
+            lastSpeechTime = Date.now();
+            
+            // Prétraiter le texte pour les problèmes de prononciation
             text = this.fixSpecificPronunciations(text);
             
             // Créer un nouvel énoncé
@@ -816,7 +1015,7 @@ const speech = {
                 utterance.voice = this.selectedVoice;
             }
             
-            // Appliquer le volume actuel à chaque utterance
+            // Appliquer les paramètres
             utterance.volume = this.volume;
             utterance.rate = 0.78; // Vitesse ralentie pour une articulation parfaite
             utterance.pitch = 1.02; // Pitch légèrement ajusté pour une meilleure sonorité
@@ -827,13 +1026,16 @@ const speech = {
             // Suivre cet utterance
             this.utteranceQueue.push(utterance);
             
-            // Ajouter des événements avec des délais pour assurer la stabilité
+            // Ajouter des événements
             utterance.onstart = () => {
                 safeSetTimeout(() => {
                     speakingInProgress = true;
                     if (speakingIndicator) {
                         speakingIndicator.classList.add('active');
                     }
+                    
+                    // Réinitialiser le compteur d'échecs
+                    speechFailureCount = 0;
                 }, 50);
             };
             
@@ -844,9 +1046,8 @@ const speech = {
                     this.utteranceQueue.splice(index, 1);
                 }
                 
-                // Petit délai pour éviter les problèmes de timing
+                // Mettre à jour l'état
                 safeSetTimeout(() => {
-                    // Ne mettre fin que si aucune autre utterance n'est en cours
                     if (this.utteranceQueue.length === 0) {
                         speakingInProgress = false;
                         if (speakingIndicator) {
@@ -865,7 +1066,10 @@ const speech = {
                     this.utteranceQueue.splice(index, 1);
                 }
                 
-                // Réinitialiser l'état si nécessaire
+                // Incrémenter le compteur d'échecs
+                speechFailureCount++;
+                
+                // Réinitialiser l'état
                 safeSetTimeout(() => {
                     if (this.utteranceQueue.length === 0) {
                         speakingInProgress = false;
@@ -873,29 +1077,52 @@ const speech = {
                             speakingIndicator.classList.remove('active');
                         }
                     }
+                    
+                    // Réinitialiser le moteur en cas d'erreurs répétées
+                    if (speechFailureCount >= maxSpeechFailures) {
+                        console.warn(`Trop d'erreurs de synthèse (${speechFailureCount}), réinitialisation du moteur`);
+                        this.resetSpeechEngine();
+                    }
                 }, 100);
             };
             
-            // Prononcer le texte avec un léger délai pour stabiliser
-            safeSetTimeout(() => {
+            // AMÉLIORATION: Débounce pour éviter les problèmes de saturation
+            if (voiceDebounceTimer) {
+                clearTimeout(voiceDebounceTimer);
+            }
+            
+            voiceDebounceTimer = setTimeout(() => {
+                // Prononcer le texte
                 this.synth.speak(utterance);
+                voiceDebounceTimer = null;
             }, 50);
             
         } catch (error) {
             console.error('Erreur de synthèse vocale:', error);
             speakingInProgress = false;
+            
+            // Tenter de récupérer
+            speechFailureCount++;
+            if (speechFailureCount >= maxSpeechFailures) {
+                this.resetSpeechEngine();
+            }
         }
     },
     
-    // Arrêter toute la synthèse vocale proprement - AMÉLIORÉ
+    // AMÉLIORÉ: Arrêt complet de toute la synthèse vocale
     stop: function() {
         try {
             console.log("Arrêt complet de toute synthèse vocale");
             
-            // Arrêter tous les minuteurs
+            // Annuler tous les minuteurs
             if (this.resumeTimer) {
                 clearTimeout(this.resumeTimer);
                 this.resumeTimer = null;
+            }
+            
+            if (voiceDebounceTimer) {
+                clearTimeout(voiceDebounceTimer);
+                voiceDebounceTimer = null;
             }
             
             // Annuler toutes les paroles
@@ -903,7 +1130,7 @@ const speech = {
                 // Double annulation pour s'assurer que tout est bien arrêté
                 this.synth.cancel();
                 
-                // Seconde annulation après un bref délai pour garantir l'arrêt complet
+                // Seconde annulation après un bref délai
                 safeSetTimeout(() => {
                     if (this.synth) {
                         this.synth.cancel();
@@ -913,6 +1140,7 @@ const speech = {
             
             // Réinitialiser les états
             this.utteranceQueue = [];
+            this._lastSpokenText = null;
             speakingInProgress = false;
             if (speakingIndicator) {
                 speakingIndicator.classList.remove('active');
@@ -1054,6 +1282,22 @@ function setupEventListeners() {
         
         // Ajout d'un écouteur pour le redimensionnement
         window.addEventListener('resize', adjustMobileStyles);
+        
+        // NOUVEAU: Écouteur pour les erreurs non capturées
+        window.addEventListener('error', function(e) {
+            console.error("Erreur non capturée:", e.error || e.message);
+            
+            // Tenter de récupérer les fonctionnalités vocales en cas d'erreur
+            if (e.error && (e.error.toString().includes('speech') || e.error.toString().includes('voice'))) {
+                console.warn("Erreur liée à la voix détectée, tentative de récupération");
+                if (speech && typeof speech.resetSpeechEngine === 'function') {
+                    speech.resetSpeechEngine();
+                }
+            }
+            
+            // Éviter de perturber l'expérience utilisateur
+            e.preventDefault();
+        });
     } catch (error) {
         console.error("Erreur lors de la configuration des écouteurs d'événements:", error);
     }
@@ -1076,6 +1320,11 @@ function initAntiSleepSystem() {
             requestWakeLock();
             startKeepAwakeMedia();
             startRefreshInterval();
+            
+            // On n'a besoin de ces écouteurs qu'une fois
+            document.removeEventListener('click', activateAntiSleep);
+            document.removeEventListener('touchstart', activateAntiSleep);
+            document.removeEventListener('touchend', activateAntiSleep);
         };
         
         // Attacher aux événements d'interaction utilisateur
@@ -1502,1745 +1751,3 @@ function startBinauralBeats() {
         return false;
     }
 }
-
-function stopBinauralBeats() {
-    try {
-        if (!binauralContext || binauralOscillators.length === 0) {
-            console.log("Aucun son binaural actif à arrêter");
-            binauralActive = false;
-            return false;
-        }
-        
-        console.log("Arrêt des sons binauraux");
-        
-        // Diminuer progressivement le volume avant d'arrêter
-        if (binauralGain) {
-            binauralGain.gain.linearRampToValueAtTime(0, binauralContext.currentTime + 1.5);
-        }
-        
-        // Arrêter les oscillateurs après la baisse de volume
-        safeSetTimeout(() => {
-            binauralOscillators.forEach(osc => {
-                try {
-                    osc.stop();
-                    osc.disconnect();
-                } catch (e) {
-                    console.log("Erreur lors de l'arrêt d'un oscillateur:", e);
-                }
-            });
-            
-            // Vider le tableau des oscillateurs
-            binauralOscillators = [];
-            
-            // Marquer les sons binauraux comme inactifs
-            binauralActive = false;
-            
-            console.log("Sons binauraux arrêtés avec succès");
-        }, 1500);
-        
-        return true;
-    } catch (error) {
-        console.error("Erreur lors de l'arrêt des sons binauraux:", error);
-        return false;
-    }
-}
-
-function updateBinauralVolume(volume) {
-    try {
-        // Volume entre 0 et 1
-        binauralVolume = Math.max(0, Math.min(1, volume));
-        
-        if (binauralGain) {
-            // Mettre à jour le volume progressivement
-            binauralGain.gain.linearRampToValueAtTime(binauralVolume, binauralContext.currentTime + 0.5);
-        }
-        
-        console.log("Volume des sons binauraux mis à jour:", binauralVolume);
-        return true;
-    } catch (error) {
-        console.error("Erreur lors de la mise à jour du volume des sons binauraux:", error);
-        return false;
-    }
-}
-
-// Fonction pour ajuster les styles sur mobile
-function adjustMobileStyles() {
-    try {
-        const isMobile = window.innerWidth <= 768;
-        console.log("Ajustement des styles pour mobile:", isMobile);
-        
-        // Création d'un style dynamique
-        let styleElement = document.getElementById('mobile-styles-fix');
-        if (!styleElement) {
-            styleElement = document.createElement('style');
-            styleElement.id = 'mobile-styles-fix';
-            document.head.appendChild(styleElement);
-        }
-        
-        if (isMobile) {
-            // Styles ajustés pour mobile
-            styleElement.textContent = `
-                /* Ajustement des points dans la liste */
-                .steps-list li::before {
-                    width: 16px !important;
-                    height: 16px !important;
-                    left: 2px !important;
-                    top: 50% !important;
-                }
-                
-                /* Ajustement des étapes de progression */
-                .step {
-                    width: 14px !important;
-                    height: 14px !important;
-                }
-                
-                /* Meilleure adaptation pour les labels d'étapes */
-                .step-label {
-                    width: 60px !important;
-                    font-size: 0.65rem !important;
-                }
-            `;
-        } else {
-            // Réinitialisation pour desktop
-            styleElement.textContent = '';
-        }
-        
-        return true;
-    } catch (error) {
-        console.error("Erreur lors de l'ajustement des styles pour mobile:", error);
-        return false;
-    }
-}
-
-// Fonction améliorée pour segmenter le texte en respectant les structures syntaxiques
-function segmentTextForBetterSpeech(text) {
-    try {
-        // Si le texte est court, pas besoin de segmentation
-        if (!text || text.length < 100) return [text];
-        
-        // Diviser d'abord sur les ponctuations fortes
-        let segments = text.split(/(?<=[.!?:])\s+/);
-        
-        // Traiter plus finement les segments longs
-        let finalSegments = [];
-        segments.forEach(segment => {
-            if (segment.length > 120) {
-                // Diviser sur les virgules pour les segments très longs
-                const commaSegments = segment.split(/(?<=,)\s+/);
-                
-                // Si même après division par virgules certains segments sont trop longs
-                let subSegments = [];
-                commaSegments.forEach(commaSeg => {
-                    if (commaSeg.length > 100) {
-                        // Chercher des points de césure naturels: conjonctions, prépositions
-                        const parts = commaSeg.split(/\s+(et|ou|mais|donc|car|ni|comme|si|quand|lorsque|puisque|parce que|pour|dans|sur|avec|sans|sous|entre|vers|avant|après)\s+/i);
-                        
-                        // Reconstruire des phrases complètes à partir des fragments
-                        for (let i = 0; i < parts.length; i += 2) {
-                            let subSegment = parts[i];
-                            if (i + 1 < parts.length) {
-                                subSegment += " " + parts[i + 1];
-                            }
-                            subSegments.push(subSegment.trim());
-                        }
-                    } else {
-                        subSegments.push(commaSeg);
-                    }
-                });
-                
-                finalSegments = finalSegments.concat(subSegments);
-            } else {
-                finalSegments.push(segment);
-            }
-        });
-        
-        // Filtrer les segments vides
-        return finalSegments.filter(seg => seg.trim() !== '');
-    } catch (error) {
-        console.error("Erreur lors de la segmentation du texte:", error);
-        // En cas d'erreur, retourner le texte d'origine comme un segment unique
-        return [text];
-    }
-}
-
-// Fonction plus précise pour estimer la durée de parole
-function calculateEstimatedDuration(text) {
-    try {
-        if (!text) return 2000;
-        
-        // Durée de base en millisecondes
-        const baseTime = 3000;
-        
-        // Compter plus précisément pour le français
-        const wordsCount = text.split(/\s+/).length;
-        const characterCount = text.length;
-        const sentenceCount = (text.match(/[.!?:]+/g) || []).length + 1;
-        
-        // Facteurs pour le français (parole légèrement plus lente que l'anglais)
-        const wordTime = wordsCount * 800; // ~800ms par mot en français à vitesse modérée
-        const charTime = characterCount * 75; // ~75ms par caractère
-        const sentenceTime = sentenceCount * 500; // Pauses entre phrases
-        
-        // Calculer la durée totale en prenant le maximum et en ajoutant une marge de sécurité
-        const rawDuration = Math.max(baseTime, wordTime, charTime);
-        const margin = 1.2; // 20% de marge supplémentaire
-        
-        return Math.round(rawDuration * margin) + sentenceTime;
-    } catch (error) {
-        console.error("Erreur lors du calcul de la durée estimée:", error);
-        return 5000; // Valeur de secours en cas d'erreur
-    }
-}
-
-// Fonction améliorée pour prononcer des segments de texte avec une meilleure intonation
-function speakTextSegments(segments, index, onComplete) {
-    try {
-        if (!segments || index >= segments.length) {
-            if (typeof onComplete === 'function') {
-                // Ajouter un délai de sécurité pour éviter les coupures prématurées
-                safeSetTimeout(onComplete, 100);
-            }
-            return;
-        }
-        
-        // S'assurer que le segment n'est pas vide
-        if (!segments[index] || segments[index].trim() === '') {
-            // Délai de sécurité lors du passage au segment suivant
-            safeSetTimeout(() => {
-                speakTextSegments(segments, index + 1, onComplete);
-            }, 100);
-            return;
-        }
-        
-        // Appliquer les corrections de prononciation spécifiques
-        const correctedSegment = speech.fixSpecificPronunciations(segments[index]);
-        
-        // Créer une utterance personnalisée pour maintenir la continuité
-        const utterance = new SpeechSynthesisUtterance(correctedSegment);
-        
-        if (speech.selectedVoice) {
-            utterance.voice = speech.selectedVoice;
-        }
-        
-        // Appliquer les paramètres vocaux
-        utterance.volume = speech.volume;
-        utterance.rate = speech.rate;
-        utterance.lang = 'fr-FR';
-        
-        // Variations subtiles de pitch entre les segments pour une intonation naturelle
-        // Règles prosodiques françaises: légère montée pour les questions, baisse pour les déclarations
-        let segmentPitch = speech.pitch;
-        const segment = segments[index];
-        
-        // Questions: légère hausse de pitch
-        if (segment.trim().endsWith('?')) {
-            segmentPitch += 0.15;
-        } 
-        // Phrases exclamatives: accentuation plus forte
-        else if (segment.trim().endsWith('!')) {
-            segmentPitch += 0.1;
-        }
-        // Phrases déclaratives: baisse légère en fin de phrase
-        else if (segment.trim().endsWith('.') && index === segments.length - 1) {
-            segmentPitch -= 0.05;
-        }
-        // Milieu de phrase: légère variation aléatoire pour naturel
-        else {
-            const pitchVariation = 0.04;
-            segmentPitch += (Math.random() * pitchVariation * 2 - pitchVariation);
-        }
-        
-        // Appliquer le pitch calculé
-        utterance.pitch = segmentPitch;
-        
-        // Pause optimisée entre les segments pour des transitions fluides
-        // Plus longue après ponctuations fortes, plus courte entre segments reliés
-        let pauseDuration = 200; // Pause par défaut
-        
-        if (segment.trim().endsWith('.') || segment.trim().endsWith('!') || segment.trim().endsWith('?')) {
-            pauseDuration = 400; // Pause plus longue après ponctuation forte
-        } else if (segment.trim().endsWith(',') || segment.trim().endsWith(';') || segment.trim().endsWith(':')) {
-            pauseDuration = 250; // Pause moyenne après ponctuation faible
-        } else {
-            pauseDuration = 150; // Pause courte entre segments reliés
-        }
-        
-        // Callbacks de gestion
-        utterance.onend = function() {
-            safeSetTimeout(() => {
-                speakTextSegments(segments, index + 1, onComplete);
-            }, pauseDuration);
-        };
-        
-        utterance.onerror = function(e) {
-            console.error('Erreur de synthèse vocale:', e);
-            
-            // Continuer malgré l'erreur après une pause plus longue
-            safeSetTimeout(() => {
-                speakTextSegments(segments, index + 1, onComplete);
-            }, pauseDuration * 2);
-        };
-        
-        // Utiliser le moteur de synthèse directement
-        speech.synth.speak(utterance);
-    } catch (error) {
-        console.error("Erreur lors de la prononciation des segments de texte:", error);
-        // Tenter de continuer en cas d'erreur
-        if (typeof onComplete === 'function') {
-            safeSetTimeout(onComplete, 500);
-        }
-    }
-}
-
-// Textes optimisés pour les marches (décompte) pour une meilleure fluidité
-function getStairText(step) {
-    return {
-        10: "Marche dix. Vous commencez à descendre, sentez la relaxation envahir votre corps.",
-        9: "Marche neuf. Vos épaules se détendent, et votre respiration devient plus profonde.",
-        8: "Marche huit. Vos bras et vos mains deviennent lourds, agréablement détendus.",
-        7: "Marche sept. La sensation de calme se diffuse dans tout votre corps.",
-        6: "Marche six. Vous descendez plus profondément, vos jambes sont maintenant complètement détendues.",
-        5: "Marche cinq. À mi-chemin, vous vous sentez parfaitement à l'aise, en sécurité.",
-        4: "Marche quatre. Votre esprit se calme, les pensées ralentissent.",
-        3: "Marche trois. Presque arrivé, vous êtes maintenant dans un état de relaxation profonde.",
-        2: "Marche deux. Votre conscience intérieure s'éveille tandis que votre corps se relaxe totalement.",
-        1: "Marche une. Vous êtes arrivé dans cet état d'hypnose profond et agréable.",
-        0: ""
-    }[step] || "";
-}
-
-// Textes optimisés pour le décompte du réveil avec numéros explicitement mentionnés
-function getCountText(count) {
-    return {
-        5: "Cinq. Commencez à prendre conscience de votre corps.",
-        4: "Quatre. Sentez l'énergie revenir progressivement.",
-        3: "Trois. Vous pouvez bouger légèrement vos doigts et vos orteils.",
-        2: "Deux. Respirez plus profondément, sentez-vous revigoré.",
-        1: "Un. Préparez-vous à ouvrir les yeux, en pleine forme.",
-        0: ""
-    }[count] || "";
-}
-
-// Version améliorée avec meilleure gestion de la fluidité
-function queueSpeech(text, delay, textElement) {
-    try {
-        if (!text || text.trim() === '') return;
-        
-        if (delay === undefined) delay = 0;
-        
-        speechQueue.push({text, delay, textElement});
-        
-        // Si rien n'est en cours, démarrer le traitement
-        if (!isSpeaking && !waitingForNextSpeech) {
-            processSpeechQueue();
-        }
-    } catch (error) {
-        console.error('Erreur dans queueSpeech:', error);
-    }
-}
-
-// Traitement amélioré de la file d'attente vocale
-function processSpeechQueue() {
-    try {
-        if (speechQueue.length === 0) {
-            isSpeaking = false;
-            waitingForNextSpeech = false;
-            return;
-        }
-        
-        isSpeaking = true;
-        const nextSpeech = speechQueue.shift();
-        
-        // Mettre à jour l'élément de texte avant de commencer à parler
-        if (nextSpeech.textElement && typeof nextSpeech.textElement === 'object') {
-            nextSpeech.textElement.textContent = nextSpeech.text;
-        }
-        
-        // Attendre le délai spécifié avant de parler
-        safeSetTimeout(function() {
-            // Si le texte est trop long, le diviser pour une meilleure fluidité
-            const textSegments = segmentTextForBetterSpeech(nextSpeech.text);
-            
-            if (textSegments.length === 1) {
-                // Texte court, prononcer directement
-                if (nextSpeech.text) {
-                    speech.speak(nextSpeech.text);
-                }
-                
-                // Attendre que la parole soit terminée avant de continuer
-                const estimatedDuration = calculateEstimatedDuration(nextSpeech.text);
-                
-                waitingForNextSpeech = true;
-                
-                safeSetTimeout(function() {
-                    waitingForNextSpeech = false;
-                    processSpeechQueue();
-                }, estimatedDuration);
-            } else {
-                // Texte long, prononcer en segments
-                waitingForNextSpeech = true;
-                speakTextSegments(textSegments, 0, () => {
-                    waitingForNextSpeech = false;
-                    processSpeechQueue();
-                });
-            }
-            
-        }, nextSpeech.delay);
-    } catch (error) {
-        console.error('Erreur dans processSpeechQueue:', error);
-        // Réinitialiser les états pour éviter un blocage
-        isSpeaking = false;
-        waitingForNextSpeech = false;
-    }
-}
-
-// AMÉLIORATION: Réécrire les textes d'exploration pour de meilleures liaisons
-function improveExplorationTexts() {
-    return [
-        "Imaginez un lieu de paix et de sécurité. Un endroit où vous vous sentez parfaitement bien. Peut-être un lieu connu, ou un espace entièrement imaginaire. Prenez le temps de créer cet endroit dans votre esprit.",
-        
-        "Observez les couleurs qui vous entourent. Sont-elles vives ou douces ? Remarquez les formes, les contours, les détails visuels. Peut-être y a-t-il une lumière particulière qui baigne cet endroit, le rendant plus apaisant.",
-        
-        "Écoutez maintenant les sons de ce lieu. Peut-être entendez-vous le murmure d'un ruisseau, le chant des oiseaux, ou simplement un silence profond et réconfortant. Laissez ces sons vous envelopper complètement.",
-        
-        "Ressentez la température de l'air sur votre peau. Est-ce la chaleur douce du soleil, ou une fraîcheur agréable ? Sentez l'atmosphère autour de vous, peut-être une légère brise caresse votre visage.",
-        
-        "Explorez maintenant les textures présentes. Le sol sous vos pieds est-il doux comme du sable, ferme comme de la pierre, ou souple comme de l'herbe ? Touchez les surfaces, ressentez leur contact contre votre peau.",
-        
-        "Respirez profondément, et remarquez les parfums, les odeurs de cet endroit spécial. Peut-être l'odeur fraîche de la nature, le parfum des fleurs, l'air marin, ou un arôme particulier qui vous apaise profondément.",
-        
-        "À chaque respiration, vous vous ancrez davantage dans ce lieu, et votre relaxation s'approfondit. Sentez comment votre corps s'alourdit agréablement, se détend complètement.",
-        
-        "Imaginez maintenant qu'une douce énergie commence à vous envelopper. Vous pouvez la visualiser comme une lumière colorée, ou simplement la ressentir comme une sensation de bien-être qui se diffuse en vous.",
-        
-        "Cette énergie bienveillante circule lentement dans tout votre corps, de la tête aux pieds, apportant calme et vitalité. Elle dissout toute tension, toute préoccupation au passage.",
-        
-        "Vous êtes parfaitement présent dans cet instant, dans cet espace de tranquillité. Tout ce dont vous avez besoin est ici. Vous êtes en sécurité, protégé, profondément ressourcé."
-    ];
-}
-
-// Démarrer la cohérence cardiaque
-function startCoherenceCardiaque() {
-    try {
-        // Vérifier que les éléments existent
-        if (!coherenceIntro || !coherenceContainer || !coherenceInstruction) {
-            console.error("Éléments de cohérence cardiaque manquants");
-            return;
-        }
-        
-        // Cacher l'intro et montrer l'animation
-        coherenceIntro.style.display = 'none';
-        coherenceContainer.style.display = 'block';
-        
-        // Réinitialiser le timer
-        secondsRemaining = 120;
-        updateTimerDisplay();
-        
-        // Instructions initiales
-        const initialText = "Nous allons pratiquer la cohérence cardiaque pendant 2 minutes. Suivez le mouvement du cercle. Quand il monte, inspirez. Quand il descend, expirez.";
-        coherenceInstruction.textContent = initialText;
-        queueSpeech(initialText);
-        
-        // Démarrer l'animation après un court délai
-        safeSetTimeout(function() {
-           // Animer la respiration
-            animateBreath();
-            
-            // Suite de la fonction startCoherenceCardiaque
-            // Démarrer le décompte
-            coherenceTimer = safeSetInterval(function() {
-               secondsRemaining--;
-                updateTimerDisplay();
-                
-                // Si le temps est écoulé
-                if (secondsRemaining <= 0) {
-                    stopCoherenceCardiaque();
-                    const completionText = "Excellent. Vous avez terminé les 2 minutes de cohérence cardiaque. Vous pouvez maintenant continuer vers l'étape suivante.";
-                    coherenceInstruction.textContent = completionText;
-                    queueSpeech(completionText);
-                    
-                    // Passer automatiquement à la page suivante après un délai plus long (10 secondes)
-                    safeSetTimeout(function() {
-                        showPage(3);
-                    }, 10000);
-                }
-            }, 1000);
-        }, 5000);
-    } catch (error) {
-        console.error("Erreur dans startCoherenceCardiaque:", error);
-    }
-}
-
-// Animation de respiration
-function animateBreath() {
-    try {
-        // Vérifier que les éléments existent
-        if (!breathCircle || !breathInLabel || !breathOutLabel || !coherenceInstruction) {
-            console.error("Éléments de respiration manquants");
-            return;
-        }
-        
-        let phase = 'in'; // 'in' pour inspiration, 'out' pour expiration
-        let step = 0;
-        const totalSteps = 50; // 5 secondes à 10 étapes par seconde
-        
-        // Arrêter l'intervalle précédent si existant
-        if (coherenceInterval) {
-            clearInterval(coherenceInterval);
-        }
-        
-        // Démarrer l'animation
-        coherenceInterval = safeSetInterval(function() {
-            if (phase === 'in') {
-                // Animation d'inspiration (monter)
-                const progress = step / totalSteps;
-                breathCircle.style.transform = `translate(-50%, calc(-50% - ${80 * progress}px))`;
-                
-                // Afficher le label d'inspiration
-                breathInLabel.style.opacity = 1;
-                breathOutLabel.style.opacity = 0;
-                
-                // Mettre à jour l'instruction pour l'inspiration
-                if (step === 0) {
-                    coherenceInstruction.textContent = "Inspirez lentement...";
-                    
-                    // Utiliser un délai pour éviter de couper la voix précédente
-                    if (audioToggle && audioToggle.checked && !speakingInProgress) {
-                        speech.speak("Inspirez");
-                    }
-                }
-                
-                step++;
-                if (step >= totalSteps) {
-                    phase = 'out';
-                    step = 0;
-                }
-            } else {
-                // Animation d'expiration (descendre)
-                const progress = step / totalSteps;
-                breathCircle.style.transform = `translate(-50%, calc(-50% + ${80 * progress}px))`;
-                
-                // Afficher le label d'expiration
-                breathInLabel.style.opacity = 0;
-                breathOutLabel.style.opacity = 1;
-                
-                // Mettre à jour l'instruction pour l'expiration
-                if (step === 0) {
-                    coherenceInstruction.textContent = "Expirez doucement...";
-                    
-                    // Utiliser un délai pour éviter de couper la voix précédente
-                    if (audioToggle && audioToggle.checked && !speakingInProgress) {
-                        speech.speak("Expirez");
-                    }
-                }
-                
-                step++;
-                if (step >= totalSteps) {
-                    phase = 'in';
-                    step = 0;
-                }
-            }
-        }, 100); // 10 frames par seconde
-    } catch (error) {
-        console.error("Erreur dans animateBreath:", error);
-    }
-}
-
-// Mettre à jour l'affichage du minuteur
-function updateTimerDisplay() {
-    try {
-        if (!timerDisplay) return;
-        
-        const minutes = Math.floor(secondsRemaining / 60);
-        const seconds = secondsRemaining % 60;
-        timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-    } catch (error) {
-        console.error("Erreur dans updateTimerDisplay:", error);
-    }
-}
-
-// Arrêter la cohérence cardiaque
-function stopCoherenceCardiaque() {
-    try {
-        // Arrêter les intervalles
-        if (coherenceInterval) {
-            clearInterval(coherenceInterval);
-            coherenceInterval = null;
-        }
-        
-        if (coherenceTimer) {
-            clearInterval(coherenceTimer);
-            coherenceTimer = null;
-        }
-        
-        // Réinitialiser l'affichage
-        if (breathCircle) {
-            breathCircle.style.transform = 'translate(-50%, -50%)';
-        }
-        
-        if (breathInLabel) breathInLabel.style.opacity = 0;
-        if (breathOutLabel) breathOutLabel.style.opacity = 0;
-    } catch (error) {
-        console.error("Erreur dans stopCoherenceCardiaque:", error);
-    }
-}
-
-// Réinitialiser la cohérence cardiaque
-function resetCoherenceCardiaque() {
-    try {
-        // Arrêter tout
-        stopCoherenceCardiaque();
-        
-        // Réinitialiser l'affichage si les éléments existent
-        if (coherenceIntro) coherenceIntro.style.display = 'block';
-        if (coherenceContainer) coherenceContainer.style.display = 'none';
-        
-        secondsRemaining = 120;
-        updateTimerDisplay();
-    } catch (error) {
-        console.error("Erreur dans resetCoherenceCardiaque:", error);
-    }
-}
-
-// Démarrer l'induction avec activation conditionnelle des sons binauraux
-function startInduction() {
-    try {
-        // Vérifier que les éléments existent
-        if (!inductionCounter || !inductionInstruction) {
-            console.error("Éléments d'induction manquants");
-            return;
-        }
-        
-        // Activer explicitement le système anti-veille pour éviter la mise en veille
-        enableKeepAwake();
-        
-        // Vérifier si le bouton binaural est activé avant de démarrer les sons
-        const binauralToggle = document.getElementById('binauralToggle');
-        if (binauralToggle && binauralToggle.checked) {
-            startBinauralBeats();
-        }
-        
-        const inductionTexts = [
-            "Fixez votre regard sur le point central de la spirale, laissez-vous absorber par ce point",
-            "Laissez votre vision périphérique capter naturellement le mouvement circulaire",
-            "Respirez tranquillement en vous concentrant sur la spirale qui tourne doucement",
-            "Vos paupières peuvent devenir lourdes, c'est tout à fait normal",
-            "Laissez-vous absorber complètement par ce motif hypnotique"
-        ];
-        
-        let count = 10;
-        let currentInstruction = 0;
-        let instructionInterval;
-        
-        // Initialiser l'affichage
-        inductionCounter.textContent = count;
-        inductionInstruction.textContent = inductionTexts[0];
-        
-        // Attendre que la page soit bien chargée
-        safeSetTimeout(function() {
-            // Début de la séquence
-            queueSpeech(inductionTexts[0], 0, inductionInstruction);
-            
-            // Progression des instructions
-            instructionInterval = safeSetInterval(function() {
-                currentInstruction++;
-                
-                if (currentInstruction < inductionTexts.length) {
-                    queueSpeech(inductionTexts[currentInstruction], 0, inductionInstruction);
-                } else {
-                    clearInterval(instructionInterval);
-                }
-            }, 8000);
-            
-            // Décompte
-            safeSetTimeout(function() {
-                startCountdown();
-            }, 5000);
-            
-            function startCountdown() {
-                if (count <= 0) {
-                    clearInterval(instructionInterval);
-                    
-                    const finalText = "Vous entrez maintenant dans un état plus profond de relaxation";
-                    queueSpeech(finalText, 0, inductionInstruction);
-                    
-                    safeSetTimeout(function() {
-                        showPage(4); // Passer à la profondeur avec un délai plus long
-                    }, 10000);
-                    return;
-                }
-                
-                count--;
-                inductionCounter.textContent = count;
-                
-                safeSetTimeout(startCountdown, 4500);
-            }
-        }, 1000);
-    } catch (error) {
-        console.error("Erreur dans startInduction:", error);
-    }
-}
-
-// Fonction améliorée pour gérer l'escalator
-function initializeEscalator() {
-    try {
-        console.log("Initialisation de l'escalator");
-        
-        const escalatorContainer = document.querySelector('.escalator-container');
-        if (!escalatorContainer) {
-            console.error("Container de l'escalator non trouvé");
-            return false;
-        }
-        
-        // Utiliser SVG ou DOM selon la capacité du navigateur
-        if (window.SVGSVGElement && !isLowEndDevice()) {
-            // Intégrer l'escalator SVG pour les navigateurs modernes
-            initializeSVGEscalator(escalatorContainer);
-        } else {
-            // Fallback pour les navigateurs plus anciens ou appareils à faibles performances
-            initializeDOMEscalator(escalatorContainer);
-        }
-
-        // Optimiser pour l'appareil
-        optimizeEscalatorForDevice();
-        
-        return true;
-    } catch (error) {
-        console.error("Erreur lors de l'initialisation de l'escalator:", error);
-        // Fallback en cas d'erreur
-        createFallbackEscalator();
-        return false;
-    }
-}
-
-// Détection des appareils à faibles performances
-function isLowEndDevice() {
-    try {
-        return (
-            typeof navigator.hardwareConcurrency !== 'undefined' && 
-            navigator.hardwareConcurrency <= 2
-        ) || 
-        /Android 4|Android 5|iPhone 5|iPhone 6/i.test(navigator.userAgent);
-    } catch (error) {
-        console.error("Erreur lors de la détection d'un appareil à faibles performances:", error);
-        // En cas d'erreur, supposer qu'il s'agit d'un appareil à performances normales
-        return false;
-    }
-}
-
-// Initialiser l'escalator avec SVG (version moderne)
-function initializeSVGEscalator(container) {
-    try {
-        // Code SVG complet à insérer
-        const svgCode = `
-        <svg class="escalator-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
-          <!-- Fond avec gradient -->
-          <defs>
-            <radialGradient id="bgGradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-              <stop offset="0%" stop-color="#A8D0E6" stop-opacity="0.3" />
-              <stop offset="100%" stop-color="#0A2463" stop-opacity="0.1" />
-            </radialGradient>
-            
-            <linearGradient id="stepGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#0A2463" stop-opacity="0.3" />
-              <stop offset="100%" stop-color="#0A2463" stop-opacity="0.1" />
-            </linearGradient>
-            
-            <linearGradient id="stepGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#A8D0E6" stop-opacity="0.3" />
-              <stop offset="100%" stop-color="#A8D0E6" stop-opacity="0.1" />
-            </linearGradient>
-            
-            <linearGradient id="stepGradient3" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#FF7F50" stop-opacity="0.3" />
-              <stop offset="100%" stop-color="#FF7F50" stop-opacity="0.1" />
-            </linearGradient>
-            
-            <!-- Filtre de lueur -->
-            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="2.5" result="blur" />
-              <feComposite in="SourceGraphic" in2="blur" operator="over" />
-            </filter>
-          </defs>
-          
-          <!-- Cercle de fond -->
-          <circle cx="200" cy="200" r="180" fill="url(#bgGradient)" />
-          
-          <!-- Groupe de l'escalier avec rotation -->
-          <g id="staircase" transform="rotate(30 200 200)">
-            <animateTransform
-              attributeName="transform"
-              attributeType="XML"
-              type="rotate"
-              from="0 200 200"
-              to="360 200 200"
-              dur="30s"
-              repeatCount="indefinite"
-            />
-            
-            <!-- Marches de l'escalier en spirale -->
-            <ellipse cx="200" cy="200" rx="160" ry="80" fill="url(#stepGradient1)" transform="rotate(0 200 200)" />
-            <ellipse cx="200" cy="200" rx="150" ry="75" fill="url(#stepGradient2)" transform="rotate(0 200 200) translate(0 10)" />
-            <ellipse cx="200" cy="200" rx="140" ry="70" fill="url(#stepGradient3)" transform="rotate(0 200 200) translate(0 20)" />
-            <ellipse cx="200" cy="200" rx="130" ry="65" fill="url(#stepGradient1)" transform="rotate(0 200 200) translate(0 30)" />
-            <ellipse cx="200" cy="200" rx="120" ry="60" fill="url(#stepGradient2)" transform="rotate(0 200 200) translate(0 40)" />
-            <ellipse cx="200" cy="200" rx="110" ry="55" fill="url(#stepGradient3)" transform="rotate(0 200 200) translate(0 50)" />
-            <ellipse cx="200" cy="200" rx="100" ry="50" fill="url(#stepGradient1)" transform="rotate(0 200 200) translate(0 60)" />
-            <ellipse cx="200" cy="200" rx="90" ry="45" fill="url(#stepGradient2)" transform="rotate(0 200 200) translate(0 70)" />
-            <ellipse cx="200" cy="200" rx="80" ry="40" fill="url(#stepGradient3)" transform="rotate(0 200 200) translate(0 80)" />
-            <ellipse cx="200" cy="200" rx="70" ry="35" fill="url(#stepGradient1)" transform="rotate(0 200 200) translate(0 90)" />
-          </g>
-          
-          <!-- Points lumineux sur le bord -->
-          <g id="lights">
-            <!-- 16 points lumineux répartis sur le cercle -->
-            <circle class="light" cx="200" cy="50" r="3" fill="#FF7F50" filter="url(#glow)">
-              <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="0s" />
-            </circle>
-            <circle class="light" cx="300" cy="80" r="3" fill="#FF7F50" filter="url(#glow)">
-              <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="0.125s" />
-            </circle>
-            <circle class="light" cx="350" cy="200" r="3" fill="#FF7F50" filter="url(#glow)">
-              <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="0.25s" />
-            </circle>
-            <circle class="light" cx="300" cy="320" r="3" fill="#FF7F50" filter="url(#glow)">
-              <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="0.375s" />
-            </circle>
-            <circle class="light" cx="200" cy="350" r="3" fill="#FF7F50" filter="url(#glow)">
-              <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="0.5s" />
-            </circle>
-            <circle class="light" cx="100" cy="320" r="3" fill="#FF7F50" filter="url(#glow)">
-              <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="0.625s" />
-            </circle>
-            <circle class="light" cx="50" cy="200" r="3" fill="#FF7F50" filter="url(#glow)">
-              <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="0.75s" />
-            </circle>
-            <circle class="light" cx="100" cy="80" r="3" fill="#FF7F50" filter="url(#glow)">
-              <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="0.875s" />
-            </circle>
-            <!-- Points intermédiaires -->
-            <circle class="light" cx="150" cy="60" r="3" fill="#FF7F50" filter="url(#glow)">
-              <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="1s" />
-            </circle>
-            <circle class="light" cx="250" cy="60" r="3" fill="#FF7F50" filter="url(#glow)">
-              <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="1.125s" />
-            </circle>
-            <circle class="light" cx="325" cy="140" r="3" fill="#FF7F50" filter="url(#glow)">
-              <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="1.25s" />
-            </circle>
-            <circle class="light" cx="325" cy="260" r="3" fill="#FF7F50" filter="url(#glow)">
-              <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="1.375s" />
-            </circle>
-            <circle class="light" cx="250" cy="340" r="3" fill="#FF7F50" filter="url(#glow)">
-              <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="1.5s" />
-            </circle>
-            <circle class="light" cx="150" cy="340" r="3" fill="#FF7F50" filter="url(#glow)">
-              <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="1.625s" />
-            </circle>
-            <circle class="light" cx="75" cy="260" r="3" fill="#FF7F50" filter="url(#glow)">
-              <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="1.75s" />
-            </circle>
-            <circle class="light" cx="75" cy="140" r="3" fill="#FF7F50" filter="url(#glow)">
-              <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="1.875s" />
-            </circle>
-          </g>
-          
-          <!-- Point lumineux central qui descend -->
-          <circle id="descender" cx="200" cy="200" r="8" fill="white" filter="url(#glow)">
-            <animate attributeName="r" values="8;10;8" dur="1.5s" repeatCount="indefinite" />
-            <animate attributeName="opacity" values="0;1;1;0" dur="10s" repeatCount="indefinite" />
-            <animateTransform
-              attributeName="transform"
-              attributeType="XML"
-              type="translate"
-              from="0 -80"
-              to="0 80"
-              dur="10s"
-              repeatCount="indefinite"
-            />
-          </circle>
-        </svg>
-        `;
-        
-        // Insérer le SVG dans le container
-        container.innerHTML = svgCode;
-        
-        // Configurer les animations pour le décompte
-        const descender = container.querySelector('#descender');
-        if (descender) {
-            // Initialiser l'animation en pause
-            const animations = descender.querySelectorAll('animate, animateTransform');
-            animations.forEach(anim => {
-                anim.setAttribute('begin', 'indefinite');
-            });
-        }
-    } catch (error) {
-        console.error("Erreur lors de l'initialisation de l'escalator SVG:", error);
-        // En cas d'erreur, créer une version simplifiée
-        createFallbackEscalator();
-    }
-}
-
-// Initialiser l'escalator avec DOM (version fallback)
-function initializeDOMEscalator(container) {
-    try {
-        // Vider le container
-        container.innerHTML = '';
-        
-        // Créer les éléments de base
-        const escalator = document.createElement('div');
-        escalator.className = 'escalator';
-        
-        const stepsContainer = document.createElement('div');
-        stepsContainer.className = 'steps-container';
-        
-        // Ajouter les marches
-        for (let i = 0; i < 10; i++) {
-            const step = document.createElement('div');
-            step.className = 'escalator-step';
-            step.setAttribute('data-step', i + 1);
-            stepsContainer.appendChild(step);
-        }
-        
-        // Ajouter le "rider" (point qui descend)
-        const rider = document.createElement('div');
-        rider.className = 'escalator-rider';
-        rider.id = 'escalatorRider';
-        
-        // Assembler les éléments
-        escalator.appendChild(stepsContainer);
-        escalator.appendChild(rider);
-        container.appendChild(escalator);
-        
-        // Ajouter les lumières
-        createEscalatorLights(escalator);
-    } catch (error) {
-        console.error("Erreur lors de l'initialisation de l'escalator DOM:", error);
-        createFallbackEscalator();
-    }
-}
-
-// Créer une version minimaliste en cas d'échec
-function createFallbackEscalator() {
-    try {
-        const container = document.querySelector('.escalator-container, .staircase-container');
-        if (!container) return;
-        
-        // Vider et appliquer un style simple
-        container.innerHTML = '';
-        container.style.background = 'radial-gradient(circle, rgba(168, 208, 230, 0.3), rgba(10, 36, 99, 0.2))';
-        container.style.borderRadius = '50%';
-        container.style.boxShadow = '0 0 20px rgba(0, 0, 0, 0.2)';
-        
-        // Ajouter un cercle pulsant simple
-        const circle = document.createElement('div');
-        circle.style.position = 'absolute';
-        circle.style.top = '50%';
-        circle.style.left = '50%';
-        circle.style.transform = 'translate(-50%, -50%)';
-        circle.style.width = '50px';
-        circle.style.height = '50px';
-        circle.style.borderRadius = '50%';
-        circle.style.background = 'rgba(255, 127, 80, 0.3)';
-        circle.style.boxShadow = '0 0 15px rgba(255, 127, 80, 0.5)';
-        circle.style.animation = 'light-pulse 3s infinite alternate ease-in-out';
-        
-        container.appendChild(circle);
-        
-        console.log("Fallback d'escalator créé");
-    } catch (error) {
-        console.error("Échec du fallback:", error);
-    }
-}
-
-// Créer des lumières pour l'escalator (version DOM)
-function createEscalatorLights(escalator) {
-    try {
-        if (!escalator) return;
-        
-        // Déterminer le nombre de lumières en fonction de la taille de l'écran
-        const isMobile = window.innerWidth <= 768;
-        const lightsCount = isMobile ? 12 : 20;
-        
-        // Créer les lumières
-        for (let i = 0; i < lightsCount; i++) {
-            const light = document.createElement('div');
-            light.className = 'escalator-light';
-            
-            // Répartir les lumières en cercle autour de l'escalator
-            const angle = (i / lightsCount) * Math.PI * 2;
-            const radius = 45; // % du conteneur
-            
-            const x = 50 + Math.cos(angle) * radius;
-            const y = 50 + Math.sin(angle) * radius;
-            
-            light.style.left = x + '%';
-            light.style.top = y + '%';
-            
-            // Animation décalée
-            light.style.animationDelay = (i * 0.2) + 's';
-            
-            escalator.appendChild(light);
-        }
-    } catch (error) {
-        console.error("Erreur lors de la création des lumières de l'escalator:", error);
-    }
-}
-
-// Optimiser l'escalator en fonction de l'appareil
-function optimizeEscalatorForDevice() {
-    try {
-        const escalatorContainer = document.querySelector('.escalator-container');
-        if (!escalatorContainer) return;
-        
-        // Détecter la performance de l'appareil
-        const isLowPerformance = typeof navigator.hardwareConcurrency !== 'undefined' && 
-                               navigator.hardwareConcurrency <= 3;
-        
-        // Taille d'écran
-        const isSmallScreen = window.innerWidth <= 480;
-        const isMobile = window.innerWidth <= 768;
-        
-        // Appliquer les optimisations
-        if (isLowPerformance) {
-            escalatorContainer.classList.add('low-performance');
-            
-            // Si c'est un SVG, ajuster les animations
-            const svg = escalatorContainer.querySelector('svg');
-            if (svg) {
-                // Supprimer certaines animations
-                const animateTransforms = svg.querySelectorAll('animateTransform');
-                animateTransforms.forEach((anim, index) => {
-                    if (index > 0) { // Garder la première animation seulement
-                        anim.setAttribute('dur', '45s');
-                    }
-                });
-                
-                // Réduire les lumières
-                const lights = svg.querySelectorAll('.light');
-                lights.forEach((light, index) => {
-                    if (index % 2 !== 0) {
-                        light.style.display = 'none';
-                    }
-                });
-            }
-        }
-        
-        // Préférence utilisateur pour les animations réduites
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-            escalatorContainer.classList.add('reduced-motion');
-            
-            const svg = escalatorContainer.querySelector('svg');
-            if (svg) {
-                // Désactiver les animations
-                const allAnimations = svg.querySelectorAll('animate, animateTransform');
-                allAnimations.forEach(anim => {
-                    anim.setAttribute('begin', 'indefinite');
-                });
-            }
-        }
-    } catch (error) {
-        console.error("Erreur lors de l'optimisation de l'escalator:", error);
-    }
-}
-
-// Démarrer ou reprendre l'animation du rider
-function startOrResumeRider() {
-    try {
-        // Version SVG
-        const svg = document.querySelector('.escalator-svg');
-        if (svg) {
-            const descender = svg.querySelector('#descender');
-            if (descender) {
-                const animations = descender.querySelectorAll('animate, animateTransform');
-                animations.forEach(anim => {
-                    anim.beginElement();
-                });
-                return;
-            }
-        }
-        
-        // Version DOM
-        const rider = document.getElementById('escalatorRider');
-        if (rider) {
-            rider.style.animationPlayState = 'running';
-        }
-    } catch (error) {
-        console.error("Erreur lors du démarrage de l'animation du rider:", error);
-    }
-}
-
-// Mettre en évidence une marche spécifique pendant le décompte
-function highlightCurrentStep(stepNumber) {
-    try {
-        // Version SVG
-        const svg = document.querySelector('.escalator-svg');
-        if (svg) {
-            // Réinitialiser toutes les marches
-            const steps = svg.querySelectorAll('ellipse');
-            steps.forEach(step => {
-                step.setAttribute('filter', '');
-                step.setAttribute('opacity', '1');
-            });
-            
-            // Trouver la marche actuelle (inversé car 10 est la première marche, 1 est la dernière)
-            const currentStepIndex = 10 - stepNumber;
-            if (currentStepIndex >= 0 && currentStepIndex < steps.length) {
-                steps[currentStepIndex].setAttribute('filter', 'url(#glow)');
-                steps[currentStepIndex].setAttribute('opacity', '1.2');
-            }
-            return;
-        }
-        
-        // Version DOM
-        const steps = document.querySelectorAll('.escalator-step');
-        if (steps.length === 0) return;
-        
-        // Réinitialiser toutes les marches
-        steps.forEach(step => {
-            step.style.boxShadow = '0 0 15px rgba(0, 0, 0, 0.2)';
-            step.style.opacity = '0.7';
-        });
-        
-        // Mettre en évidence la marche actuelle
-        const currentStep = document.querySelector(`.escalator-step[data-step="${11 - stepNumber}"]`);
-        if (currentStep) {
-            currentStep.style.boxShadow = '0 0 20px rgba(255, 127, 80, 0.6)';
-            currentStep.style.opacity = '1';
-        }
-    } catch (error) {
-        console.error("Erreur lors de la mise en évidence de la marche:", error);
-    }
-}
-
-// Fonction modifiée pour utiliser le nouvel escalator
-function startDeepening() {
-    try {
-        // Vérifier que les éléments existent
-        if (!deepeningInstruction || !stairsCounter) {
-            console.error("Éléments d'approfondissement manquants");
-            return;
-        }
-        
-        // S'assurer que le système anti-veille reste actif
-        enableKeepAwake();
-        
-        // Vérifier si le bouton binaural est activé avant de démarrer les sons
-        const binauralToggle = document.getElementById('binauralToggle');
-        if (binauralToggle && binauralToggle.checked) {
-            startBinauralBeats();
-        }
-        
-        // Initialiser le nouvel escalator
-        initializeEscalator();
-        
-        const deepeningTexts = [
-            "Maintenant, je vous invite à imaginer un escalier. Un escalier qui descend en spirale, confortablement.",
-            "Vous allez descendre cet escalier, marche par marche, et à chaque marche, vous vous sentirez plus détendu, plus calme.",
-            "Nous allons compter de 10 à 1, et à chaque chiffre, vous descendrez une marche, vous enfonçant plus profondément dans un état d'hypnose agréable.",
-            "Quand nous arriverons à 1, vous pourrez fermer les yeux si ce n'est pas déjà fait, et vous serez dans un état de transe profonde et confortable."
-        ];
-        
-        // Préparer les compteurs
-        let currentPhase = "intro"; // "intro", "countdown", "finale"
-        let currentStep = 0; // pour les textes d'intro
-        let stairCount = 10; // pour les marches
-        
-        // Cacher le compteur au début
-        stairsCounter.style.visibility = 'hidden';
-        stairsCounter.textContent = stairCount;
-        
-        // Attendre que la page soit bien initialisée
-        safeSetTimeout(function() {
-            // Démarrer la séquence
-            progressSequence();
-        }, 1000);
-        
-        // Fonction récursive pour progresser dans la séquence
-        function progressSequence() {
-            if (currentPhase === "intro") {
-                // Phase d'introduction - 4 textes d'introduction
-                if (currentStep < deepeningTexts.length) {
-                    // Afficher et prononcer le texte actuel
-                    deepeningInstruction.textContent = deepeningTexts[currentStep];
-                    
-                    // Utiliser la segmentation pour les textes longs
-                    const textSegments = segmentTextForBetterSpeech(deepeningTexts[currentStep]);
-                    speakTextSegments(textSegments, 0, () => {
-                        currentStep++;
-                        // Programmer la prochaine étape
-                        safeSetTimeout(progressSequence, 3000);
-                    });
-                } else {
-                    // Fin de l'introduction, commencer le décompte
-                    currentPhase = "countdown";
-                    
-                    // Démarrer l'animation du rider
-                    startOrResumeRider();
-                    
-                    // Petit délai avant de commencer le décompte
-                    safeSetTimeout(progressSequence, 2000);
-                }
-            }
-            else if (currentPhase === "countdown") {
-                // Phase de décompte - marches de 10 à 1
-                if (stairCount > 0) {
-                    // Afficher le compteur pour le décompte
-                    stairsCounter.style.visibility = 'visible';
-                    stairsCounter.textContent = stairCount;
-                    
-                    // Mettre en évidence la marche actuelle
-                    highlightCurrentStep(stairCount);
-                    
-                    // Obtenir et afficher le texte pour cette marche
-                    const stairText = getStairText(stairCount);
-                    deepeningInstruction.textContent = stairText;
-                    
-                    // IMPORTANT: S'assurer que "marche une" est bien prononcé pour la marche 1
-                    if (stairCount === 1) {
-                        speech.speak("Marche une. Vous êtes arrivé dans cet état d'hypnose profond et agréable.");
-                        
-                        safeSetTimeout(() => {
-                            stairCount--;
-                            safeSetTimeout(progressSequence, 3000);
-                        }, calculateEstimatedDuration("Marche une. Vous êtes arrivé dans cet état d'hypnose profond et agréable."));
-                    } else {
-                        // Lire le texte de la marche avec la nouvelle méthode
-                        const textSegments = segmentTextForBetterSpeech(stairText);
-                        speakTextSegments(textSegments, 0, () => {
-                            stairCount--;
-                            // Programmer la prochaine marche
-                            safeSetTimeout(progressSequence, 3000);
-                        });
-                    }
-                } else {
-                    // Fin du décompte, passer à la finale
-                    currentPhase = "finale";
-                    
-                    // Cacher le compteur à la fin
-                    stairsCounter.style.visibility = 'hidden';
-                    
-                    // Petit délai avant le message final
-                    safeSetTimeout(progressSequence, 2000);
-                }
-            }
-            else if (currentPhase === "finale") {
-                // Phase finale - message de conclusion et transition
-                const finalMessage = "Vous êtes maintenant dans un état de relaxation profonde. Si ce n'est pas déjà fait, fermez doucement vos yeux et laissez-vous porter par ma voix.";
-                deepeningInstruction.textContent = finalMessage;
-                
-                // Utiliser la segmentation pour le message final
-                const textSegments = segmentTextForBetterSpeech(finalMessage);
-                speakTextSegments(textSegments, 0, () => {
-                    // Transition à la prochaine page après un délai suffisant
-                    safeSetTimeout(function() {
-                        showPage(5); // Passer à l'exploration avec un délai plus long
-                    }, 12000);
-                });
-            }
-        }
-    } catch (error) {
-        console.error("Erreur dans startDeepening:", error);
-        
-        // En cas d'erreur, afficher un message et continuer la séquence
-        if (deepeningInstruction) {
-            deepeningInstruction.textContent = "Imaginez un escalier qui descend doucement...";
-        }
-        
-        // Passer à la page suivante après un délai de récupération
-        safeSetTimeout(function() {
-            showPage(5);
-        }, 20000);
-    }
-}
-
-// Fonction complète d'exploration avec animations et effets visuels
-function startExploration() {
-    try {
-        // Vérifier que les éléments existent
-        if (!explorationInstruction || !energyScene) {
-            console.error("Éléments d'exploration manquants");
-            return;
-        }
-        
-        // S'assurer que le système anti-veille reste actif
-        enableKeepAwake();
-        
-        // Vérifier si le bouton binaural est activé avant de démarrer les sons
-        const binauralToggle = document.getElementById('binauralToggle');
-        if (binauralToggle && binauralToggle.checked) {
-            startBinauralBeats();
-        }
-        
-        // Utiliser les textes améliorés pour de meilleures liaisons
-        const explorationTexts = improveExplorationTexts();
-        
-        // Récupérer les éléments d'animation
-        const explorationScene = document.getElementById('explorationScene');
-        const explorationProgress = document.getElementById('explorationProgress');
-        
-        // Variables de contrôle
-        let currentTextIndex = 0;
-        let particlesInterval;
-        const totalTexts = explorationTexts.length;
-        
-        // Fonction pour créer une particule avec des couleurs et formes variées
-        function createParticle() {
-            if (!explorationScene) return null;
-            
-            const particle = document.createElement('div');
-            particle.className = 'exploration-particle';
-            
-            // Variations de couleurs pour des particules plus diversifiées
-            const colors = [
-                'rgba(255, 255, 255, 0.8)', // blanc
-                'rgba(173, 216, 230, 0.8)', // bleu clair
-                'rgba(255, 223, 186, 0.8)', // orange pâle
-                'rgba(152, 251, 152, 0.8)', // vert pâle
-                'rgba(238, 130, 238, 0.8)', // violet pâle
-                'rgba(255, 182, 193, 0.8)', // rose pâle
-                'rgba(240, 230, 140, 0.8)'  // jaune pâle
-            ];
-            
-            // Variations de taille
-            const size = 3 + Math.random() * 8; // entre 3px et 11px
-            
-            // Appliquer les styles
-            particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-            particle.style.width = `${size}px`;
-            particle.style.height = `${size}px`;
-            
-            // 50% de chance d'avoir une particule ronde ou carrée
-            if (Math.random() > 0.5) {
-                particle.style.borderRadius = '50%';
-            }
-            
-            // Position aléatoire
-            const angle = Math.random() * Math.PI * 2;
-            const distance = 50 + Math.random() * 150; // Distance plus variée
-            const x = Math.cos(angle) * distance + 150;
-            const y = Math.sin(angle) * distance + 150;
-            
-            particle.style.left = x + 'px';
-            particle.style.top = y + 'px';
-            
-            explorationScene.appendChild(particle);
-            
-            // Animation plus variée
-            safeSetTimeout(() => {
-                particle.style.opacity = 0.6 + Math.random() * 0.4; // Opacité variée
-                
-                // Mouvements plus organiques
-                const targetX = 150 + (Math.random() * 60 - 30);
-                const targetY = 150 + (Math.random() * 60 - 30);
-                const rotation = Math.random() * 360; // Rotation aléatoire
-                const scale = 0.8 + Math.random() * 0.5; // Échelle aléatoire
-                
-                particle.style.transform = `translate(${targetX - x}px, ${targetY - y}px) rotate(${rotation}deg) scale(${scale})`;
-                
-                // Durée de vie variable des particules
-                const duration = 8000 + Math.random() * 7000;
-                
-                // Disparition progressive
-                safeSetTimeout(() => {
-                    particle.style.opacity = 0;
-                    safeSetTimeout(() => {
-                        if (explorationScene.contains(particle)) {
-                            explorationScene.removeChild(particle);
-                        }
-                    }, 1000);
-                }, duration);
-            }, 100);
-            
-            return particle;
-        }
-        
-        // Fonction pour créer des particules périodiquement
-        function startParticlesAnimation() {
-            return safeSetInterval(() => {
-                if (currentTextIndex < totalTexts) {
-                    // Augmenter progressivement le nombre de particules créées
-                    const particleCount = 1 + Math.floor(currentTextIndex / 2);
-                    
-                    for (let i = 0; i < particleCount; i++) {
-                        safeSetTimeout(() => createParticle(), i * 200);
-                    }
-                }
-            }, 1500);
-        }
-        
-        // Créer un effet de vagues pour le fond
-        function createBackgroundEffect() {
-            if (!explorationScene) return null;
-            
-            // Créer un élément pour l'effet de vague
-            const waveEffect = document.createElement('div');
-            waveEffect.className = 'wave-effect';
-            waveEffect.style.position = 'absolute';
-            waveEffect.style.top = '50%';
-            waveEffect.style.left = '50%';
-            waveEffect.style.transform = 'translate(-50%, -50%)';
-            waveEffect.style.width = '200px';
-            waveEffect.style.height = '200px';
-            waveEffect.style.borderRadius = '50%';
-            waveEffect.style.background = 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%)';
-            waveEffect.style.boxShadow = '0 0 50px rgba(255, 255, 255, 0.3)';
-            waveEffect.style.transition = 'all 0.5s ease';
-            waveEffect.style.zIndex = '1';
-            waveEffect.style.pointerEvents = 'none';
-            
-            explorationScene.appendChild(waveEffect);
-            
-            // Animation de pulsation
-            let scale = 1;
-            let growing = true;
-            
-            const pulseInterval = safeSetInterval(() => {
-                if (growing) {
-                    scale += 0.01;
-                    if (scale >= 1.2) growing = false;
-                } else {
-                    scale -= 0.01;
-                    if (scale <= 1) growing = true;
-                }
-                
-                waveEffect.style.transform = `translate(-50%, -50%) scale(${scale})`;
-                waveEffect.style.opacity = 0.1 + Math.sin(scale * Math.PI) * 0.05;
-            }, 100);
-            
-            return {
-                element: waveEffect,
-                interval: pulseInterval
-            };
-        }
-        
-        // Attendre que la page soit bien initialisée
-        safeSetTimeout(function() {
-            // Afficher la scène d'exploration
-            if (explorationScene) {
-                explorationScene.style.opacity = '1';
-                
-                // Ajouter l'effet de fond
-                const backgroundEffect = createBackgroundEffect();
-                
-                // Démarrer l'animation des particules
-                particlesInterval = startParticlesAnimation();
-                
-                // Commencer la séquence d'exploration
-                safeSetTimeout(() => progressExploration(), 2000);
-                
-                function progressExploration() {
-                    if (currentTextIndex < totalTexts) {
-                        // Mettre à jour le texte
-                        explorationInstruction.textContent = explorationTexts[currentTextIndex];
-                        
-                        // Mettre à jour la barre de progression
-                        if (explorationProgress) {
-                            const progressPercent = ((currentTextIndex + 1) / totalTexts) * 100;
-                            explorationProgress.style.width = progressPercent + '%';
-                        }
-                        
-                        // AMÉLIORATION: Utiliser la segmentation pour une meilleure fluidité
-                        const textSegments = segmentTextForBetterSpeech(explorationTexts[currentTextIndex]);
-                        
-                        // Créer un effet spécial pour cette phase
-                        createParticleBurst(10 + currentTextIndex * 2, 150);
-                        
-                        // Utiliser la nouvelle méthode de segments pour parler
-                        speakTextSegments(textSegments, 0, () => {
-                            currentTextIndex++;
-                            // Pause plus longue entre les textes pour l'immersion
-                            safeSetTimeout(progressExploration, 4000);
-                        });
-                    } else {
-                        // Fin de l'exploration, message de transition
-                        safeSetTimeout(function() {
-                            const transitionMessages = [
-                                "Prenez encore quelques instants pour profiter pleinement de cet espace intérieur...",
-                                "Ressentez cette paix, ce calme qui est maintenant ancré en vous...",
-                                "Lorsque vous serez prêt, nous reviendrons doucement à un état de conscience ordinaire, en conservant cette sérénité."
-                            ];
-                            
-                            // Premier message de transition
-                            explorationInstruction.textContent = transitionMessages[0];
-                            
-                            let transitionIndex = 0;
-                            
-                            function playTransition() {
-                                // Utiliser la segmentation pour la transition
-                                const segments = segmentTextForBetterSpeech(transitionMessages[transitionIndex]);
-                                
-                                speakTextSegments(segments, 0, () => {
-                                    if (transitionIndex < transitionMessages.length - 1) {
-                                        transitionIndex++;
-                                        safeSetTimeout(() => {
-                                            explorationInstruction.textContent = transitionMessages[transitionIndex];
-                                            playTransition();
-                                        }, 3000);
-                                    } else {
-                                        // Dernier message, préparer la transition vers la page suivante avec délai plus long
-                                        safeSetTimeout(() => showPage(6), 15000);
-                                    }
-                                });
-                            }
-                            
-                            // Démarrer la séquence de transition
-                            playTransition();
-                            
-                        }, 3000);
-                        
-                        // Nettoyer les animations
-                        if (particlesInterval) {
-                            clearInterval(particlesInterval);
-                        }
-                        
-                        if (backgroundEffect && backgroundEffect.interval) {
-                            clearInterval(backgroundEffect.interval);
-                        }
-                    }
-                }
-            }
-        }, 1500);
-        
-        // Fonction pour créer une explosion de particules
-        function createParticleBurst(count, delay) {
-            for (let i = 0; i < count; i++) {
-                safeSetTimeout(() => {
-                    createParticle();
-                }, i * delay);
-            }
-        }
-        
-    } catch (error) {
-        console.error("Erreur dans startExploration:", error);
-    }
-}
-
-// Démarrer le réveil avec une progression plus naturelle - VERSION AMÉLIORÉE
-function startAwakening() {
-    try {
-        // Vérifier que les éléments existent
-        if (!awakeningCounter || !energyScene) {
-            console.error("Éléments de réveil manquants");
-            return;
-        }
-        
-        // S'assurer que le système anti-veille reste actif
-        enableKeepAwake();
-        
-        // Réinitialiser tous les états et éléments
-        speech.stop();
-        speechQueue = [];
-        
-        const mainInstruction = document.querySelector('#page6 .instruction');
-        if (!mainInstruction) {
-            console.error("Élément d'instruction de réveil manquant");
-            return;
-        }
-        
-        let count = 5;
-        awakeningCounter.textContent = count;
-        
-        // Faire apparaître progressivement la scène d'énergie
-        energyScene.style.transition = 'opacity 3s ease';
-        energyScene.style.opacity = '1';
-        
-        // Variables pour contrôler le flux et les délais
-        let phase = 0;
-        let phaseComplete = false;
-        
-        // Fonction pour avancer à la phase suivante
-        function nextPhase() {
-            phase++;
-            phaseComplete = false;
-            executeCurrentPhase();
-        }
-        
-        // Cette fonction permet de structurer les phases avec des rappels sur la fin
-        function executeCurrentPhase() {
-            switch(phase) {
-                case 0: // Phase initiale - Introduction
-                    safeSetTimeout(() => {
-                        const text = "Préparez-vous à revenir doucement à votre état de conscience habituel.";
-                        mainInstruction.textContent = text;
-                        
-                        // Utiliser la segmentation pour une meilleure fluidité
-                        const segments = segmentTextForBetterSpeech(text);
-                        
-                        // Utiliser la nouvelle méthode pour une meilleure prononciation
-                        speakTextSegments(segments, 0, () => {
-                            if (!phaseComplete) {
-                                phaseComplete = true;
-                                safeSetTimeout(nextPhase, 1000); // Pause entre les phrases
-                            }
-                        });
-                    }, 2000);
-                    break;
-                    
-                case 1: // Seconde instruction
-                    const text = "À chaque compte, vous vous sentirez de plus en plus éveillé et alerte.";
-                    mainInstruction.textContent = text;
-                    
-                    // Utiliser la segmentation pour une meilleure fluidité
-                    const segments = segmentTextForBetterSpeech(text);
-                    
-                    // Utiliser la nouvelle méthode pour une meilleure prononciation
-                    speakTextSegments(segments, 0, () => {
-                        if (!phaseComplete) {
-                            phaseComplete = true;
-                            safeSetTimeout(nextPhase, 1000);
-                        }
-                    });
-                    break;
-                    
-                case 2: // Début du décompte
-                    startAwakeningCountdown();
-                    break;
-            }
-        }
-        
-        // Fonction pour gérer le décompte du réveil - VERSION AMÉLIORÉE
-        function startAwakeningCountdown() {
-            if (count < 0) {
-                // Fin du décompte
-                const finalText = "Vous êtes maintenant complètement réveillé, présent et alerte, tout en conservant cette sensation de bien-être et de calme.";
-                mainInstruction.textContent = finalText;
-                
-                // Utiliser la segmentation pour le texte final
-                const segments = segmentTextForBetterSpeech(finalText);
-                speakTextSegments(segments, 0, () => {
-                    // Passer à la page finale après un délai plus long
-                    safeSetTimeout(() => showPage(7), 12000);
-                });
-                return;
-            }
-            
-            // Afficher le compteur
-            awakeningCounter.textContent = count;
-            
-            // Obtenir et afficher le texte pour ce compte
-            const countText = getCountText(count);
-            mainInstruction.textContent = countText;
-            
-            // Utiliser la méthode speak directement pour les nombres, pour une meilleure prononciation
-            if (count > 0) {
-                // Assurer une synchronisation parfaite pour le chiffre et son texte associé
-                speech.speak(countText);
-                
-                // Calculer la durée estimée pour déterminer quand passer au chiffre suivant
-                const estimatedDuration = calculateEstimatedDuration(countText);
-                
-                // Programmer le prochain chiffre après la durée calculée
-                safeSetTimeout(() => {
-                    count--;
-                    safeSetTimeout(startAwakeningCountdown, 1000);
-                }, estimatedDuration + 500); // Ajouter une pause supplémentaire pour rendre le rythme plus naturel
-            } else {
-                count--;
-                safeSetTimeout(startAwakeningCountdown, 1000);
-            }
-        }
-        
-        // Démarrer la séquence
-        executeCurrentPhase();
-        
-    } catch (error) {
-        console.error("Erreur dans startAwakening:", error);
-    }
-}
-
-// Mettre à jour les étapes de navigation
-function updateSteps(currentStep) {
-    try {
-        // Limiter à 6 étapes max (inclut la nouvelle étape d'approfondissement)
-        if (currentStep > 6) currentStep = 6;
-        
-        // Réinitialiser toutes les étapes
-        steps.forEach(function(step) {
-            step.classList.remove('active');
-        });
-        
-        // Activer l'étape actuelle
-        const stepElement = document.getElementById('step' + currentStep);
-        if (stepElement) {
-            stepElement.classList.add('active');
-        }
-        
-        // Mettre à jour la barre de progression
-        if (progressFill) {
-            const progressPercent = ((currentStep - 1) / 5) * 100;  // 5 étapes au total (de 1 à 6)
-            progressFill.style.width = progressPercent + '%';
-        }
-    } catch (error) {
-        console.error('Erreur dans updateSteps:', error);
-    }
-}
-
-// Styles CSS requis pour l'animation des particules
-function addCSSAnimations() {
-    // Créer les styles nécessaires pour les animations et particules
-    const styleElement = document.createElement('style');
-    styleElement.textContent = `
-        @keyframes fadeInOut {
-            0% { opacity: 0.3; }
-            50% { opacity: 0.8; }
-            100% { opacity: 0.3; }
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.7; }
-            50% { transform: scale(1.5); opacity: 0.9; }
-            100% { transform: scale(1); opacity: 0.7; }
-        }
-        
-        .exploration-particle {
-            position: absolute;
-            background-color: rgba(255, 255, 255, 0.8);
-            width: 5px;
-            height: 5px;
-            transition: all 2.5s cubic-bezier(0.2, 0.8, 0.3, 1);
-            z-index: 5;
-            pointer-events: none;
-        }
-    `;
-    
-    document.head.appendChild(styleElement);
-    console.log("Animations CSS ajoutées");
-}
-
-// Ajouter une fonction pour nettoyer l'application avant de quitter la page
-window.addEventListener('beforeunload', function() {
-    // Arrêter tous les sons binauraux
-    if (typeof stopBinauralBeats === 'function') {
-        stopBinauralBeats();
-    }
-    
-    // Arrêter la synthèse vocale
-    if (speech && typeof speech.stop === 'function') {
-        speech.stop();
-    }
-    
-    // Désactiver le système anti-veille
-    if (typeof disableKeepAwake === 'function') {
-        disableKeepAwake();
-    }
-    
-    // Nettoyer tous les timeouts et intervalles
-    clearAllTimeouts();
-    clearAllIntervals();
-});
-
-// Initialiser les animations CSS au chargement
-document.addEventListener('DOMContentLoaded', function() {
-    try {
-        console.log("DOM chargé, préparation de l'initialisation...");
-        // Ajouter un petit délai pour s'assurer que tout est bien chargé
-        setTimeout(function() {
-            addCSSAnimations();
-            initializeApp();
-        }, 500);
-    } catch (error) {
-        console.error("Erreur fatale lors du démarrage:", error);
-        alert("Une erreur s'est produite lors du chargement de l'application. Veuillez rafraîchir la page.");
-    }
-});
