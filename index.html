@@ -2,483 +2,2085 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>Auto-Hypnose Guidée</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hypnorelax - Auto-hypnose guidée pour votre bien-être</title>
     
-    <!-- CSS de base -->
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="mobile-optimization.css">
+    <!-- Styles CSS -->
+    <style>
+        /* Variables globales */
+        :root {
+            /* Couleurs principales (reprises de votre application) */
+            --deep-blue: #0A2463;
+            --orange: #FF7F50;
+            --pastel-blue: #A8D0E6;
+            --light-orange: #FFC8A2;
+            --dark-orange: #E25822;
+            --white: #FFFFFF;
+            --black: #000000;
+            --gray: #333333;
+            --light-gray: #F5F5F5;
+            --medium-gray: #DDDDDD;
+            
+            /* Nouvelles couleurs pour la page marketing */
+            --gradient-blue: linear-gradient(135deg, #0A2463, #3a5baa);
+            --gradient-orange: linear-gradient(135deg, #FF7F50, #E25822);
+            --light-blue-bg: #f0f7ff;
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            
+            /* Typographie */
+            --heading-font: 'Montserrat', sans-serif;
+            --body-font: 'Open Sans', sans-serif;
+        }
+
+        /* Reset et base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--body-font);
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--gray);
+            background-color: var(--white);
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--heading-font);
+            font-weight: 700;
+            color: var(--deep-blue);
+            margin-bottom: 20px;
+        }
+
+        p {
+            margin-bottom: 20px;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        a {
+            text-decoration: none;
+            color: var(--deep-blue);
+            transition: all 0.3s ease;
+        }
+
+        /* En-tête et navigation */
+        .site-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: var(--white);
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .site-header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-text {
+            font-family: var(--heading-font);
+            font-weight: 700;
+            font-size: 24px;
+            color: var(--deep-blue);
+            background: var(--gradient-blue);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .main-nav ul {
+            display: flex;
+        }
+
+        .main-nav ul li {
+            margin-left: 30px;
+        }
+
+        .main-nav ul li a {
+            font-family: var(--heading-font);
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--gray);
+            padding: 5px 0;
+            position: relative;
+        }
+
+        .main-nav ul li a:hover {
+            color: var(--orange);
+        }
+
+        .main-nav ul li a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--orange);
+            transition: width 0.3s ease;
+        }
+
+        .main-nav ul li a:hover::after {
+            width: 100%;
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .menu-toggle span {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background-color: var(--deep-blue);
+            margin: 5px 0;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        /* Bannière héroïque */
+        .hero {
+            padding-top: 130px;
+            padding-bottom: 0;
+            background-color: var(--light-blue-bg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero .container {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-content {
+            flex: 1;
+            padding-right: 30px;
+            max-width: 600px;
+        }
+
+        .hero h1 {
+            font-size: 42px;
+            margin-bottom: 20px;
+            line-height: 1.2;
+            color: var(--deep-blue);
+        }
+
+        .hero-subtitle {
+            font-size: 18px;
+            margin-bottom: 30px;
+            color: var(--gray);
+        }
+
+        .hero-image {
+            flex: 1;
+            position: relative;
+            padding: 20px;
+            min-width: 300px;
+        }
+
+        .hero-img {
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .app-badges {
+            display: flex;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .badge {
+            display: flex;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 8px 15px;
+            border-radius: 50px;
+            margin: 0 10px 10px 0;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .badge i {
+            font-size: 16px;
+            color: var(--orange);
+            margin-right: 8px;
+        }
+
+        .badge span {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .wave-divider {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            overflow: hidden;
+            line-height: 0;
+        }
+
+        .wave-divider svg {
+            width: 100%;
+            height: 70px;
+        }
+
+        .wave-fill {
+            fill: var(--white);
+        }
+
+        /* Boutons */
+        .btn {
+            display: inline-block;
+            padding: 14px 28px;
+            border-radius: 50px;
+            font-family: var(--heading-font);
+            font-weight: 600;
+            font-size: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--gradient-orange);
+            color: var(--white);
+            box-shadow: 0 6px 15px rgba(226, 88, 34, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(226, 88, 34, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--deep-blue);
+            border: 2px solid var(--deep-blue);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--deep-blue);
+            color: var(--white);
+            transform: translateY(-3px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--deep-blue);
+            border: 2px solid var(--pastel-blue);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--pastel-blue);
+            color: var(--deep-blue);
+            transform: translateY(-3px);
+        }
+
+        .btn-large {
+            padding: 16px 32px;
+            font-size: 18px;
+        }
+
+        .cta-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        /* Section des fonctionnalités */
+        .section-title {
+            text-align: center;
+            font-size: 36px;
+            margin-bottom: 15px;
+            color: var(--deep-blue);
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 50px;
+            color: var(--gray);
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .features {
+            padding: 100px 0;
+            background-color: var(--white);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background-color: var(--white);
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--light-blue-bg);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        .feature-icon i {
+            font-size: 36px;
+            color: var(--deep-blue);
+        }
+
+        .feature-card h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: var(--deep-blue);
+        }
+
+        .feature-card p {
+            font-size: 15px;
+            color: var(--gray);
+            line-height: 1.5;
+        }
+
+        /* Section des avantages */
+        .benefits {
+            padding: 100px 0;
+            background-color: var(--light-blue-bg);
+        }
+
+        .benefits-container {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .benefits-content {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .benefits-list li {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 30px;
+        }
+
+        .benefits-list li i {
+            font-size: 20px;
+            color: var(--orange);
+            margin-right: 15px;
+            margin-top: 5px;
+        }
+
+        .benefits-list li div {
+            flex: 1;
+        }
+
+        .benefits-list li h3 {
+            font-size: 20px;
+            margin-bottom: 5px;
+            color: var(--deep-blue);
+        }
+
+        .benefits-list li p {
+            font-size: 15px;
+            color: var(--gray);
+        }
+
+        .benefits-image {
+            flex: 1;
+            position: relative;
+            min-width: 300px;
+        }
+
+        .benefits-image img {
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .benefits-quote {
+            position: absolute;
+            bottom: -20px;
+            right: -20px;
+            background-color: var(--white);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: var(--card-shadow);
+            max-width: 300px;
+        }
+
+        .benefits-quote blockquote {
+            font-style: italic;
+            color: var(--deep-blue);
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .benefits-quote cite {
+            font-style: normal;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--orange);
+        }
+
+        /* Section Comment ça marche */
+        .how-it-works {
+            padding: 100px 0;
+            background-color: var(--white);
+        }
+
+        .steps {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 60px;
+        }
+
+        .step {
+            flex-basis: 30%;
+            min-width: 250px;
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            right: -15%;
+            width: 30%;
+            height: 2px;
+            background-color: var(--light-orange);
+            z-index: 1;
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background-color: var(--orange);
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .step-content h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .step-content p {
+            color: var(--gray);
+            font-size: 15px;
+        }
+
+        .demo-video {
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .demo-video h3 {
+            font-size: 24px;
+            margin-bottom: 30px;
+        }
+
+        .video-container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+        }
+
+        .video-placeholder {
+            width: 100%;
+            border-radius: 15px;
+        }
+
+        .play-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            background-color: var(--orange);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .play-button i {
+            font-size: 30px;
+            color: var(--white);
+            margin-left: 5px;
+        }
+
+        .play-button:hover {
+            background-color: var(--deep-blue);
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        /* Section Témoignages */
+        .testimonials {
+            padding: 100px 0;
+            background-color: var(--light-blue-bg);
+        }
+
+        .testimonials-slider {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .testimonial {
+            background-color: var(--white);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: var(--card-shadow);
+            margin: 0 auto;
+            max-width: 800px;
+        }
+
+        .testimonial-content {
+            margin-bottom: 20px;
+        }
+
+        .testimonial-content p {
+            font-style: italic;
+            font-size: 16px;
+            color: var(--gray);
+            margin-bottom: 0;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+        }
+
+        .testimonial-author img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-right: 15px;
+            object-fit: cover;
+        }
+
+        .testimonial-author h4 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .testimonial-author p {
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 5px;
+        }
+
+        .stars {
+            color: var(--orange);
+            font-size: 14px;
+        }
+
+        .testimonial-nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 30px;
+        }
+
+        .prev-btn, .next-btn {
+            background: var(--white);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .prev-btn:hover, .next-btn:hover {
+            background-color: var(--orange);
+            color: var(--white);
+        }
+
+        .dots {
+            display: flex;
+            margin: 0 20px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--medium-gray);
+            margin: 0 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dot.active {
+            background-color: var(--orange);
+            transform: scale(1.2);
+        }
+
+        /* Section Tarifs */
+        .pricing {
+            padding: 100px 0;
+            background-color: var(--white);
+        }
+
+        .pricing-cards {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        .pricing-card {
+            flex: 1;
+            min-width: 280px;
+            max-width: 350px;
+            background-color: var(--white);
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .pricing-card.premium {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+            border: 2px solid var(--orange);
+            z-index: 2;
+        }
+
+        .ribbon {
+            position: absolute;
+            top: 20px;
+            right: -30px;
+            transform: rotate(45deg);
+            background-color: var(--orange);
+            color: var(--white);
+            padding: 5px 30px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .pricing-header {
+            padding: 30px;
+            text-align: center;
+            background-color: var(--light-blue-bg);
+        }
+
+        .pricing-card.premium .pricing-header {
+            background: var(--gradient-blue);
+        }
+
+        .pricing-card.premium h3,
+        .pricing-card.premium .price,
+        .pricing-card.premium p {
+            color: var(--white);
+        }
+
+        .pricing-header h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .price {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--deep-blue);
+            margin-bottom: 10px;
+            line-height: 1;
+        }
+
+        .price span {
+            font-size: 16px;
+            opacity: 0.8;
+        }
+
+        .pricing-header p {
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 0;
+        }
+
+        .pricing-features {
+            padding: 30px;
+        }
+
+        .pricing-features ul li {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .pricing-features ul li i {
+            margin-right: 10px;
+            color: var(--orange);
+        }
+
+        .pricing-features ul li.disabled {
+            opacity: 0.5;
+        }
+
+        .pricing-features ul li.disabled i {
+            color: var(--gray);
+        }
+
+        .pricing-footer {
+            padding: 0 30px 30px;
+            text-align: center;
+        }
+
+        .pricing-note {
+            font-size: 13px;
+            color: var(--gray);
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        /* Section FAQ */
+        .faq {
+            padding: 100px 0;
+            background-color: var(--light-blue-bg);
+        }
+
+        .faq-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .faq-item {
+            background-color: var(--white);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+        }
+
+        .faq-question {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .faq-question h3 {
+            font-size: 18px;
+            margin-bottom: 0;
+        }
+
+        .faq-icon {
+            color: var(--orange);
+            transition: transform 0.3s ease;
+        }
+
+        .faq-item.active .faq-icon {
+            transform: rotate(180deg);
+        }
+
+        .faq-answer {
+            padding: 0 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+        }
+
+        .faq-item.active .faq-answer {
+            padding: 0 20px 20px;
+            max-height: 200px;
+        }
+
+        /* Section Modal de notification */
+        .notification-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notification-modal.active {
+            display: flex;
+        }
+
+        .notification-content {
+            background-color: var(--white);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+            animation: modalFadeIn 0.5s ease forwards;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .close-notification {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            color: var(--gray);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .close-notification:hover {
+            color: var(--orange);
+        }
+
+        .notification-content h3 {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .notification-content p {
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .notification-form {
+            margin-top: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid var(--medium-gray);
+            border-radius: 50px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--pastel-blue);
+            box-shadow: 0 0 0 3px rgba(168, 208, 230, 0.3);
+        }
+
+        /* Call-to-action finale */
+        .cta {
+            padding: 80px 0;
+            background: var(--gradient-blue);
+            text-align: center;
+        }
+
+        .cta h2 {
+            color: var(--white);
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        .cta p {
+            color: var(--white);
+            font-size: 18px;
+            margin-bottom: 30px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Pied de page */
+        .site-footer {
+            background-color: var(--deep-blue);
+            color: var(--white);
+            padding: 80px 0 40px;
+        }
+
+        .footer-content {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 50px;
+        }
+
+        .footer-logo {
+            flex-basis: 30%;
+            margin-bottom: 30px;
+        }
+
+        .footer-logo .logo-text {
+            font-size: 30px;
+            margin-bottom: 15px;
+            -webkit-text-fill-color: var(--white);
+            background: none;
+        }
+
+        .footer-logo p {
+            color: var(--pastel-blue);
+            font-size: 14px;
+        }
+
+        .footer-links {
+            flex-basis: 65%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .footer-column {
+            flex-basis: 30%;
+            margin-bottom: 30px;
+            min-width: 150px;
+        }
+
+        .footer-column h4 {
+            color: var(--white);
+            font-size: 18px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .footer-column h4::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 40px;
+            height: 2px;
+            background-color: var(--orange);
+        }
+
+        .footer-column ul li {
+            margin-bottom: 10px;
+        }
+
+        .footer-column ul li a {
+            color: var(--light-gray);
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .footer-column ul li a:hover {
+            color: var(--orange);
+            padding-left: 5px;
+        }
+
+        .social-icons {
+            display: flex;
+            margin-top: 20px;
+        }
+
+        .social-icons a {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .social-icons a:hover {
+            background-color: var(--orange);
+            transform: translateY(-3px);
+        }
+
+        .social-icons a i {
+            color: var(--white);
+            font-size: 16px;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 20px;
+            text-align: center;
+        }
+
+        .footer-bottom p {
+            font-size: 14px;
+            color: var(--light-gray);
+        }
+
+        /* Media Queries */
+        @media (max-width: 1024px) {
+            .hero h1 {
+                font-size: 36px;
+            }
+            
+            .hero-content {
+                padding-right: 0;
+            }
+            
+            .step:not(:last-child)::after {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-nav {
+                display: none;
+            }
+            
+            .menu-toggle {
+                display: block;
+            }
+            
+            .hero .container {
+                flex-direction: column;
+            }
+            
+            .hero-content, .hero-image {
+                flex-basis: 100%;
+                padding: 0;
+                margin-bottom: 30px;
+            }
+            
+            .hero h1 {
+                font-size: 32px;
+            }
+            
+            .benefits-container {
+                flex-direction: column-reverse;
+            }
+            
+            .benefits-image {
+                margin-bottom: 30px;
+            }
+            
+            .benefits-quote {
+                right: 0;
+                bottom: -40px;
+            }
+            
+            .step {
+                flex-basis: 100%;
+            }
+            
+            .pricing-card.premium {
+                transform: scale(1);
+            }
+        }
+
+        @media (max-width: 576px) {
+            .section-title {
+                font-size: 28px;
+            }
+            
+            .hero h1 {
+                font-size: 28px;
+            }
+            
+            .cta h2 {
+                font-size: 28px;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+            }
+            
+            .benefits-quote {
+                position: relative;
+                right: 0;
+                bottom: 0;
+                margin-top: 20px;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+            }
+            
+            .footer-logo, .footer-column {
+                flex-basis: 100%;
+            }
+            
+            .pricing-cards {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .pricing-card {
+                margin-bottom: 30px;
+            }
+            
+            .notification-content {
+                padding: 30px 20px;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.8s ease forwards;
+        }
+
+        /* Mobile Navigation */
+        .mobile-nav {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 250px;
+            height: 100vh;
+            background: var(--white);
+            z-index: 1001;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+            transition: right 0.4s ease;
+            padding: 80px 20px 20px;
+            overflow-y: auto;
+        }
+
+        .mobile-nav.active {
+            right: 0;
+        }
+
+        .mobile-nav ul li {
+            margin-bottom: 15px;
+        }
+
+        .mobile-nav ul li a {
+            display: block;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--light-gray);
+            font-weight: 600;
+        }
+
+        .close-mobile-nav {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            color: var(--deep-blue);
+            cursor: pointer;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+        }
+
+        .overlay.active {
+            display: block;
+        }
+        
+        .sticky {
+            background-color: rgba(255, 255, 255, 0.98);
+            padding: 10px 0;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .no-scroll {
+            overflow: hidden;
+        }
+    </style>
     
-    <!-- PWA Meta tags -->
+    <!-- Font Awesome pour les icônes -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Manifest pour PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0A2463">
     <link rel="apple-touch-icon" href="icon-192.png">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
-    <!-- Splash Screens -->
-    <!-- Pour iPhone X (1125px x 2436px) -->
-    <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" href="hypnorelax-splash-cs6-xxxhdpi.png">
-    
-    <!-- Pour iPhone 8, 7, 6s, 6 (750px x 1334px) -->
-    <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" href="hypnorelax-splash-cs6-xhdpi.png">
-    
-    <!-- Pour iPhone 8 Plus, 7 Plus, 6s Plus, 6 Plus (1242px x 2208px) -->
-    <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)" href="hypnorelax-splash-cs6-xxxhdpi.png">
-    
-    <!-- Pour iPad Air, iPad Mini, etc. -->
-    <link rel="apple-touch-startup-image" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)" href="hypnorelax-splash-xxhpdi.png">
-    
-    <!-- Pour tous les autres appareils -->
-    <link rel="apple-touch-startup-image" href="hypnorelax-splash-cs6-xxxhdpi.png">
-    
-    <!-- NoSleep.js pour empêcher l'écran de se mettre en veille -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/nosleep/0.12.0/NoSleep.min.js"></script>
 </head>
 <body>
-<!--
-=============================================================================
-PROPRIÉTÉ INTELLECTUELLE ET DROITS D'AUTEUR
-=============================================================================
-Application d'Auto-Hypnose Guidée
-Copyright © 2025 Joffrey ROS (joffrey66@gmail.com). Tous droits réservés.
-
-AVIS LÉGAL:
-Cette œuvre est protégée par les lois françaises et internationales sur
-le droit d'auteur et la propriété intellectuelle. En vertu du Code de la 
-propriété intellectuelle français, notamment les articles L.111-1 et suivants,
-ainsi que les conventions internationales incluant la Convention de Berne.
-
-UTILISATION INTERDITE SANS AUTORISATION:
-Toute reproduction, distribution, modification, adaptation, traduction,
-représentation publique ou utilisation de cette œuvre, en tout ou partie,
-sous quelque forme et par quelque moyen que ce soit, électronique,
-mécanique ou autre, est strictement interdite sans l'autorisation
-écrite préalable de l'auteur, Joffrey ROS.
-
-Pour toute demande d'utilisation, veuillez contacter: joffrey66@gmail.com
-=============================================================================
--->
-<!--
-=============================================================================
-SIGNATURE NUMÉRIQUE
-=============================================================================
-ID: AHGJR-25072023-H001
-Auteur: Joffrey ROS
-Email: joffrey66@gmail.com
-Date de création: 07/03/2025
-Signature: JR-f5e8a4d1b6c7e9f0a3d2b1c8e7d6a5f4-2025
-=============================================================================
--->
-
-<!-- Indicateur visuel d'écran actif -->
-<div id="keep-awake-indicator" style="position: fixed; top: 10px; left: 10px; 
-    background-color: rgba(0,0,0,0.5); color: white; font-size: 10px; 
-    padding: 4px 8px; border-radius: 10px; display: none; z-index: 9999;">
-    Écran actif 🔆
-</div>
-
-<div class="container">
-    <header>
-        <h1>Séance d'Auto-Hypnose Guidée</h1>
-    </header>
-    
-    <!-- Logo et nom de l'application -->
-    <div class="app-branding">
-        <div class="app-name">Hypnorelax</div>
-    </div>
-    
-    <!-- Navigation steps -->
-    <div class="progress-steps">
-        <div class="progress-line"></div>
-        <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
-        <div class="step active" id="step1">
-            <div class="step-label">Accueil</div>
-        </div>
-        <div class="step" id="step2">
-            <div class="step-label">Préparation</div>
-        </div>
-        <div class="step" id="step3">
-            <div class="step-label">Induction</div>
-        </div>
-        <div class="step" id="step4">
-            <div class="step-label">Profondeur</div>
-        </div>
-        <div class="step" id="step5">
-            <div class="step-label">Exploration</div>
-        </div>
-        <div class="step" id="step6">
-            <div class="step-label">Retour</div>
-        </div>
-    </div>
-    
-    <!-- Page d'accueil -->
-    <div class="page active" id="page1">
-        <div class="intro-content">
-            <div class="intro-icon">
-                <div class="spiral-small"></div>
+    <!-- En-tête avec navigation -->
+    <header class="site-header">
+        <div class="container">
+            <div class="logo">
+                <span class="logo-text">Hypnorelax</span>
             </div>
-            <h2>Bienvenue à votre séance d'auto-hypnose</h2>
-            <div class="intro-text">
-                <p>Cette séance est conçue pour vous guider progressivement vers un état hypnotique à travers une série d'exercices.</p>
-                <p>Prenez le temps de vous installer confortablement dans un endroit calme où vous ne serez pas dérangé(e) pendant environ 15 minutes.</p>
-                
-                <div class="audio-controls">
-                    <div class="audio-toggle">
-                        <label for="audioToggle">Guidage vocal</label>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="audioToggle" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <div class="speaking-indicator" id="speakingIndicator"></div>
-                    </div>
-                    
-                    <div class="voice-selection">
-                        <label for="voiceSelect">Voix</label>
-                        <select id="voiceSelect">
-                            <option value="default">Chargement des voix...</option>
-                        </select>
-                    </div>
-                    
-                    <div class="volume-control">
-                        <label for="volumeSlider">Volume</label>
-                        <input type="range" min="0" max="1" step="0.1" value="0.8" class="volume-slider" id="volumeSlider">
-                    </div>
-                    
-                    <!-- Ajouter ce bloc dans la div "audio-controls" de votre HTML, juste après le contrôle du volume -->
-                    <div class="audio-toggle">
-                        <label for="binauralToggle">Son hypnotique</label>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="binauralToggle">
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    <div class="volume-control">
-                        <label for="binauralVolumeSlider">Volume son</label>
-                        <input type="range" min="0" max="0.3" step="0.01" value="0.1" class="volume-slider" id="binauralVolumeSlider">
-                    </div>
-                    <p class="binaural-info">Les sons binauraux favorisent l'entrée en transe hypnotique en synchronisant vos ondes cérébrales. Activez-les pour une expérience plus profonde.</p>
-                </div>
-                
-                <div class="steps-list">
-                    <p><strong>Voici les étapes que nous allons suivre :</strong></p>
-                    <ul>
-                        <li>Préparation et relaxation</li>
-                        <li>Induction hypnotique visuelle</li>
-                        <li>Approfondissement de l'état</li>
-                        <li>Exploration de la transe</li>
-                        <li>Retour en conscience ordinaire</li>
-                    </ul>
-                </div>
-                
-                <p><strong>Important :</strong> Cette expérience est à but éducatif. Ne pratiquez pas cette séance si vous conduisez ou utilisez une machine. Si vous souffrez d'épilepsie ou de problèmes psychiatriques, consultez un professionnel avant d'essayer l'auto-hypnose.</p>
-            </div>
-        </div>
-        <div class="btn-container">
-            <button class="btn" id="startBtn">Commencer la séance</button>
-        </div>
-    </div>
-    
-    <!-- Page de préparation -->
-    <div class="page" id="page2">
-        <h2>Préparation - Cohérence Cardiaque</h2>
-        
-        <div id="coherenceIntroduction">
-            <div class="coherence-instructions">
-                <h3>Qu'est-ce que la cohérence cardiaque ?</h3>
-                <p>La cohérence cardiaque est une technique de respiration qui aide à synchroniser votre rythme cardiaque et votre respiration. Elle permet d'induire rapidement un état de calme et de détente, idéal avant une séance d'hypnose.</p>
-                
-                <h3>Comment pratiquer :</h3>
+            <nav class="main-nav">
                 <ul>
-                    <li>Respirez lentement, à raison de 6 respirations par minute (5 secondes d'inspiration, 5 secondes d'expiration)</li>
-                    <li>Suivez le mouvement du cercle bleu : montée = inspiration, descente = expiration</li>
-                    <li>Gardez une respiration fluide et régulière, sans à-coups</li>
-                    <li>Vous pouvez fermer les yeux après vous être familiarisé avec le rythme - la voix vous guidera</li>
+                    <li><a href="#fonctionnalites">Fonctionnalités</a></li>
+                    <li><a href="#avantages">Avantages</a></li>
+                    <li><a href="#temoignages">Témoignages</a></li>
+                    <li><a href="#tarifs">Offres</a></li>
                 </ul>
-            </div>
-            
-            <div class="btn-container">
-                <button class="btn" id="startCoherenceBtn">Commencer la cohérence cardiaque</button>
-            </div>
+            </nav>
+            <button class="menu-toggle" aria-label="Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
         </div>
-        
-        <div id="coherenceContainer" style="display: none;">
-            <div class="hypnotic-container">
-                <div class="coherence-container">
-                    <div class="breath-path"></div>
-                    <div class="breath-circle" id="breathCircle"></div>
-                    <div class="breath-label breath-in-label" id="breathInLabel">Inspirez</div>
-                    <div class="breath-label breath-out-label" id="breathOutLabel">Expirez</div>
-                </div>
-                
-                <div class="timer-display" id="timerDisplay">02:00</div>
-                
-                <div class="instruction" id="coherenceInstruction">
-                    Suivez le rythme du cercle pour votre respiration
+    </header>
+
+    <!-- Bannière d'introduction -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Découvrez le pouvoir de l'auto-hypnose guidée</h1>
+                <p class="hero-subtitle">Une application conçue par un hypnothérapeute professionnel pour vous aider à vous relaxer, gérer votre stress et améliorer votre bien-être.</p>
+                <div class="cta-buttons">
+                    <a href="index.html" class="btn btn-primary">Commencer gratuitement</a>
+                    <a href="#premium" class="btn btn-secondary">Découvrir Premium</a>
                 </div>
             </div>
-        </div>
-    </div>
-    
-    <!-- Page d'induction -->
-    <div class="page" id="page3">
-        <h2>Induction Hypnotique</h2>
-        
-        <div class="hypnotic-container">
-            <div class="spiral-container">
-                <div class="spiral"></div>
-                <div class="spiral-center"></div>
-                <div class="focus-dot"></div>
-            </div>
-            
-            <div class="instruction" id="inductionInstruction">
-                Fixez votre regard sur le point central
-            </div>
-            <div class="counter" id="inductionCounter">10</div>
-        </div>
-    </div>
-    
-    <!-- Page d'approfondissement -->
-    <div class="page" id="page4">
-        <h2>Profondeur</h2>
-        
-        <div class="hypnotic-container">
-            <div class="instruction" id="deepeningInstruction">
-                Imaginez un escalier qui descend doucement...
-            </div>
-            
-            <div class="counter" id="stairsCounter">10</div>
-            
-            <p>À chaque marche descendue, vous vous sentez de plus en plus détendu(e), de plus en plus calme...</p>
-            
-            <!-- Nouvel escalator animé remplaçant l'ancien escalier -->
-            <div class="escalator-container">
-                <div class="escalator">
-                    <div class="steps-container">
-                        <div class="escalator-step" data-step="1"></div>
-                        <div class="escalator-step" data-step="2"></div>
-                        <div class="escalator-step" data-step="3"></div>
-                        <div class="escalator-step" data-step="4"></div>
-                        <div class="escalator-step" data-step="5"></div>
-                        <div class="escalator-step" data-step="6"></div>
-                        <div class="escalator-step" data-step="7"></div>
-                        <div class="escalator-step" data-step="8"></div>
-                        <div class="escalator-step" data-step="9"></div>
-                        <div class="escalator-step" data-step="10"></div>
+            <div class="hero-image">
+                <img src="hero-illustration.png" alt="Hypnorelax en action sur différents appareils" class="hero-img">
+                <div class="app-badges">
+                    <div class="badge">
+                        <i class="fas fa-mobile-alt"></i>
+                        <span>Compatible mobile</span>
                     </div>
-                    <div class="escalator-rider" id="escalatorRider"></div>
+                    <div class="badge">
+                        <i class="fas fa-tablet-alt"></i>
+                        <span>Optimisé tablette</span>
+                    </div>
+                    <div class="badge">
+                        <i class="fas fa-laptop"></i>
+                        <span>Fonctionne sur PC</span>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    
-    <!-- Page d'exploration -->
-    <div class="page" id="page5">
-        <h2>Exploration et Approfondissement</h2>
-        
-        <div class="hypnotic-container">
-            <div class="instruction" id="explorationInstruction">
-                Imaginez un lieu de paix et de sécurité. Un endroit où vous vous sentez parfaitement bien et détendu(e).
-            </div>
-            
-            <!-- Nouvelle scène d'exploration avec animations -->
-            <div class="exploration-scene" id="explorationScene">
-                <div class="exploration-background"></div>
-                <div class="exploration-ring"></div>
-                <div class="exploration-ring"></div>
-                <div class="exploration-ring"></div>
-                <!-- Les particules seront ajoutées dynamiquement -->
-            </div>
+        <div class="wave-divider">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="wave-fill"></path>
+            </svg>
+        </div>
+    </section>
 
-            <div class="progress-container">
-                <div id="explorationProgress" style="width: 0%"></div>
-            </div>
-            
-            <p>À chaque respiration, sentez-vous descendre plus profondément dans un état de relaxation et de bien-être.</p>
-            <p>Prenez le temps d'explorer ce lieu intérieur, de ressentir ses qualités et les sensations qu'il évoque en vous.</p>
-        </div>
-    </div>
-    
-    <!-- Page de retour -->
-    <div class="page" id="page6">
-        <h2>Retour à la Conscience Ordinaire</h2>
-        
-        <div class="hypnotic-container">
-            <div class="energy-scene" id="energyScene">
-                <div class="energy-glow"></div>
-            </div>
-            
-            <div class="instruction">
-                Préparez-vous à revenir doucement, plein(e) d'énergie et de bien-être
-            </div>
-            <div class="counter" id="awakeningCounter">5</div>
-            
-            <p>Je vais compter de 5 à 1. À 1, vous serez parfaitement éveillé(e), revigoré(e) et plein(e) d'énergie positive.</p>
-        </div>
-    </div>
-    
-    <!-- Page finale avec section promo modernisée et déplacée à la fin -->
-    <div class="page" id="page7">
-        <div class="intro-content">
-            <div class="intro-icon">
-                <div class="spiral-small" style="animation: rotate 30s linear infinite reverse;"></div>
-            </div>
-            <h2>Séance Complétée</h2>
-            <div class="intro-text">
-                <p>Félicitations pour avoir complété cette séance d'auto-hypnose guidée.</p>
-                <p>Comment vous sentez-vous ? Prenez un moment pour observer les sensations dans votre corps et dans votre esprit.</p>
-                <p>Chaque pratique de l'auto-hypnose renforce votre capacité à entrer dans cet état bénéfique. Nous vous recommandons de pratiquer régulièrement pour approfondir votre expérience.</p>
+    <!-- Section FAQ -->
+    <section class="faq">
+        <div class="container">
+            <h2 class="section-title">Questions fréquentes</h2>
+            <div class="faq-container">
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Qu'est-ce que l'auto-hypnose ?</h3>
+                        <span class="faq-icon"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>L'auto-hypnose est une technique qui permet d'atteindre un état de conscience modifié par soi-même, caractérisé par une concentration accrue et une grande suggestibilité. Contrairement aux idées reçues, vous restez conscient et en contrôle pendant toute la séance.</p>
+                    </div>
+                </div>
                 
-                <h3>Effets possibles que vous avez pu ressentir :</h3>
-                <ul class="steps-list">
-                    <li>Sensation de lourdeur ou de légèreté</li>
-                    <li>Relaxation musculaire profonde</li>
-                    <li>Altération de la perception du temps</li>
-                    <li>Détachement des pensées quotidiennes</li>
-                    <li>Créativité et imagination accrues</li>
-                </ul>
-            </div>
-        </div>
-        <div class="btn-container">
-            <button class="btn" id="restartBtn">Refaire la séance</button>
-            <button class="btn btn-blue" id="homeBtn">Retour à l'accueil</button>
-        </div>
-        
-        <!-- Section promotionnelle déplacée après les boutons -->
-        <div class="promo-section">
-            <div class="promo-content">
-                <div class="promo-header">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 80" width="180" height="48">
-                        <style>
-                            .logo-text { fill: #0A2463; font-family: Arial, sans-serif; font-weight: bold; }
-                        </style>
-                        <text x="20" y="35" class="logo-text" font-size="32">HYPNOSE</text>
-                        <text x="50" y="70" class="logo-text" font-size="32">JOFFREY</text>
-                    </svg>
-                    <h3 class="promo-title">Application créée par <span>Joffrey ROS</span></h3>
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>L'application fonctionne-t-elle sans Internet ?</h3>
+                        <span class="faq-icon"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Oui, Hypnorelax est une Progressive Web App (PWA) qui peut être installée sur votre appareil et utilisée hors ligne après le premier chargement. Toutes les fonctionnalités principales sont disponibles sans connexion Internet.</p>
+                    </div>
                 </div>
-                <p>Cette expérience d'auto-hypnose a été conçue par un hypnothérapeute professionnel. Pour découvrir d'autres techniques ou prendre rendez-vous pour une séance personnalisée :</p>
-                <a href="https://hypnosejoffrey.fr" target="_blank" class="promo-button">
-                    <span>Visiter hypnosejoffrey.fr</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                </a>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Est-ce que tout le monde peut pratiquer l'auto-hypnose ?</h3>
+                        <span class="faq-icon"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>La grande majorité des personnes peuvent bénéficier de l'auto-hypnose. Cependant, les personnes souffrant d'épilepsie, de troubles psychiatriques graves ou de certaines conditions médicales devraient consulter un professionnel de la santé avant d'utiliser l'application.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Combien de temps faut-il pour ressentir des effets ?</h3>
+                        <span class="faq-icon"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Beaucoup d'utilisateurs ressentent des effets positifs dès la première séance, notamment une détente immédiate. Pour des changements plus profonds, une pratique régulière de 2-3 fois par semaine pendant au moins 3 semaines est recommandée.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <h3>Puis-je annuler mon abonnement à tout moment ?</h3>
+                        <span class="faq-icon"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Absolument ! Vous pouvez annuler votre abonnement Premium à tout moment depuis votre espace personnel. L'accès aux fonctionnalités Premium restera disponible jusqu'à la fin de la période déjà payée.</p>
+                    </div>
+                </div>
             </div>
         </div>
+    </section>
+
+    <!-- Section Notification -->
+    <div id="notification" class="notification-modal">
+        <div class="notification-content">
+            <span class="close-notification">&times;</span>
+            <h3>Soyez informé(e) du lancement Premium</h3>
+            <p>Recevez une notification dès que nos fonctionnalités Premium seront disponibles et bénéficiez d'une offre de lancement exclusive.</p>
+            <form class="notification-form">
+                <div class="form-group">
+                    <input type="email" placeholder="Votre adresse email" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Je veux être informé(e)</button>
+            </form>
+        </div>
     </div>
-</div>
 
-<footer class="footer-legal">
-    <div class="footer-section">
-        <p>Cette application est conçue à des fins éducatives. Consultez un professionnel pour toute utilisation thérapeutique de l'hypnose.</p>
-    </div>
-    
-    <div class="footer-divider"></div>
-    
-    <div class="footer-section legal-notice">
-        <h4>Conditions d'utilisation et mentions légales</h4>
-        <p>© 2025 Joffrey ROS (joffrey66@gmail.com) - Tous droits réservés</p>
-        <p>Cette œuvre est protégée par le Code de la propriété intellectuelle français (articles L.111-1 et suivants) et par les traités internationaux sur le droit d'auteur.</p>
-        <p>Toute reproduction, adaptation, représentation ou diffusion, intégrale ou partielle, par quelque procédé que ce soit, sans autorisation expresse de l'auteur, est illicite et constitue une contrefaçon sanctionnée par les articles L.335-2 et suivants du Code de la propriété intellectuelle.</p>
-        <p>L'article L.335-3 du Code de la propriété intellectuelle définit notamment comme délit de contrefaçon "toute reproduction, représentation ou diffusion, par quelque moyen que ce soit, d'une œuvre de l'esprit en violation des droits de l'auteur".</p>
-        <p>Les contrevenants s'exposent à des sanctions civiles et pénales pouvant aller jusqu'à 3 ans d'emprisonnement et 300 000 € d'amende (article L.335-2 du CPI).</p>
-        <p>Pour toute demande d'utilisation, veuillez contacter l'auteur à : <a href="mailto:joffrey66@gmail.com">joffrey66@gmail.com</a></p>
-    </div>
-</footer>
+    <!-- Call-to-action finale -->
+    <section class="cta">
+        <div class="container">
+            <h2>Prêt à commencer votre voyage vers le bien-être ?</h2>
+            <p>Essayez Hypnorelax gratuitement et découvrez le pouvoir de l'auto-hypnose guidée.</p>
+            <a href="index.html" class="btn btn-primary btn-large">Commencer maintenant</a>
+        </div>
+    </section>
 
-<!-- Filigrane discret -->
-<div id="jr-watermark" style="position: fixed; bottom: 10px; right: 10px; font-size: 10px; 
-    opacity: 0.3; color: #666; z-index: 1000; pointer-events: none; 
-    font-family: Arial, sans-serif;">
-    © 2025 Joffrey ROS
-</div>
+    <!-- Pied de page -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <span class="logo-text">Hypnorelax</span>
+                    <p>Auto-hypnose guidée pour votre bien-être</p>
+                </div>
+                
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4>Ressources</h4>
+                        <ul>
+                            <li><a href="#">Blog</a></li>
+                            <li><a href="#">Guide de l'auto-hypnose</a></li>
+                            <li><a href="#">FAQ</a></li>
+                            <li><a href="#">Support</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="footer-column">
+                        <h4>Contact</h4>
+                        <ul>
+                            <li><a href="https://hypnosejoffrey.fr" target="_blank">hypnosejoffrey.fr</a></li>
+                            <li><a href="mailto:joffrey66@gmail.com">joffrey66@gmail.com</a></li>
+                        </ul>
+                        <div class="social-icons">
+                            <a href="#"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                            <a href="#"><i class="fab fa-instagram"></i></a>
+                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 Hypnorelax - Joffrey ROS. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
 
-<!-- 
-Code développé par Joffrey ROS (joffrey66@gmail.com) - SIGNATURE: JR-07032025-7842
-Ce commentaire fait partie de la signature numérique et ne doit pas être supprimé.
--->
-
-<!-- Script pour NoSleep.js et le code JavaScript principal -->
-<script src="script.js"></script>
-<script src="mobile-optimization.js"></script>
-
-<!-- PWA Service Worker Registration -->
-<script>
-  // Enregistrer le service worker
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('service-worker.js')
-        .then(reg => console.log('Service worker enregistré!'))
-        .catch(err => console.log('Erreur d\'enregistrement du service worker', err));
-    });
-  }
-</script>
-
-<!-- Notification d'installation PWA -->
-<div id="pwa-install-prompt" style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); 
-    background-color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 10px; padding: 15px; 
-    max-width: 90%; width: 300px; z-index: 9999; text-align: center;">
-    <p style="margin-bottom: 10px;">Installez cette application sur votre appareil pour une meilleure expérience.</p>
-    <div style="display: flex; justify-content: space-between;">
-        <button id="pwa-install-no" style="padding: 8px 12px; background: #eee; border: none; border-radius: 5px; cursor: pointer;">Pas maintenant</button>
-        <button id="pwa-install-yes" style="padding: 8px 12px; background: #0A2463; color: white; border: none; border-radius: 5px; cursor: pointer;">Installer</button>
-    </div>
-</div>
-
-<script>
-// Gestion du prompt d'installation PWA
-let deferredPrompt;
-const pwaPrompt = document.getElementById('pwa-install-prompt');
-const btnInstallYes = document.getElementById('pwa-install-yes');
-const btnInstallNo = document.getElementById('pwa-install-no');
-
-window.addEventListener('beforeinstallprompt', (e) => {
-  // Empêcher Chrome de montrer automatiquement le prompt
-  e.preventDefault();
-  // Stocker l'événement pour pouvoir le déclencher plus tard
-  deferredPrompt = e;
-  // Afficher notre prompt personnalisé
-  setTimeout(() => {
-    if (deferredPrompt) {
-      pwaPrompt.style.display = 'block';
-    }
-  }, 30000); // Afficher après 30 secondes
-});
-
-btnInstallYes.addEventListener('click', async () => {
-  if (!deferredPrompt) return;
-  
-  // Afficher le prompt natif
-  deferredPrompt.prompt();
-  // Attendre que l'utilisateur réponde
-  const { outcome } = await deferredPrompt.userChoice;
-  console.log(`User response: ${outcome}`);
-  // Effacer le prompt car il ne peut pas être réutilisé
-  deferredPrompt = null;
-  // Cacher notre prompt personnalisé
-  pwaPrompt.style.display = 'none';
-});
-
-btnInstallNo.addEventListener('click', () => {
-  // Cacher le prompt
-  pwaPrompt.style.display = 'none';
-  // Sauvegarder que l'utilisateur a refusé
-  localStorage.setItem('pwa-prompt-declined', 'true');
-});
-
-// Ne pas montrer le prompt si l'app est déjà installée
-window.addEventListener('appinstalled', () => {
-  console.log('Application installée !');
-  deferredPrompt = null;
-  pwaPrompt.style.display = 'none';
-});
-
-// Détecter si l'app est déjà lancée en mode standalone/PWA
-if (window.matchMedia('(display-mode: standalone)').matches || 
-    window.navigator.standalone === true) {
-  // L'application est déjà installée et lancée comme PWA
-  console.log('Application lancée en mode PWA');
-}
-</script>
-
+    <!-- Script JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // Navigation mobile
+            const menuToggle = document.querySelector('.menu-toggle');
+            const body = document.querySelector('body');
+            let mobileNav, overlay;
+            
+            if (menuToggle) {
+                menuToggle.addEventListener('click', function() {
+                    toggleMobileNav();
+                });
+                
+                // Créer la navigation mobile dynamiquement
+                createMobileNav();
+            }
+            
+            function createMobileNav() {
+                // Créer l'overlay
+                overlay = document.createElement('div');
+                overlay.className = 'overlay';
+                body.appendChild(overlay);
+                
+                // Créer la navigation mobile
+                mobileNav = document.createElement('div');
+                mobileNav.className = 'mobile-nav';
+                
+                // Copier les liens de la navigation principale
+                const mainNavLinks = document.querySelector('.main-nav ul').cloneNode(true);
+                
+                // Ajouter le bouton de fermeture
+                const closeBtn = document.createElement('span');
+                closeBtn.className = 'close-mobile-nav';
+                closeBtn.innerHTML = '&times;';
+                
+                mobileNav.appendChild(closeBtn);
+                mobileNav.appendChild(mainNavLinks);
+                body.appendChild(mobileNav);
+                
+                // Ajouter les écouteurs d'événements
+                closeBtn.addEventListener('click', toggleMobileNav);
+                overlay.addEventListener('click', toggleMobileNav);
+                
+                // Ajouter des écouteurs aux liens pour fermer la navigation après clic
+                const navLinks = mobileNav.querySelectorAll('a');
+                navLinks.forEach(link => {
+                    link.addEventListener('click', toggleMobileNav);
+                });
+            }
+            
+            // Modal de notification
+            const notificationTriggers = document.querySelectorAll('.js-notification-trigger');
+            const notificationModal = document.getElementById('notification');
+            
+            if (notificationTriggers.length > 0 && notificationModal) {
+                notificationTriggers.forEach(trigger => {
+                    trigger.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        notificationModal.classList.add('active');
+                        body.classList.add('no-scroll');
+                    });
+                });
+                
+                // Fermer la modal
+                const closeModal = notificationModal.querySelector('.close-notification');
+                if (closeModal) {
+                    closeModal.addEventListener('click', () => {
+                        notificationModal.classList.remove('active');
+                        body.classList.remove('no-scroll');
+                    });
+                }
+                
+                // Fermer la modal en cliquant en dehors
+                notificationModal.addEventListener('click', (e) => {
+                    if (e.target === notificationModal) {
+                        notificationModal.classList.remove('active');
+                        body.classList.remove('no-scroll');
+                    }
+                });
+                
+                // Traitement du formulaire
+                const notificationForm = notificationModal.querySelector('.notification-form');
+                if (notificationForm) {
+                    notificationForm.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        
+                        const emailInput = notificationForm.querySelector('input[type="email"]');
+                        if (emailInput && isValidEmail(emailInput.value)) {
+                            // Ici, vous pourriez envoyer l'e-mail à votre serveur
+                            // Pour cet exemple, nous simulons simplement une réussite
+                            
+                            // Changer le contenu de la modal
+                            const modalContent = notificationModal.querySelector('.notification-content');
+                            modalContent.innerHTML = `
+                                <span class="close-notification">&times;</span>
+                                <h3>Merci pour votre inscription !</h3>
+                                <p>Nous vous contacterons dès que les fonctionnalités Premium seront disponibles.</p>
+                                <div style="text-align: center; margin-top: 20px;">
+                                    <button class="btn btn-primary close-modal-btn">Fermer</button>
+                                </div>
+                            `;
+                            
+                            // Réajouter l'écouteur pour fermer
+                            const newCloseBtn = modalContent.querySelector('.close-notification');
+                            const closeModalBtn = modalContent.querySelector('.close-modal-btn');
+                            
+                            newCloseBtn.addEventListener('click', () => {
+                                notificationModal.classList.remove('active');
+                                body.classList.remove('no-scroll');
+                            });
+                            
+                            closeModalBtn.addEventListener('click', () => {
+                                notificationModal.classList.remove('active');
+                                body.classList.remove('no-scroll');
+                            });
+                        } else {
+                            // Afficher une erreur
+                            const emailInput = notificationForm.querySelector('input[type="email"]');
+                            emailInput.style.borderColor = 'red';
+                            
+                            // Réinitialiser après un délai
+                            setTimeout(() => {
+                                emailInput.style.borderColor = '';
+                            }, 3000);
+                        }
+                    });
+                }
+            }
+            
+            // Fonction de validation d'e-mail
+            function isValidEmail(email) {
+                const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+                return re.test(String(email).toLowerCase());
+            }
+            
+            // Video player
+            const videoContainer = document.querySelector('.video-container');
+            const playButton = document.querySelector('.play-button');
+            
+            if (videoContainer && playButton) {
+                playButton.addEventListener('click', () => {
+                    // Remplacer l'image par une iframe video
+                    // Note: Dans une vraie implémentation, vous utiliseriez l'URL réelle de votre vidéo
+                    const videoPlaceholder = videoContainer.querySelector('.video-placeholder');
+                    const videoURL = "https://www.youtube.com/embed/VOTRE_ID_VIDEO?autoplay=1";
+                    
+                    const iframe = document.createElement('iframe');
+                    iframe.setAttribute('src', videoURL);
+                    iframe.setAttribute('width', '100%');
+                    iframe.setAttribute('height', videoPlaceholder.offsetHeight + 'px');
+                    iframe.setAttribute('frameborder', '0');
+                    iframe.setAttribute('allowfullscreen', '');
+                    iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+                    
+                    videoContainer.replaceChild(iframe, videoPlaceholder);
+                    playButton.style.display = 'none';
+                });
+            }
+            
+            // Smooth scroll pour les ancres
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    
+                    const targetId = this.getAttribute('href');
+                    
+                    // Ignorer si c'est juste "#"
+                    if (targetId === '#') return;
+                    
+                    const targetElement = document.querySelector(targetId);
+                    
+                    if (targetElement) {
+                        // Calculer l'offset pour le header fixe
+                        const headerHeight = header.offsetHeight;
+                        const elementPosition = targetElement.getBoundingClientRect().top;
+                        const offsetPosition = elementPosition + window.pageYOffset - headerHeight;
+                        
+                        window.scrollTo({
+                            top: offsetPosition,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>
+            
+            function toggleMobileNav() {
+                mobileNav.classList.toggle('active');
+                overlay.classList.toggle('active');
+                body.classList.toggle('no-scroll');
+            }
+            
+            // Header Sticky
+            const header = document.querySelector('.site-header');
+            let scrollPosition = window.pageYOffset;
+            
+            window.addEventListener('scroll', function() {
+                scrollPosition = window.pageYOffset;
+                
+                if (scrollPosition > 50) {
+                    header.classList.add('sticky');
+                } else {
+                    header.classList.remove('sticky');
+                }
+            });
+            
+            // Témoignages Carrousel
+            const testimonialsSlider = document.querySelector('.testimonials-slider');
+            const testimonials = document.querySelectorAll('.testimonial');
+            const dots = document.querySelectorAll('.dot');
+            const prevBtn = document.querySelector('.prev-btn');
+            const nextBtn = document.querySelector('.next-btn');
+            
+            if (testimonialsSlider && testimonials.length > 0) {
+                let currentIndex = 0;
+                
+                // Cacher tous les témoignages sauf le premier
+                testimonials.forEach((testimonial, index) => {
+                    if (index !== 0) {
+                        testimonial.style.display = 'none';
+                    }
+                });
+                
+                // Boutons précédent et suivant
+                if (prevBtn) {
+                    prevBtn.addEventListener('click', () => {
+                        navigateTestimonial('prev');
+                    });
+                }
+                
+                if (nextBtn) {
+                    nextBtn.addEventListener('click', () => {
+                        navigateTestimonial('next');
+                    });
+                }
+                
+                // Points de navigation
+                if (dots.length > 0) {
+                    dots.forEach((dot, index) => {
+                        dot.addEventListener('click', () => {
+                            navigateTestimonial(index);
+                        });
+                    });
+                }
+                
+                function navigateTestimonial(direction) {
+                    // Cacher le témoignage actuel
+                    testimonials[currentIndex].style.display = 'none';
+                    
+                    // Retirer la classe active du point actuel
+                    if (dots.length > 0) {
+                        dots[currentIndex].classList.remove('active');
+                    }
+                    
+                    // Calculer le nouvel index
+                    if (direction === 'next') {
+                        currentIndex = (currentIndex + 1) % testimonials.length;
+                    } else if (direction === 'prev') {
+                        currentIndex = (currentIndex - 1 + testimonials.length) % testimonials.length;
+                    } else if (typeof direction === 'number') {
+                        currentIndex = direction;
+                    }
+                    
+                    // Afficher le nouveau témoignage
+                    testimonials[currentIndex].style.display = 'block';
+                    
+                    // Ajouter la classe active au nouveau point
+                    if (dots.length > 0) {
+                        dots[currentIndex].classList.add('active');
+                    }
+                }
+                
+                // Défilement automatique
+                setInterval(() => {
+                    navigateTestimonial('next');
+                }, 8000);
+            }
+            
+            // FAQ Accordéon
+            const faqItems = document.querySelectorAll('.faq-item');
+            
+            if (faqItems.length > 0) {
+                faqItems.forEach(item => {
+                    const question = item.querySelector('.faq-question');
+                    
+                    question.addEventListener('click', () => {
+                        const isActive = item.classList.contains('active');
+                        
+                        // Fermer tous les items
+                        faqItems.forEach(faqItem => {
+                            faqItem.classList.remove('active');
+                        });
+                        
+                        // Ouvrir l'item cliqué s'il n'était pas déjà ouvert
+                        if (!isActive) {
+                            item.classList.add('active');
+                        }
+                    });
+                });
+            }>Application</h4>
+                        <ul>
+                            <li><a href="#fonctionnalites">Fonctionnalités</a></li>
+                            <li><a href="#tarifs">Prix</a></li>
+                            <li><a href="#temoignages">Témoignages</a></li>
+                            <li><a href="#">Conditions d'utilisation</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="footer-column">
+                        <h4
+
+    <!-- Section Comment ça marche -->
+    <section class="how-it-works">
+        <div class="container">
+            <h2 class="section-title">Comment ça marche ?</h2>
+            <p class="section-subtitle">Un processus simple en 3 étapes</p>
+            
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Installez l'application</h3>
+                        <p>Accédez à Hypnorelax depuis votre navigateur et installez-la sur votre appareil en quelques clics.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Choisissez votre session</h3>
+                        <p>Sélectionnez une session adaptée à vos besoins et installez-vous confortablement.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Laissez-vous guider</h3>
+                        <p>Suivez simplement les instructions vocales et visuelles pour entrer dans un état d'auto-hypnose bénéfique.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="demo-video">
+                <h3>Voyez Hypnorelax en action</h3>
+                <div class="video-container">
+                    <img src="demo-preview.jpg" alt="Démonstration Hypnorelax" class="video-placeholder">
+                    <button class="play-button">
+                        <i class="fas fa-play"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Témoignages -->
+    <section id="temoignages" class="testimonials">
+        <div class="container">
+            <h2 class="section-title">Ce que nos utilisateurs disent</h2>
+            <p class="section-subtitle">Des expériences réelles avec Hypnorelax</p>
+            
+            <div class="testimonials-slider">
+                <div class="testimonial">
+                    <div class="testimonial-content">
+                        <p>"J'avais essayé plusieurs applications de méditation sans succès. Hypnorelax a été une révélation ! La cohérence cardiaque combinée à l'auto-hypnose m'a permis de réduire mon stress en seulement quelques sessions."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <img src="testimonial-1.jpg" alt="Sophie M.">
+                        <div>
+                            <h4>Sophie M.</h4>
+                            <p>Utilisatrice depuis 3 mois</p>
+                            <div class="stars">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="testimonial">
+                    <div class="testimonial-content">
+                        <p>"Je souffrais d'insomnies chroniques depuis des années. Grâce à la session d'auto-hypnose du soir, je m'endors maintenant en 15 minutes au lieu de plusieurs heures. Un véritable changement dans ma qualité de vie !"</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <img src="testimonial-2.jpg" alt="Thomas L.">
+                        <div>
+                            <h4>Thomas L.</h4>
+                            <p>Utilisateur depuis 6 mois</p>
+                            <div class="stars">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="testimonial">
+                    <div class="testimonial-content">
+                        <p>"Les animations visuelles sont hypnotisantes et la voix est parfaitement adaptée. J'utilise l'application tous les jours pour un moment de détente. Le fait qu'elle soit installable sur mon téléphone est un vrai plus !"</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <img src="testimonial-3.jpg" alt="Emma D.">
+                        <div>
+                            <h4>Emma D.</h4>
+                            <p>Utilisatrice depuis 2 mois</p>
+                            <div class="stars">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="testimonial-nav">
+                <button class="prev-btn"><i class="fas fa-chevron-left"></i></button>
+                <div class="dots">
+                    <span class="dot active"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </div>
+                <button class="next-btn"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Offres et Prix -->
+    <section id="tarifs" class="pricing">
+        <div class="container">
+            <h2 class="section-title">Nos offres</h2>
+            <p class="section-subtitle">Choisissez la formule adaptée à vos besoins</p>
+            
+            <div class="pricing-cards">
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3>Gratuit</h3>
+                        <div class="price">0€</div>
+                        <p>Pour découvrir l'auto-hypnose</p>
+                    </div>
+                    <div class="pricing-features">
+                        <ul>
+                            <li><i class="fas fa-check"></i> Session d'auto-hypnose de base</li>
+                            <li><i class="fas fa-check"></i> Cohérence cardiaque</li>
+                            <li><i class="fas fa-check"></i> Sons binauraux basiques</li>
+                            <li><i class="fas fa-check"></i> Installation sur appareil</li>
+                            <li class="disabled"><i class="fas fa-times"></i> Sessions spécialisées</li>
+                            <li class="disabled"><i class="fas fa-times"></i> Personnalisation avancée</li>
+                            <li class="disabled"><i class="fas fa-times"></i> Suivi de progression</li>
+                        </ul>
+                    </div>
+                    <div class="pricing-footer">
+                        <a href="index.html" class="btn btn-outline">Essayer gratuitement</a>
+                    </div>
+                </div>
+                
+                <div class="pricing-card premium" id="premium">
+                    <div class="ribbon">Populaire</div>
+                    <div class="pricing-header">
+                        <h3>Premium</h3>
+                        <div class="price">9,99€<span>/mois</span></div>
+                        <p>Pour une expérience complète</p>
+                    </div>
+                    <div class="pricing-features">
+                        <ul>
+                            <li><i class="fas fa-check"></i> Tout ce qui est inclus dans l'offre gratuite</li>
+                            <li><i class="fas fa-check"></i> <strong>5 sessions spécialisées</strong> (sommeil, stress, confiance...)</li>
+                            <li><i class="fas fa-check"></i> <strong>Personnalisation</strong> des sons et voix</li>
+                            <li><i class="fas fa-check"></i> <strong>Suivi de progression</strong> personnalisé</li>
+                            <li><i class="fas fa-check"></i> <strong>Rappels</strong> et programmation de sessions</li>
+                            <li><i class="fas fa-check"></i> <strong>Accès prioritaire</strong> aux nouvelles fonctionnalités</li>
+                            <li><i class="fas fa-check"></i> <strong>Support</strong> dédié</li>
+                        </ul>
+                    </div>
+                    <div class="pricing-footer">
+                        <a href="#notification" class="btn btn-primary js-notification-trigger">Bientôt disponible</a>
+                        <p class="pricing-note">Essai gratuit de 7 jours</p>
+                    </div>
+                </div>
+                
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3>Pro</h3>
+                        <div class="price">99€<span>/an</span></div>
+                        <p>Pour les professionnels de la santé</p>
+                    </div>
+                    <div class="pricing-features">
+                        <ul>
+                            <li><i class="fas fa-check"></i> Tout ce qui est inclus dans l'offre Premium</li>
+                            <li><i class="fas fa-check"></i> <strong>Toutes les sessions spécialisées</strong> (10+)</li>
+                            <li><i class="fas fa-check"></i> <strong>Création</strong> de scripts personnalisés</li>
+                            <li><i class="fas fa-check"></i> <strong>Licence</strong> professionnelle pour utilisation avec clients</li>
+                            <li><i class="fas fa-check"></i> <strong>Ressources</strong> éducatives supplémentaires</li>
+                            <li><i class="fas fa-check"></i> <strong>Support prioritaire</strong></li>
+                        </ul>
+                    </div>
+                    <div class="pricing-footer">
+                        <a href="#notification" class="btn btn-outline js-notification-trigger">Bientôt disponible</a>
+                        <p class="pricing-note">Économisez 20% par rapport au tarif mensuel</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Fonctionnalités -->
+    <section id="fonctionnalites" class="features">
+        <div class="container">
+            <h2 class="section-title">Fonctionnalités principales</h2>
+            <p class="section-subtitle">Découvrez comment Hypnorelax peut transformer votre quotidien</p>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>Auto-hypnose guidée</h3>
+                    <p>Sessions progressives d'induction hypnotique avec une voix apaisante et des visuels captivants.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-heartbeat"></i>
+                    </div>
+                    <h3>Cohérence cardiaque</h3>
+                    <p>Technique de respiration qui synchronise votre rythme cardiaque pour un état de calme immédiat.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-headphones-alt"></i>
+                    </div>
+                    <h3>Sons binauraux</h3>
+                    <p>Stimulation des ondes cérébrales par des fréquences sonores spécifiques pour une relaxation profonde.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3>Application PWA</h3>
+                    <p>Installez Hypnorelax sur votre écran d'accueil et utilisez-la même sans connexion Internet.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section Avantages -->
+    <section id="avantages" class="benefits">
+        <div class="container">
+            <h2 class="section-title">Les bienfaits de l'auto-hypnose</h2>
+            <p class="section-subtitle">Des résultats prouvés pour votre bien-être mental et physique</p>
+            
+            <div class="benefits-container">
+                <div class="benefits-content">
+                    <ul class="benefits-list">
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <div>
+                                <h3>Réduction du stress</h3>
+                                <p>Diminuez significativement votre niveau de stress et d'anxiété.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <div>
+                                <h3>Amélioration du sommeil</h3>
+                                <p>Retrouvez un sommeil profond et réparateur naturellement.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <div>
+                                <h3>Gestion de la douleur</h3>
+                                <p>Techniques efficaces pour atténuer les douleurs chroniques.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <div>
+                                <h3>Confiance en soi</h3>
+                                <p>Renforcez votre estime personnelle et votre assurance.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="benefits-image">
+                    <img src="benefits-image.jpg" alt="Personne détendue pratiquant l'auto-hypnose">
+                    <div class="benefits-quote">
+                        <blockquote>"L'hypnose est une porte d'entrée vers les ressources inexplorées de notre esprit."</blockquote>
+                        <cite>— Joffrey ROS, Créateur d'Hypnorelax</cite>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
