@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Hypnorelax - Auto-hypnose guidée pour votre bien-être</title>
     
-    <!-- Styles CSS - Chargement optimisé -->
+    <!-- Styles CSS -->
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="mobile-optimization.css">
     <link rel="stylesheet" href="marketing-styles.css">
@@ -13,9 +13,7 @@
     <!-- Font Awesome pour les icônes -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Google Fonts - Préchargement -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
     
     <!-- Manifest pour PWA -->
@@ -23,11 +21,7 @@
     <meta name="theme-color" content="#0A2463">
     <link rel="apple-touch-icon" href="icon-192.png">
     
-    <!-- Préchargement des ressources clés -->
-    <link rel="preload" as="script" href="hypnorelax-bridge.js">
-    <link rel="preload" as="script" href="script.js">
-    
-    <!-- Styles intégrés pour les améliorations UI -->
+    <!-- Styles spécifiques pour les améliorations -->
     <style>
         /* Amélioration des boutons CTA */
         .btn-primary {
@@ -279,6 +273,225 @@
             }
         }
         
+        /* Notification modals */
+        .notification-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notification-modal.active {
+            display: flex;
+        }
+
+        .notification-content {
+            background-color: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+            animation: modalFadeIn 0.5s ease forwards;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .close-notification {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .close-notification:hover {
+            color: #333;
+        }
+
+        .notification-header {
+            background: linear-gradient(135deg, #0A2463, #2a4483);
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+            position: relative;
+            margin: -40px -40px 20px -40px;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .notification-icon {
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .notification-icon i {
+            font-size: 28px;
+            color: #0A2463;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .input-with-icon {
+            position: relative;
+        }
+
+        .input-with-icon i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+
+        .input-with-icon input {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .input-with-icon input:focus {
+            outline: none;
+            border-color: #A8D0E6;
+            box-shadow: 0 0 0 3px rgba(168, 208, 230, 0.3);
+        }
+
+        .privacy-notice {
+            display: block;
+            margin-top: 5px;
+            font-size: 12px;
+            color: #888;
+            text-align: left;
+        }
+
+        .checkbox-container {
+            display: block;
+            position: relative;
+            padding-left: 35px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            user-select: none;
+            color: #555;
+        }
+
+        .checkbox-container input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+
+        .checkmark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 22px;
+            width: 22px;
+            background-color: #eee;
+            border-radius: 5px;
+        }
+
+        .checkbox-container:hover .checkmark {
+            background-color: #ccc;
+        }
+
+        .checkbox-container input:checked ~ .checkmark {
+            background-color: #FF7F50;
+        }
+
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+        }
+
+        .checkbox-container input:checked ~ .checkmark:after {
+            display: block;
+        }
+
+        .checkbox-container .checkmark:after {
+            left: 8px;
+            top: 4px;
+            width: 5px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .btn-block {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        /* Animation de succès */
+        .success-animation {
+            padding: 30px 0;
+            text-align: center;
+        }
+
+        .checkmark-circle {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            display: inline-block;
+            vertical-align: top;
+            border-radius: 50%;
+            background: #4CAF50;
+            animation: bounce 0.5s ease-out;
+        }
+
+        .checkmark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(45deg);
+            height: 40px;
+            width: 20px;
+            border-bottom: 6px solid white;
+            border-right: 6px solid white;
+        }
+
+        @keyframes bounce {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
         /* Écran de chargement */
         #app-loading-screen {
             position: fixed;
@@ -293,10 +506,12 @@
             align-items: center;
             opacity: 0;
             transition: opacity 0.5s ease;
+            visibility: hidden;
         }
         
         #app-loading-screen.active {
             opacity: 1;
+            visibility: visible;
         }
         
         .loading-content {
@@ -353,14 +568,6 @@
             box-shadow: 0 0 10px rgba(255, 127, 80, 0.7);
         }
         
-        .loading-bar-container.loaded {
-            animation: fadeOut 0.5s forwards 1s;
-        }
-        
-        @keyframes fadeOut {
-            to { opacity: 0; }
-        }
-        
         /* Transition */
         .transitioning-to-app * {
             transition: opacity 0.8s ease;
@@ -380,6 +587,7 @@
                     <li><a href="#avantages">Avantages</a></li>
                     <li><a href="#temoignages">Témoignages</a></li>
                     <li><a href="#tarifs">Offres</a></li>
+                    <li><a href="#" class="start-app-button">Commencer</a></li>
                 </ul>
             </nav>
             <button class="menu-toggle" aria-label="Menu">
@@ -399,7 +607,7 @@
                 
                 <!-- Boutons CTA améliorés -->
                 <div class="cta-buttons">
-                    <a href="#" class="btn btn-primary start-app-btn pulse-animation">
+                    <a href="#" class="btn btn-primary start-app-button pulse-animation">
                         <i class="fas fa-play-circle"></i> 
                         Commencer l'expérience
                         <span class="btn-hint">Gratuit</span>
@@ -698,7 +906,7 @@
                         </ul>
                     </div>
                     <div class="pricing-footer">
-                        <a href="#" class="btn btn-outline start-app-btn">Essayer gratuitement</a>
+                        <a href="#" class="btn btn-outline start-app-button">Essayer gratuitement</a>
                     </div>
                 </div>
                 
@@ -721,7 +929,7 @@
                         </ul>
                     </div>
                     <div class="pricing-footer">
-                        <a href="#notification" class="btn btn-primary js-notification-trigger">Bientôt disponible</a>
+                        <a href="#" class="btn btn-primary notification-trigger">Bientôt disponible</a>
                         <p class="pricing-note">Essai gratuit de 7 jours</p>
                     </div>
                 </div>
@@ -743,7 +951,7 @@
                         </ul>
                     </div>
                     <div class="pricing-footer">
-                        <a href="#notification" class="btn btn-outline js-notification-trigger">Bientôt disponible</a>
+                        <a href="#" class="btn btn-outline notification-trigger">Bientôt disponible</a>
                         <p class="pricing-note">Économisez 20% par rapport au tarif mensuel</p>
                     </div>
                 </div>
@@ -806,10 +1014,10 @@
             <p>Découvrez le pouvoir de l'auto-hypnose guidée et améliorez votre bien-être mental en quelques minutes par jour.</p>
             
             <div class="cta-buttons">
-                <a href="#" class="btn btn-primary btn-large start-app-btn">
+                <a href="#" class="btn btn-primary btn-large start-app-button">
                     <i class="fas fa-play-circle"></i> Commencer maintenant
                 </a>
-                <a href="#notification" class="btn btn-secondary js-notification-trigger">
+                <a href="#" class="btn btn-secondary notification-trigger">
                     <i class="fas fa-envelope"></i> Être informé des nouveautés
                 </a>
             </div>
@@ -870,13 +1078,13 @@
     </footer>
 
     <!-- Bouton d'action flottant -->
-    <div class="floating-action-button start-app-btn" id="quickStartFAB">
+    <div class="floating-action-button start-app-button" id="quickStartFAB">
         <i class="fas fa-play"></i>
         <span class="fab-label">Essayer</span>
     </div>
 
     <!-- Notification Modal -->
-    <div id="notification" class="notification-modal">
+    <div id="notification-modal" class="notification-modal">
         <div class="notification-content">
             <span class="close-notification">&times;</span>
             
@@ -889,23 +1097,23 @@
             
             <p>Recevez une notification dès que nos fonctionnalités Premium seront disponibles et bénéficiez d'une <strong>réduction de 30%</strong> avec notre offre de lancement exclusive.</p>
             
-            <form class="notification-form" id="premiumNotifyForm">
+            <form class="notification-form" id="notification-form">
                 <div class="form-group">
                     <div class="input-with-icon">
                         <i class="fas fa-envelope"></i>
-                        <input type="email" id="notifyEmail" placeholder="Votre adresse email" required>
+                        <input type="email" id="notify-email" placeholder="Votre adresse email" required>
                     </div>
                     <small class="privacy-notice">Nous respectons votre vie privée. Aucun spam.</small>
                 </div>
                 <div class="form-group">
                     <div class="input-with-icon">
                         <i class="fas fa-user"></i>
-                        <input type="text" id="notifyName" placeholder="Votre prénom (optionnel)">
+                        <input type="text" id="notify-name" placeholder="Votre prénom (optionnel)">
                     </div>
                 </div>
                 <div class="form-options">
                     <label class="checkbox-container">
-                        <input type="checkbox" id="notifyConsent" checked>
+                        <input type="checkbox" id="notify-consent" checked>
                         <span class="checkmark"></span>
                         <span>Je souhaite recevoir des conseils bien-être gratuits</span>
                     </label>
@@ -918,7 +1126,7 @@
     </div>
 
     <!-- Confirmation Modal -->
-    <div id="notificationSuccess" class="notification-modal">
+    <div id="success-modal" class="notification-modal">
         <div class="notification-content">
             <span class="close-notification">&times;</span>
             
@@ -951,143 +1159,199 @@
         </div>
     </div>
 
-    <!-- Script de transition vers l'application (corrigé) -->
+    <!-- Scripts -->
     <script>
-        // Bridge de transition - version simplifiée et robuste
+        // Attendre que le DOM soit entièrement chargé
         document.addEventListener('DOMContentLoaded', function() {
-            console.log("Initialisation de Hypnorelax...");
+            console.log("Document chargé, initialisation des fonctionnalités...");
             
-            // Précharger les ressources essentielles
-            preloadEssentialResources();
-            
-            // Configuration des boutons de l'application
+            // 1. Configuration des boutons de démarrage de l'application
             setupAppButtons();
             
-            // Configuration des interactions de l'interface
-            setupUIInteractions();
-
-            // Vérification du support PWA
-            checkPWASupport();
+            // 2. Navigation mobile
+            setupMobileNav();
+            
+            // 3. Carousel de témoignages
+            setupTestimonialCarousel();
+            
+            // 4. Accordéon FAQ
+            setupFaqAccordion();
+            
+            // 5. Modal de notification
+            setupNotificationModals();
+            
+            // 6. Support PWA
+            setupPwaSupport();
+            
+            // 7. Défilement fluide pour les ancres
+            setupSmoothScroll();
+            
+            console.log("Initialisation terminée !");
         });
 
-        // Préchargement des ressources essentielles
-        function preloadEssentialResources() {
-            // Styles essentiels
-            const essentialStyles = ['styles.css', 'mobile-optimization.css'];
-            
-            essentialStyles.forEach(style => {
-                const link = document.createElement('link');
-                link.rel = 'stylesheet';
-                link.href = style;
-                link.setAttribute('importance', 'high');
-                
-                // Détecter les erreurs de chargement
-                link.onerror = () => {
-                    console.warn(`Échec du chargement de ${style}. L'application pourrait ne pas s'afficher correctement.`);
-                };
-                
-                // Vérifier si le style est déjà présent
-                if (!document.querySelector(`link[href="${style}"]`)) {
-                    document.head.appendChild(link);
-                }
-            });
-            
-            // Scripts essentiels
-            const essentialScripts = ['script.js', 'mobile-optimization.js', 'service-worker.js'];
-            
-            essentialScripts.forEach(script => {
-                const preloadLink = document.createElement('link');
-                preloadLink.rel = 'preload';
-                preloadLink.as = 'script';
-                preloadLink.href = script;
-                document.head.appendChild(preloadLink);
-            });
-        }
-
-        // Configuration des boutons de l'application
+        // CONFIGURATION DES BOUTONS DE DÉMARRAGE
         function setupAppButtons() {
-            // Trouver tous les boutons qui doivent lancer l'application
-            const startButtons = document.querySelectorAll('.start-app-btn, a[href="index.html"]');
+            const startButtons = document.querySelectorAll('.start-app-button');
+            console.log(`${startButtons.length} boutons de démarrage trouvés`);
             
             startButtons.forEach(button => {
                 button.addEventListener('click', function(e) {
                     e.preventDefault();
-                    console.log("Lancement de l'application...");
+                    console.log("Bouton de démarrage cliqué");
                     
-                    // Afficher l'écran de chargement
+                    // 1. Afficher l'écran de chargement
                     const loadingScreen = document.getElementById('app-loading-screen');
                     if (loadingScreen) {
                         loadingScreen.classList.add('active');
                     }
                     
-                    // Charger les scripts nécessaires
-                    loadScriptAsync('script.js')
-                        .then(() => loadScriptAsync('mobile-optimization.js'))
-                        .then(() => {
-                            // Masquer la page marketing
-                            hideMarketingPage();
+                    // 2. Charger les scripts nécessaires (ne pas utiliser de fonctions asynchrones ici)
+                    let scriptLoaded = false;
+                    
+                    // Vérifier si le script est déjà chargé
+                    if (typeof window.initializeApp === 'function') {
+                        scriptLoaded = true;
+                        startApplication();
+                    } else {
+                        // Charger les scripts nécessaires
+                        const script = document.createElement('script');
+                        script.src = 'script.js';
+                        
+                        script.onload = function() {
+                            // Charger le script d'optimisation mobile après
+                            const mobileScript = document.createElement('script');
+                            mobileScript.src = 'mobile-optimization.js';
                             
-                            // Créer l'application
-                            setTimeout(() => {
-                                createAppStructure();
-                                
-                                // Initialiser et démarrer l'application
-                                setTimeout(() => {
-                                    if (typeof window.initializeApp === 'function') {
-                                        window.initializeApp();
-                                        
-                                        // Afficher la première page
-                                        if (typeof window.showPage === 'function') {
-                                            window.showPage(1);
-                                        }
-                                    } else {
-                                        console.error("Fonction initializeApp non disponible");
-                                        alert("Erreur lors du chargement de l'application. Veuillez rafraîchir la page.");
-                                    }
-                                    
-                                    // Masquer l'écran de chargement
-                                    if (loadingScreen) {
-                                        loadingScreen.classList.remove('active');
-                                    }
-                                }, 300);
-                            }, 200);
-                        })
-                        .catch(error => {
-                            console.error("Erreur lors du chargement des scripts:", error);
-                            alert("Erreur lors du chargement de l'application. Veuillez rafraîchir la page.");
+                            mobileScript.onload = function() {
+                                console.log("Scripts chargés avec succès");
+                                scriptLoaded = true;
+                                startApplication();
+                            };
                             
-                            // Masquer l'écran de chargement en cas d'erreur
+                            mobileScript.onerror = function() {
+                                console.error("Erreur lors du chargement de mobile-optimization.js");
+                                // Continuer quand même
+                                scriptLoaded = true;
+                                startApplication();
+                            };
+                            
+                            document.body.appendChild(mobileScript);
+                        };
+                        
+                        script.onerror = function() {
+                            console.error("Erreur lors du chargement de script.js");
+                            alert("Une erreur s'est produite lors du chargement de l'application. Veuillez rafraîchir la page.");
+                            
+                            // Masquer l'écran de chargement
                             if (loadingScreen) {
                                 loadingScreen.classList.remove('active');
                             }
-                        });
+                        };
+                        
+                        document.body.appendChild(script);
+                    }
+                    
+                    // Fonction pour démarrer l'application une fois les scripts chargés
+                    function startApplication() {
+                        // 3. Masquer la page marketing
+                        hideMarketingPage();
+                        
+                        // 4. Créer la structure de l'application
+                        setTimeout(function() {
+                            // Créer l'application
+                            if (typeof createAppStructure === 'function') {
+                                createAppStructure();
+                            } else {
+                                // Fallback
+                                createAppStructureFallback();
+                            }
+                            
+                            // 5. Initialiser l'application
+                            setTimeout(function() {
+                                // Initialiser l'application
+                                if (typeof window.initializeApp === 'function') {
+                                    window.initializeApp();
+                                    
+                                    // 6. Afficher la première page
+                                    if (typeof window.showPage === 'function') {
+                                        window.showPage(1);
+                                    } else {
+                                        console.error("Fonction showPage non disponible");
+                                    }
+                                } else {
+                                    console.error("Fonction initializeApp non disponible");
+                                }
+                                
+                                // 7. Masquer l'écran de chargement
+                                if (loadingScreen) {
+                                    loadingScreen.classList.remove('active');
+                                }
+                            }, 300);
+                        }, 300);
+                    }
                 });
             });
         }
 
-        // Chargement d'un script de manière asynchrone
-        function loadScriptAsync(src) {
-            return new Promise((resolve, reject) => {
-                // Si le script est déjà chargé, résoudre immédiatement
-                if (document.querySelector(`script[src="${src}"]`)) {
-                    resolve();
-                    return;
-                }
+        // Fonction de secours pour créer la structure de l'application
+        function createAppStructureFallback() {
+            console.log("Utilisation de la fonction de secours pour créer l'application");
+            
+            const appHTML = `
+            <div class="container">
+                <!-- Page d'introduction -->
+                <div class="page" id="page1">
+                    <header>
+                        <div class="app-branding">
+                            <span class="app-name">Hypnorelax</span>
+                        </div>
+                        <h1>Auto-Hypnose Guidée</h1>
+                    </header>
+                    
+                    <div class="intro-content">
+                        <div class="intro-icon">
+                            <div class="spiral-small"></div>
+                        </div>
+                        <h2>Bienvenue dans votre voyage vers la relaxation profonde</h2>
+                        <p>Cette application vous guidera à travers une séance d'auto-hypnose pour vous aider à atteindre un état de détente et de bien-être.</p>
+                        
+                        <div class="steps-list">
+                            <li>Vous commencerez par une courte séance de cohérence cardiaque</li>
+                            <li>Suivie d'une induction hypnotique progressive</li>
+                            <li>Puis une exploration de votre monde intérieur</li>
+                            <li>Et enfin un retour en douceur à l'état de veille</li>
+                        </div>
+                        
+                        <div class="btn-container">
+                            <button id="startBtn" class="btn">Commencer</button>
+                        </div>
+                    </div>
+                </div>
                 
-                const script = document.createElement('script');
-                script.src = src;
-                script.async = true;
-                
-                script.onload = () => resolve();
-                script.onerror = () => reject(new Error(`Échec du chargement de ${src}`));
-                
-                document.body.appendChild(script);
-            });
+                <footer>
+                    <p>&copy; 2025 Hypnorelax - Joffrey ROS</p>
+                </footer>
+            </div>
+            `;
+            
+            // Créer un conteneur pour l'application
+            const appContainer = document.createElement('div');
+            appContainer.id = 'hypnorelax-app';
+            appContainer.style.opacity = '0';
+            appContainer.style.transition = 'opacity 0.5s ease';
+            appContainer.innerHTML = appHTML;
+            
+            // Ajouter au document
+            document.body.appendChild(appContainer);
+            
+            // Afficher avec une transition
+            setTimeout(() => {
+                appContainer.style.opacity = '1';
+            }, 100);
         }
 
-        // Masquer la page marketing
+        // Fonction pour masquer la page marketing
         function hideMarketingPage() {
-            // Ajouter une classe pour la transition
             document.body.classList.add('transitioning-to-app');
             
             // Éléments à masquer
@@ -1124,252 +1388,13 @@
             }, 800);
         }
 
-        // Créer la structure de l'application
-        function createAppStructure() {
-            const appHTML = `
-            <div class="container">
-                <!-- Page d'introduction -->
-                <div class="page" id="page1">
-                    <header>
-                        <div class="app-branding">
-                            <span class="app-name">Hypnorelax</span>
-                        </div>
-                        <h1>Auto-Hypnose Guidée</h1>
-                    </header>
-                    
-                    <div class="intro-content">
-                        <div class="intro-icon">
-                            <div class="spiral-small"></div>
-                        </div>
-                        <h2>Bienvenue dans votre voyage vers la relaxation profonde</h2>
-                        <p>Cette application vous guidera à travers une séance d'auto-hypnose pour vous aider à atteindre un état de détente et de bien-être.</p>
-                        
-                        <div class="steps-list">
-                            <li>Vous commencerez par une courte séance de cohérence cardiaque</li>
-                            <li>Suivie d'une induction hypnotique progressive</li>
-                            <li>Puis une exploration de votre monde intérieur</li>
-                            <li>Et enfin un retour en douceur à l'état de veille</li>
-                        </div>
-                        
-                        <div class="btn-container">
-                            <button id="startBtn" class="btn">Commencer</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Page Cohérence Cardiaque -->
-                <div class="page" id="page2">
-                    <header>
-                        <div class="app-branding">
-                            <span class="app-name">Hypnorelax</span>
-                        </div>
-                        <h1>Cohérence Cardiaque</h1>
-                    </header>
-                    
-                    <div id="coherenceIntroduction">
-                        <p>Commençons par une courte séance de cohérence cardiaque pour calmer votre système nerveux et préparer votre esprit.</p>
-                        
-                        <div class="coherence-instructions">
-                            <h3>Instructions :</h3>
-                            <p>Suivez simplement le cercle qui s'agrandit et se rétrécit. Inspirez quand il s'agrandit, expirez quand il se rétrécit.</p>
-                            <p>La séance dure 2 minutes (6 respirations par minute).</p>
-                        </div>
-                        
-                        <div class="audio-controls">
-                            <div class="audio-toggle">
-                                <label for="audioToggle">Guide vocal</label>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="audioToggle" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                            </div>
-                            
-                            <div class="voice-selection">
-                                <label for="voiceSelect">Voix :</label>
-                                <select id="voiceSelect"></select>
-                                <span id="speakingIndicator" class="speaking-indicator"></span>
-                            </div>
-                            
-                            <div class="volume-control">
-                                <label for="volumeSlider">Volume :</label>
-                                <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="0.8">
-                            </div>
-                        </div>
-                        
-                        <div class="btn-container">
-                            <button id="startCoherenceBtn" class="btn">Démarrer</button>
-                            <button id="homeBtn" class="btn btn-blue">Retour</button>
-                        </div>
-                    </div>
-                    
-                    <div id="coherenceContainer" class="coherence-container" style="display: none;">
-                        <div id="breathCircle" class="breath-circle"></div>
-                        <div class="breath-path"></div>
-                        <div id="breathInLabel" class="breath-label breath-in-label">Inspirez</div>
-                        <div id="breathOutLabel" class="breath-label breath-out-label">Expirez</div>
-                    </div>
-                    
-                    <div id="timerDisplay" class="timer-display" style="display: none;">2:00</div>
-                    <div id="coherenceInstruction" class="instruction" style="display: none;"></div>
-                </div>
-                
-                <!-- Autres pages de l'application -->
-                <div class="page" id="page3">
-                    <header>
-                        <h1>Induction</h1>
-                    </header>
-                    <div id="inductionInstruction" class="instruction"></div>
-                    <div id="inductionCounter" class="counter"></div>
-                    <div class="spiral-container">
-                        <div class="spiral"></div>
-                        <div class="spiral-center"></div>
-                        <div class="focus-dot"></div>
-                    </div>
-                </div>
-                
-                <div class="page" id="page4">
-                    <header>
-                        <h1>Approfondissement</h1>
-                    </header>
-                    <div id="deepeningInstruction" class="instruction"></div>
-                    <div id="stairsCounter" class="counter"></div>
-                    <!-- Escalier d'hypnose -->
-                    <div class="escalator-container">
-                        <div class="escalator">
-                            <div class="steps-container">
-                                <div class="escalator-step"></div>
-                                <div class="escalator-step"></div>
-                                <div class="escalator-step"></div>
-                                <div class="escalator-step"></div>
-                                <div class="escalator-step"></div>
-                                <div class="escalator-step"></div>
-                                <div class="escalator-step"></div>
-                                <div class="escalator-step"></div>
-                                <div class="escalator-step"></div>
-                                <div class="escalator-step"></div>
-                            </div>
-                            <div class="escalator-rider"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="page" id="page5">
-                    <header>
-                        <h1>Exploration</h1>
-                    </header>
-                    <div id="explorationInstruction" class="instruction"></div>
-                    <div class="exploration-scene">
-                        <div class="exploration-background"></div>
-                        <div class="exploration-ring"></div>
-                        <div class="exploration-ring"></div>
-                        <div class="exploration-ring"></div>
-                    </div>
-                    <div class="progress-container">
-                        <div id="explorationProgress"></div>
-                    </div>
-                </div>
-                
-                <div class="page" id="page6">
-                    <header>
-                        <h1>Réveil</h1>
-                    </header>
-                    <div id="awakeningCounter" class="counter"></div>
-                    <div id="energyScene" class="energy-scene">
-                        <div class="energy-glow"></div>
-                    </div>
-                </div>
-                
-                <div class="page" id="page7">
-                    <header>
-                        <h1>Séance terminée</h1>
-                    </header>
-                    <div class="intro-content">
-                        <div class="intro-icon">
-                            <div class="spiral-small"></div>
-                        </div>
-                        <h2>Félicitations !</h2>
-                        <p>Vous avez terminé votre séance d'auto-hypnose. Prenez un moment pour apprécier cet état de relaxation profonde.</p>
-                        
-                        <div class="btn-container">
-                            <button id="restartBtn" class="btn">Nouvelle séance</button>
-                            <button class="btn btn-blue" onclick="window.location.reload()">Quitter</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Barre de progression -->
-                <div class="progress-steps">
-                    <div class="progress-line"></div>
-                    <div id="progressFill" class="progress-fill" style="width: 0%;"></div>
-                    <div class="step active" data-step="1">
-                        <div class="step-label">Introduction</div>
-                    </div>
-                    <div class="step" data-step="2">
-                        <div class="step-label">Cohérence</div>
-                    </div>
-                    <div class="step" data-step="3">
-                        <div class="step-label">Induction</div>
-                    </div>
-                    <div class="step" data-step="4">
-                        <div class="step-label">Profondeur</div>
-                    </div>
-                    <div class="step" data-step="5">
-                        <div class="step-label">Exploration</div>
-                    </div>
-                    <div class="step" data-step="6">
-                        <div class="step-label">Réveil</div>
-                    </div>
-                    <div class="step" data-step="7">
-                        <div class="step-label">Fin</div>
-                    </div>
-                </div>
-                
-                <!-- Sons binauraux -->
-                <div class="audio-controls" style="margin-top: 20px;">
-                    <div class="audio-toggle">
-                        <label for="binauralToggle">Sons binauraux</label>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="binauralToggle">
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                    <div class="volume-control">
-                        <label for="binauralVolumeSlider">Volume :</label>
-                        <input type="range" id="binauralVolumeSlider" min="0" max="1" step="0.1" value="0.2">
-                    </div>
-                </div>
-                <p class="binaural-info">Les sons binauraux utilisent des fréquences spécifiques pour favoriser les ondes cérébrales associées à la détente profonde.</p>
-                
-                <footer>
-                    <p>&copy; 2025 Hypnorelax - Joffrey ROS</p>
-                </footer>
-            </div>
-            `;
-            
-            // Créer un conteneur pour l'application
-            const appContainer = document.createElement('div');
-            appContainer.id = 'hypnorelax-app';
-            appContainer.style.opacity = '0';
-            appContainer.style.transition = 'opacity 0.5s ease';
-            appContainer.innerHTML = appHTML;
-            
-            // Ajouter au document
-            document.body.appendChild(appContainer);
-            
-            // Afficher avec une transition fluide
-            setTimeout(() => {
-                appContainer.style.opacity = '1';
-            }, 100);
-        }
-
-        // Configuration des interactions de l'interface
-        function setupUIInteractions() {
-            // Navigation mobile
+        // CONFIGURATION DE LA NAVIGATION MOBILE
+        function setupMobileNav() {
             const menuToggle = document.querySelector('.menu-toggle');
             const body = document.querySelector('body');
             
-            if (menuToggle) {
-                // Créer la navigation mobile
+            // Créer la navigation mobile si elle n'existe pas
+            if (!document.querySelector('.mobile-nav')) {
                 const mobileNav = document.createElement('div');
                 mobileNav.className = 'mobile-nav';
                 mobileNav.innerHTML = `
@@ -1379,27 +1404,30 @@
                         <li><a href="#avantages">Avantages</a></li>
                         <li><a href="#temoignages">Témoignages</a></li>
                         <li><a href="#tarifs">Offres</a></li>
-                        <li><a href="#" class="start-app-btn">Essayer maintenant</a></li>
+                        <li><a href="#" class="start-app-button">Essayer maintenant</a></li>
                     </ul>
                 `;
+                
+                // Ajouter au document
+                document.body.appendChild(mobileNav);
                 
                 // Créer l'overlay
                 const overlay = document.createElement('div');
                 overlay.className = 'overlay';
-                
-                // Ajouter au document
-                document.body.appendChild(mobileNav);
                 document.body.appendChild(overlay);
                 
-                // Toggle menu mobile
+                // Fonction pour afficher/masquer le menu
                 function toggleMobileNav() {
                     mobileNav.classList.toggle('active');
                     overlay.classList.toggle('active');
                     body.classList.toggle('no-scroll');
                 }
                 
-                // Écouteurs d'événements
-                menuToggle.addEventListener('click', toggleMobileNav);
+                // Activer les événements
+                if (menuToggle) {
+                    menuToggle.addEventListener('click', toggleMobileNav);
+                }
+                
                 overlay.addEventListener('click', toggleMobileNav);
                 
                 // Fermer le menu quand on clique sur un lien
@@ -1414,73 +1442,111 @@
                     closeBtn.addEventListener('click', toggleMobileNav);
                 }
             }
-            
-            // Gestion des carrousels de témoignages
+        }
+
+        // CONFIGURATION DU CAROUSEL DE TÉMOIGNAGES
+        function setupTestimonialCarousel() {
             const testimonials = document.querySelectorAll('.testimonial');
             const dots = document.querySelectorAll('.dot');
             const prevBtn = document.querySelector('.prev-btn');
             const nextBtn = document.querySelector('.next-btn');
             
-            if (testimonials.length > 1 && dots.length > 0) {
+            if (testimonials.length > 0) {
                 let currentIndex = 0;
                 
-                // Navigation
+                // Fonction pour naviguer
                 function navigateTestimonial(direction) {
+                    // Masquer le témoignage actuel
                     testimonials[currentIndex].style.display = 'none';
-                    dots[currentIndex].classList.remove('active');
                     
+                    // Mettre à jour l'index
                     if (direction === 'next') {
                         currentIndex = (currentIndex + 1) % testimonials.length;
                     } else if (direction === 'prev') {
                         currentIndex = (currentIndex - 1 + testimonials.length) % testimonials.length;
-                    } else if (typeof direction === 'number' && direction >= 0 && direction < testimonials.length) {
+                    } else if (typeof direction === 'number') {
                         currentIndex = direction;
                     }
                     
+                    // Afficher le nouveau témoignage
                     testimonials[currentIndex].style.display = 'block';
-                    dots[currentIndex].classList.add('active');
+                    
+                    // Mettre à jour les points
+                    if (dots.length > 0) {
+                        dots.forEach((dot, i) => {
+                            if (i === currentIndex) {
+                                dot.classList.add('active');
+                            } else {
+                                dot.classList.remove('active');
+                            }
+                        });
+                    }
                 }
                 
-                // Écouteurs
-                if (prevBtn) prevBtn.addEventListener('click', () => navigateTestimonial('prev'));
-                if (nextBtn) nextBtn.addEventListener('click', () => navigateTestimonial('next'));
+                // Configurer les boutons
+                if (prevBtn) {
+                    prevBtn.addEventListener('click', () => {
+                        navigateTestimonial('prev');
+                    });
+                }
                 
-                dots.forEach((dot, index) => {
-                    dot.addEventListener('click', () => navigateTestimonial(index));
-                });
+                if (nextBtn) {
+                    nextBtn.addEventListener('click', () => {
+                        navigateTestimonial('next');
+                    });
+                }
                 
-                // Auto rotation
-                setInterval(() => navigateTestimonial('next'), 8000);
+                // Configurer les points
+                if (dots.length > 0) {
+                    dots.forEach((dot, index) => {
+                        dot.addEventListener('click', () => {
+                            navigateTestimonial(index);
+                        });
+                    });
+                }
+                
+                // Rotation automatique
+                setInterval(() => {
+                    navigateTestimonial('next');
+                }, 8000);
             }
-            
-            // Gestion des accordéons FAQ
+        }
+
+        // CONFIGURATION DE L'ACCORDÉON FAQ
+        function setupFaqAccordion() {
             const faqItems = document.querySelectorAll('.faq-item');
             
             faqItems.forEach(item => {
                 const question = item.querySelector('.faq-question');
+                
                 if (question) {
                     question.addEventListener('click', () => {
+                        // Vérifier si l'élément est déjà actif
                         const isActive = item.classList.contains('active');
                         
                         // Fermer tous les items
-                        faqItems.forEach(faq => faq.classList.remove('active'));
+                        faqItems.forEach(faq => {
+                            faq.classList.remove('active');
+                        });
                         
-                        // Ouvrir l'item courant s'il n'était pas déjà ouvert
+                        // Si l'élément n'était pas actif, l'activer
                         if (!isActive) {
                             item.classList.add('active');
                         }
                     });
                 }
             });
-            
-            // Gestion des modales
-            const notificationTriggers = document.querySelectorAll('.js-notification-trigger');
-            const notificationModal = document.getElementById('notification');
-            const notificationSuccess = document.getElementById('notificationSuccess');
+        }
+
+        // CONFIGURATION DES MODALS DE NOTIFICATION
+        function setupNotificationModals() {
+            const notificationTriggers = document.querySelectorAll('.notification-trigger');
+            const notificationModal = document.getElementById('notification-modal');
+            const successModal = document.getElementById('success-modal');
             const closeButtons = document.querySelectorAll('.close-notification, .close-modal-btn');
-            const notificationForm = document.getElementById('premiumNotifyForm');
+            const notificationForm = document.getElementById('notification-form');
             
-            // Fonction pour ouvrir une modale
+            // Fonction pour ouvrir une modal
             function openModal(modal) {
                 if (modal) {
                     modal.classList.add('active');
@@ -1488,7 +1554,7 @@
                 }
             }
             
-            // Fonction pour fermer une modale
+            // Fonction pour fermer une modal
             function closeModal(modal) {
                 if (modal) {
                     modal.classList.remove('active');
@@ -1496,47 +1562,57 @@
                 }
             }
             
-            // Configuration des boutons
+            // Configurer les déclencheurs
             notificationTriggers.forEach(trigger => {
-                trigger.addEventListener('click', e => {
+                trigger.addEventListener('click', (e) => {
                     e.preventDefault();
                     openModal(notificationModal);
                 });
             });
             
+            // Configurer les boutons de fermeture
             closeButtons.forEach(button => {
                 button.addEventListener('click', () => {
                     closeModal(notificationModal);
-                    closeModal(notificationSuccess);
+                    closeModal(successModal);
                 });
             });
             
-            // Clic en dehors pour fermer
-            window.addEventListener('click', e => {
-                if (e.target === notificationModal) closeModal(notificationModal);
-                if (e.target === notificationSuccess) closeModal(notificationSuccess);
+            // Fermer les modals en cliquant en dehors
+            window.addEventListener('click', (e) => {
+                if (e.target === notificationModal) {
+                    closeModal(notificationModal);
+                }
+                if (e.target === successModal) {
+                    closeModal(successModal);
+                }
             });
             
-            // Soumission du formulaire
+            // Traiter le formulaire
             if (notificationForm) {
-                notificationForm.addEventListener('submit', e => {
+                notificationForm.addEventListener('submit', (e) => {
                     e.preventDefault();
                     
                     const submitBtn = notificationForm.querySelector('button[type="submit"]');
+                    
+                    // Simuler l'envoi
                     if (submitBtn) {
                         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi en cours...';
                         submitBtn.disabled = true;
                     }
                     
-                    // Simulation d'envoi
+                    // Attendre un peu pour simuler l'envoi
                     setTimeout(() => {
+                        // Fermer la première modal
                         closeModal(notificationModal);
                         
+                        // Ouvrir la modal de succès
                         setTimeout(() => {
-                            openModal(notificationSuccess);
+                            openModal(successModal);
                             
                             // Réinitialiser le formulaire
                             notificationForm.reset();
+                            
                             if (submitBtn) {
                                 submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> M\'avertir du lancement';
                                 submitBtn.disabled = false;
@@ -1545,8 +1621,79 @@
                     }, 1500);
                 });
             }
+        }
+
+        // CONFIGURATION DU SUPPORT PWA
+        function setupPwaSupport() {
+            const pwaInstallBanner = document.getElementById('pwaInstallBanner');
+            const pwaInstallBtn = document.getElementById('pwaInstallBtn');
+            const pwaCloseBtn = document.getElementById('pwaCloseBtn');
             
-            // Smooth scroll pour les ancres
+            // Vérifier si déjà installé
+            const isInstalled = window.matchMedia('(display-mode: standalone)').matches;
+            
+            if (isInstalled) {
+                // Ne pas afficher la bannière
+                return;
+            }
+            
+            // Variable pour stocker l'événement d'installation
+            let deferredPrompt;
+            
+            // Intercepter l'événement
+            window.addEventListener('beforeinstallprompt', (e) => {
+                // Empêcher l'affichage automatique
+                e.preventDefault();
+                
+                // Stocker l'événement
+                deferredPrompt = e;
+                
+                // Afficher la bannière après un délai
+                if (!localStorage.getItem('pwaInstallDismissed')) {
+                    setTimeout(() => {
+                        if (pwaInstallBanner) {
+                            pwaInstallBanner.classList.add('show');
+                        }
+                    }, 3000);
+                }
+            });
+            
+            // Configurer le bouton d'installation
+            if (pwaInstallBtn) {
+                pwaInstallBtn.addEventListener('click', () => {
+                    // Masquer la bannière
+                    if (pwaInstallBanner) {
+                        pwaInstallBanner.classList.remove('show');
+                    }
+                    
+                    // Vérifier si l'événement est disponible
+                    if (!deferredPrompt) {
+                        return;
+                    }
+                    
+                    // Afficher le prompt
+                    deferredPrompt.prompt();
+                    
+                    // Attendre la réponse
+                    deferredPrompt.userChoice.then((result) => {
+                        deferredPrompt = null;
+                    });
+                });
+            }
+            
+            // Configurer le bouton de fermeture
+            if (pwaCloseBtn) {
+                pwaCloseBtn.addEventListener('click', () => {
+                    if (pwaInstallBanner) {
+                        pwaInstallBanner.classList.remove('show');
+                        localStorage.setItem('pwaInstallDismissed', 'true');
+                    }
+                });
+            }
+        }
+
+        // CONFIGURATION DU DÉFILEMENT FLUIDE
+        function setupSmoothScroll() {
             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
                 if (anchor.getAttribute('href') === '#') return;
                 
@@ -1569,115 +1716,15 @@
             });
         }
 
-        // Vérifier le support PWA
-        function checkPWASupport() {
-            // Bannière d'installation
-            const pwaInstallBanner = document.getElementById('pwaInstallBanner');
-            const pwaInstallBtn = document.getElementById('pwaInstallBtn');
-            const pwaCloseBtn = document.getElementById('pwaCloseBtn');
-            
-            // Vérifier si déjà installé
-            const isInstalled = window.matchMedia('(display-mode: standalone)').matches;
-            let deferredPrompt;
-            
-            if (isInstalled) {
-                // Ne pas afficher la bannière si déjà installé
-                return;
-            }
-            
-            // Intercepter l'événement d'installation
-            window.addEventListener('beforeinstallprompt', (e) => {
-                // Prévenir l'affichage automatique
-                e.preventDefault();
-                
-                // Stocker l'événement
-                deferredPrompt = e;
-                
-                // Afficher la bannière d'installation après un délai
-                setTimeout(() => {
-                    if (pwaInstallBanner && !localStorage.getItem('pwaInstallDismissed')) {
-                        pwaInstallBanner.classList.add('show');
-                    }
-                }, 3000);
-            });
-            
-            // Bouton d'installation
-            if (pwaInstallBtn) {
-                pwaInstallBtn.addEventListener('click', (e) => {
-                    // Cacher la bannière
-                    if (pwaInstallBanner) {
-                        pwaInstallBanner.classList.remove('show');
-                    }
-                    
-                    // Vérifier si l'événement est disponible
-                    if (!deferredPrompt) return;
-                    
-                    // Afficher le prompt d'installation
-                    deferredPrompt.prompt();
-                    
-                    // Attendre la réponse de l'utilisateur
-                    deferredPrompt.userChoice.then((result) => {
-                        console.log(`Résultat de l'installation: ${result.outcome}`);
-                        
-                        // Réinitialiser
-                        deferredPrompt = null;
-                    });
-                });
-            }
-            
-            // Bouton de fermeture
-            if (pwaCloseBtn) {
-                pwaCloseBtn.addEventListener('click', (e) => {
-                    if (pwaInstallBanner) {
-                        pwaInstallBanner.classList.remove('show');
-                        
-                        // Mémoriser la fermeture
-                        localStorage.setItem('pwaInstallDismissed', 'true');
-                    }
-                });
-            }
-            
-            // Enregistrement du service worker
-            if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('service-worker.js')
-                        .then(registration => {
-                            console.log('Service Worker enregistré avec succès:', registration.scope);
-                        })
-                        .catch(error => {
-                            console.error('Erreur lors de l\'enregistrement du Service Worker:', error);
-                        });
-                });
-            }
-        }
-    </script>
-
-    <!-- Script de démarrage de l'application -->
-    <script>
-        // Initialisation différée
-        window.addEventListener('load', function() {
-            // Vérifier si des paramètres d'URL indiquent un démarrage direct
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('mode') && urlParams.get('mode') === 'app') {
-                // Démarrer directement l'application
-                const startBtn = document.querySelector('.start-app-btn');
-                if (startBtn) {
-                    startBtn.click();
-                }
-            }
-        });
-    </script>
-
-    <!-- Service worker pour la PWA -->
-    <script>
+        // Service Worker pour PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('service-worker.js')
                     .then(registration => {
-                        console.log('Service Worker enregistré avec succès:', registration.scope);
+                        console.log('Service Worker enregistré avec succès', registration.scope);
                     })
                     .catch(error => {
-                        console.log('Échec de l\'enregistrement du Service Worker:', error);
+                        console.error('Erreur lors de l\'enregistrement du Service Worker:', error);
                     });
             });
         }
