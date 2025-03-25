@@ -1,0 +1,829 @@
+/* Footer */
+        footer {
+            text-align: center;
+            padding: 10px;
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 20px;
+        }
+        
+        /* Responsive */
+        @media screen and (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            h2 {
+                font-size: 1.3rem;
+            }
+            
+            .spiral-container, .coherence-container {
+                width: 250px;
+                height: 250px;
+            }
+            
+            .instruction {
+                font-size: 1.1rem;
+            }
+            
+            .btn {
+                padding: 12px 24px;
+                font-size: 1.1rem;
+                margin: 5px;
+            }
+            
+            .step-label {
+                font-size: 0.6rem;
+                width: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Page d'introduction -->
+        <div class="page active" id="page1">
+            <header>
+                <div class="app-branding">
+                    <span class="app-name">Hypnorelax</span>
+                </div>
+                <h1>Auto-Hypnose Guidée</h1>
+            </header>
+            
+            <div class="intro-content">
+                <div class="intro-icon">
+                    <div class="spiral-small"></div>
+                </div>
+                <h2>Bienvenue dans votre voyage vers la relaxation profonde</h2>
+                <p>Cette application vous guidera à travers une séance d'auto-hypnose pour vous aider à atteindre un état de détente et de bien-être.</p>
+                
+                <div class="steps-list">
+                    <li>Vous commencerez par une courte séance de cohérence cardiaque</li>
+                    <li>Suivie d'une induction hypnotique progressive</li>
+                    <li>Puis une exploration de votre monde intérieur</li>
+                    <li>Et enfin un retour en douceur à l'état de veille</li>
+                </div>
+                
+                <div class="btn-container">
+                    <button id="startBtn" class="btn">Commencer</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Page Cohérence Cardiaque -->
+        <div class="page" id="page2">
+            <header>
+                <div class="app-branding">
+                    <span class="app-name">Hypnorelax</span>
+                </div>
+                <h1>Cohérence Cardiaque</h1>
+            </header>
+            
+            <div id="coherenceIntroduction">
+                <p>Commençons par une courte séance de cohérence cardiaque pour calmer votre système nerveux et préparer votre esprit.</p>
+                
+                <div style="background: rgba(168, 208, 230, 0.2); border-radius: 10px; padding: 15px; margin: 20px 0; border-left: 3px solid #A8D0E6;">
+                    <h3>Instructions :</h3>
+                    <p>Suivez simplement le cercle qui s'agrandit et se rétrécit. Inspirez quand il s'agrandit, expirez quand il se rétrécit.</p>
+                    <p>La séance dure 1 minute (6 respirations par minute).</p>
+                </div>
+                
+                <div class="btn-container">
+                    <button id="startCoherenceBtn" class="btn">Démarrer</button>
+                    <button id="homeBtn" class="btn btn-blue">Retour</button>
+                </div>
+            </div>
+            
+            <div id="coherenceContainer" class="coherence-container" style="display: none;">
+                <div id="breathCircle" class="breath-circle"></div>
+                <div class="breath-path"></div>
+                <div id="breathInLabel" class="breath-label breath-in-label">Inspirez</div>
+                <div id="breathOutLabel" class="breath-label breath-out-label">Expirez</div>
+            </div>
+            
+            <div id="timerDisplay" class="timer-display" style="display: none;">1:00</div>
+            <div id="coherenceInstruction" class="instruction" style="display: none;"></div>
+        </div>
+        
+        <!-- Page Induction -->
+        <div class="page" id="page3">
+            <header>
+                <div class="app-branding">
+                    <span class="app-name">Hypnorelax</span>
+                </div>
+                <h1>Induction</h1>
+            </header>
+            
+            <div class="hypnotic-container">
+                <div class="instruction" id="inductionInstruction">Fixez le centre de la spirale et laissez votre regard se détendre...</div>
+                <div class="spiral-container">
+                    <div class="spiral"></div>
+                    <div class="spiral-center"></div>
+                    <div class="focus-dot"></div>
+                </div>
+                
+                <div class="btn-container">
+                    <button id="endInductionBtn" class="btn">Continuer</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Page Finale -->
+        <div class="page" id="page4">
+            <header>
+                <div class="app-branding">
+                    <span class="app-name">Hypnorelax</span>
+                </div>
+                <h1>Séance terminée</h1>
+            </header>
+            
+            <div class="intro-content">
+                <div class="intro-icon">
+                    <div class="spiral-small"></div>
+                </div>
+                <h2>Félicitations !</h2>
+                <p>Vous avez terminé votre séance d'auto-hypnose. Prenez un moment pour apprécier cet état de relaxation profonde.</p>
+                <p>Cette version simplifiée ne comprend que quelques étapes démonstratives. Pour accéder à la version complète, téléchargez et installez l'application Hypnorelax.</p>
+                
+                <div class="btn-container">
+                    <button id="restartBtn" class="btn">Nouvelle séance</button>
+                    <button id="downloadBtn" class="btn btn-blue">Télécharger la version complète</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Barre de progression -->
+        <div class="progress-steps">
+            <div class="progress-line"></div>
+            <div id="progressFill" class="progress-fill" style="width: 0%;"></div>
+            <div class="step active" data-step="1">
+                <div class="step-label">Introduction</div>
+            </div>
+            <div class="step" data-step="2">
+                <div class="step-label">Cohérence</div>
+            </div>
+            <div class="step" data-step="3">
+                <div class="step-label">Induction</div>
+            </div>
+            <div class="step" data-step="4">
+                <div class="step-label">Fin</div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>&copy; 2025 Hypnorelax - Joffrey ROS</p>
+        </footer>
+    </div>
+    
+    <script>
+        // Attendre que le DOM soit chargé
+        document.addEventListener('DOMContentLoaded', function() {
+            // Références des éléments
+            const pages = document.querySelectorAll('.page');
+            const steps = document.querySelectorAll('.step');
+            const progressFill = document.getElementById('progressFill');
+            
+            // Boutons
+            const startBtn = document.getElementById('startBtn');
+            const homeBtn = document.getElementById('homeBtn');
+            const startCoherenceBtn = document.getElementById('startCoherenceBtn');
+            const endInductionBtn = document.getElementById('endInductionBtn');
+            const restartBtn = document.getElementById('restartBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            
+            // Éléments de cohérence cardiaque
+            const coherenceIntro = document.getElementById('coherenceIntroduction');
+            const coherenceContainer = document.getElementById('coherenceContainer');
+            const breathCircle = document.getElementById('breathCircle');
+            const breathInLabel = document.getElementById('breathInLabel');
+            const breathOutLabel = document.getElementById('breathOutLabel');
+            const timerDisplay = document.getElementById('timerDisplay');
+            const coherenceInstruction = document.getElementById('coherenceInstruction');
+            
+            // Variables de l'application
+            let currentPage = 1;
+            let coherenceTimer;
+            let coherenceInterval;
+            let secondsRemaining = 60; // 1 minute
+            
+            // Fonction pour afficher une page spécifique
+            function showPage(pageNumber) {
+                // Masquer toutes les pages
+                pages.forEach(page => {
+                    page.classList.remove('active');
+                });
+                
+                // Afficher la page demandée
+                const targetPage = document.getElementById(`page${pageNumber}`);
+                if (targetPage) {
+                    targetPage.classList.add('active');
+                    currentPage = pageNumber;
+                    
+                    // Mettre à jour les étapes
+                    updateSteps(pageNumber);
+                }
+            }
+            
+            // Mettre à jour l'affichage des étapes
+            function updateSteps(currentStep) {
+                // Mettre à jour les classes des étapes
+                steps.forEach(step => {
+                    const stepNumber = parseInt(step.getAttribute('data-step'));
+                    if (stepNumber <= currentStep) {
+                        step.classList.add('active');
+                    } else {
+                        step.classList.remove('active');
+                    }
+                });
+                
+                // Mettre à jour la barre de progression
+                if (progressFill) {
+                    const progress = ((currentStep - 1) / (steps.length - 1)) * 100;
+                    progressFill.style.width = `${progress}%`;
+                }
+            }
+            
+            // Fonction pour démarrer la cohérence cardiaque
+            function startCoherenceCardiaque() {
+                // Masquer l'introduction et afficher l'animation
+                coherenceIntro.style.display = 'none';
+                coherenceContainer.style.display = 'block';
+                timerDisplay.style.display = 'block';
+                coherenceInstruction.style.display = 'block';
+                
+                // Initialiser le timer
+                secondsRemaining = 60; // 1 minute
+                updateTimerDisplay();
+                
+                // Démarrer l'animation de respiration
+                startBreathingAnimation();
+                
+                // Afficher l'instruction
+                coherenceInstruction.textContent = "Suivez le rythme de respiration...";
+                
+                // Démarrer le timer
+                coherenceTimer = setTimeout(() => {
+                    finishCoherenceCardiaque();
+                }, secondsRemaining * 1000);
+                
+                // Mettre à jour le timer chaque seconde
+                coherenceInterval = setInterval(() => {
+                    secondsRemaining--;
+                    updateTimerDisplay();
+                    
+                    // Messages à des moments spécifiques
+                    if (secondsRemaining === 30) {
+                        coherenceInstruction.textContent = "Continuez à respirer calmement, vous faites très bien...";
+                    } else if (secondsRemaining === 15) {
+                        coherenceInstruction.textContent = "Encore quelques respirations...";
+                    }
+                }, 1000);
+            }
+            
+            // Fonction pour mettre à jour l'affichage du timer
+            function updateTimerDisplay() {
+                const minutes = Math.floor(secondsRemaining / 60);
+                const seconds = secondsRemaining % 60;
+                timerDisplay.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            }
+            
+            // Fonction pour démarrer l'animation de respiration
+            function startBreathingAnimation() {
+                const breathDuration = 5000; // 5 secondes pour inspirer, 5 secondes pour expirer
+                
+                // Fonction pour animer un cycle de respiration
+                function animateBreathCycle() {
+                    // Phase d'inspiration
+                    coherenceInstruction.textContent = "Inspirez profondément...";
+                    breathInLabel.classList.add('active');
+                    breathOutLabel.classList.remove('active');
+                    
+                    breathCircle.classList.add('inhale');
+                    breathCircle.classList.remove('exhale');
+                    
+                    // Phase d'expiration après breathDuration ms
+                    setTimeout(() => {
+                        coherenceInstruction.textContent = "Expirez lentement...";
+                        breathInLabel.classList.remove('active');
+                        breathOutLabel.classList.add('active');
+                        
+                        breathCircle.classList.remove('inhale');
+                        breathCircle.classList.add('exhale');
+                    }, breathDuration);
+                }
+                
+                // Lancer le premier cycle immédiatement
+                animateBreathCycle();
+                
+                // Répéter le cycle toutes les 10 secondes (5s inspire + 5s expire)
+                const breathingInterval = setInterval(animateBreathCycle, breathDuration * 2);
+                
+                // Stocker l'intervalle pour pouvoir l'arrêter plus tard
+                window.breathingInterval = breathingInterval;
+            }
+            
+            // Fonction pour terminer la cohérence cardiaque et passer à l'étape suivante
+            function finishCoherenceCardiaque() {
+                // Nettoyer les timeouts et intervals
+                if (coherenceTimer) clearTimeout(coherenceTimer);
+                if (coherenceInterval) clearInterval(coherenceInterval);
+                if (window.breathingInterval) clearInterval(window.breathingInterval);
+                
+                // Message de fin
+                coherenceInstruction.textContent = "Excellent. Vous avez terminé la cohérence cardiaque.";
+                
+                // Passer à l'étape suivante après un court délai
+                setTimeout(() => {
+                    showPage(3); // Page d'induction
+                }, 2000);
+            }
+            
+            // Configuration des boutons
+            startBtn.addEventListener('click', function() {
+                showPage(2); // Page de cohérence cardiaque
+            });
+            
+            homeBtn.addEventListener('click', function() {
+                showPage(1); // Retour à l'accueil
+            });
+            
+            startCoherenceBtn.addEventListener('click', function() {
+                startCoherenceCardiaque();
+            });
+            
+            endInductionBtn.addEventListener('click', function() {
+                showPage(4); // Page finale
+            });
+            
+            restartBtn.addEventListener('click', function() {
+                showPage(1); // Recommencer
+            });
+            
+            downloadBtn.addEventListener('click', function() {
+                // Simuler un téléchargement
+                alert("Cette fonctionnalité n'est pas disponible dans cette version de démonstration.\n\nPour obtenir la version complète, consultez notre site web.");
+            });
+        });
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hypnorelax - Auto-hypnose guidée</title>
+    <style>
+        /* Styles de base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            position: relative;
+            margin-bottom: 30px;
+        }
+        
+        /* En-tête */
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            padding-top: 15px;
+        }
+        
+        h1 {
+            color: #0A2463;
+            font-size: 1.6rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-top: 15px;
+        }
+        
+        h2 {
+            color: #FF7F50;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        /* Logo et branding */
+        .app-branding {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            z-index: 100;
+        }
+        
+        .app-name {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #0A2463;
+            text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
+        }
+        
+        /* Système de navigation par pages */
+        .page {
+            display: none;
+            margin-bottom: 20px;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        /* Page d'introduction */
+        .intro-content {
+            text-align: center;
+            padding: 30px 0;
+        }
+        
+        .intro-icon {
+            width: 130px;
+            height: 130px;
+            margin: 0 auto 25px;
+            background: linear-gradient(135deg, #0A2463, #A8D0E6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .spiral-small {
+            width: 80px;
+            height: 80px;
+            background: conic-gradient(
+                from 0deg,
+                white 0%,
+                #FFC8A2 25%,
+                #FF7F50 50%,
+                #0A2463 75%,
+                white 100%
+            );
+            border-radius: 50%;
+            position: relative;
+            animation: rotate 30s linear infinite;
+        }
+        
+        .spiral-small::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50%;
+            height: 50%;
+            background: white;
+            border-radius: 50%;
+        }
+        
+        .steps-list {
+            text-align: left;
+            max-width: 500px;
+            margin: 20px auto;
+        }
+        
+        .steps-list li {
+            margin-bottom: 10px;
+            position: relative;
+            padding-left: 30px;
+            list-style-type: none;
+        }
+        
+        .steps-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            background: #A8D0E6;
+            border-radius: 50%;
+        }
+        
+        /* Étapes de progression */
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px auto 45px;
+            max-width: 600px;
+            position: relative;
+        }
+        
+        .progress-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: #ddd;
+            z-index: 1;
+        }
+        
+        .progress-fill {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(to right, #A8D0E6, #FF7F50);
+            z-index: 2;
+            transition: width 0.5s ease;
+        }
+        
+        .step {
+            width: 16px;
+            height: 16px;
+            background: #ddd;
+            border-radius: 50%;
+            position: relative;
+            z-index: 3;
+        }
+        
+        .step.active {
+            background: #FF7F50;
+            box-shadow: 0 0 10px #FF7F50;
+        }
+        
+        .step-label {
+            position: absolute;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            white-space: nowrap;
+            color: #888;
+            text-align: center;
+            width: 85px;
+        }
+        
+        .step.active .step-label {
+            color: #0A2463;
+            font-weight: bold;
+        }
+        
+        /* Animations */
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        @keyframes breathe {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Boutons */
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 14px 34px;
+            background: linear-gradient(135deg, #FF7F50, #E25822);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 6px 15px rgba(226, 88, 34, 0.3);
+            transition: all 0.3s ease;
+            outline: none;
+            margin: 0 10px;
+            font-weight: 500;
+        }
+        
+        .btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(226, 88, 34, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-blue {
+            background: linear-gradient(135deg, #0A2463, #A8D0E6);
+            box-shadow: 0 6px 15px rgba(10, 36, 99, 0.3);
+        }
+        
+        .btn-blue:hover {
+            box-shadow: 0 8px 20px rgba(10, 36, 99, 0.4);
+        }
+        
+        /* Page de cohérence cardiaque */
+        .coherence-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+        }
+        
+        .breath-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 60px;
+            height: 60px;
+            background: #A8D0E6;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 20px rgba(168, 208, 230, 0.7);
+            transition: all 5s cubic-bezier(0.5, 0, 0.5, 1);
+        }
+        
+        .breath-circle.inhale {
+            transform: translate(-50%, -50%) scale(3);
+        }
+        
+        .breath-circle.exhale {
+            transform: translate(-50%, -50%) scale(1);
+        }
+        
+        .breath-path {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px dashed rgba(10, 36, 99, 0.3);
+        }
+        
+        .breath-label {
+            position: absolute;
+            text-align: center;
+            font-size: 1rem;
+            color: #0A2463;
+            font-weight: bold;
+            transition: opacity 0.3s ease;
+        }
+        
+        .breath-in-label {
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+        }
+        
+        .breath-in-label.active {
+            opacity: 1;
+        }
+        
+        .breath-out-label {
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+        }
+        
+        .breath-out-label.active {
+            opacity: 1;
+        }
+        
+        .instruction {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.3rem;
+            color: #0A2463;
+            font-weight: bold;
+            transition: opacity 0.8s ease;
+            min-height: 4em;
+        }
+        
+        .timer-display {
+            text-align: center;
+            font-size: 1.2rem;
+            margin: 10px 0;
+            color: #FF7F50;
+            font-weight: bold;
+        }
+        
+        /* Hypnotic Elements */
+        .hypnotic-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 0;
+        }
+        
+        .spiral-container {
+            width: 300px;
+            height: 300px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        
+        .spiral {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 0deg,
+                white 0%,
+                #FFC8A2 10%,
+                #FF7F50 25%,
+                #0A2463 50%,
+                #A8D0E6 75%,
+                white 100%
+            );
+            animation: rotate 20s linear infinite;
+            position: relative;
+            box-shadow: 0 0 30px rgba(10, 36, 99, 0.3);
+        }
+        
+        .spiral::before {
+            content: '';
+            position: absolute;
+            top: 15%;
+            left: 15%;
+            width: 70%;
+            height: 70%;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 180deg,
+                white 0%,
+                #A8D0E6 25%,
+                #0A2463 50%,
+                #FF7F50 75%,
+                #FFC8A2 90%,
+                white 100%
+            );
+            animation: rotate 15s linear infinite reverse;
+        }
+        
+        .spiral-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+            z-index: 2;
+        }
+        
+        .focus-dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px;
+            height: 10px;
+            background: #0A2463;
+            border-radius: 50%;
+            z-index: 3;
+        }
+        
+        /*
