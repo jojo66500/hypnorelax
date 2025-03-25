@@ -36,14 +36,14 @@
   ],
   "screenshots": [
     {
-      "src": "hypnorelax-splash-cs6-xxxhdpi.png",
+      "src": "screenshot-1.png",
       "sizes": "1280x720",
       "type": "image/png",
       "platform": "wide",
       "label": "Écran d'accueil de Hypnorelax"
     },
     {
-      "src": "hypnorelax-splash-cs6-xhdpi.png",
+      "src": "screenshot-2.png",
       "sizes": "1280x720",
       "type": "image/png",
       "platform": "narrow",
@@ -55,6 +55,16 @@
       "name": "Démarrer une séance",
       "url": "index.html?mode=quick",
       "description": "Commencer rapidement une séance d'auto-hypnose"
+    },
+    {
+      "name": "Cohérence cardiaque",
+      "url": "index.html?page=2",
+      "description": "Commencer directement une séance de cohérence cardiaque"
+    },
+    {
+      "name": "Induction hypnotique",
+      "url": "index.html?page=3",
+      "description": "Passer directement à l'induction hypnotique"
     }
   ],
   "related_applications": [],
@@ -70,5 +80,55 @@
   "iarc_rating_id": "",
   "launch_handler": {
     "client_mode": ["focus-existing", "auto"]
-  }
+  },
+  "offline_enabled": true,
+  "permissions": [
+    "notifications"
+  ],
+  "share_target": {
+    "action": "index.html?share",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+hypnorelax",
+      "url": "index.html?protocol=%s"
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "index.html?file",
+      "accept": {
+        "audio/*": [".mp3", ".wav"]
+      }
+    }
+  ],
+  "splash_pages": null,
+  "gcm_sender_id": "",
+  "gcm_user_visible_only": true,
+  "prefer_web_for_push": true,
+  "id": "hypnorelax-autohypnose-guidee",
+  "start_url": "index.html",
+  "capture_links": "existing-client-navigate",
+  "launch_handler": {
+    "client_mode": ["focus-existing", "auto"]
+  },
+  "url_handlers": [
+    {
+      "origin": "https://votre-domaine.com"
+    }
+  ],
+  "intent_filters": [
+    {
+      "action": "hypnorelax",
+      "category": "wellbeing",
+      "url_pattern": "hypnorelax:*"
+    }
+  ]
 }
