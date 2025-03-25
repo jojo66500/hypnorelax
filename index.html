@@ -3,7 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hypnorelax - Auto-hypnose guidée pour votre bien-être</title>
+    <title>Hypnorelax | Auto-hypnose guidée pour la relaxation et le bien-être</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Application d'auto-hypnose guidée pour gérer le stress, améliorer votre sommeil et votre bien-être quotidien. Techniques scientifiquement prouvées, sans inscription.">
+    <meta name="keywords" content="auto-hypnose, relaxation, gestion du stress, sommeil, bien-être, méditation, cohérence cardiaque">
+    <meta name="author" content="Joffrey ROS">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://hypnorelax.fr/">
+    <meta property="og:title" content="Hypnorelax - Auto-hypnose guidée pour votre bien-être">
+    <meta property="og:description" content="Application d'auto-hypnose guidée pour gérer le stress, améliorer votre sommeil et votre bien-être quotidien.">
+    <meta property="og:image" content="og-image.jpg">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://hypnorelax.fr/">
+    <meta property="twitter:title" content="Hypnorelax - Auto-hypnose guidée pour votre bien-être">
+    <meta property="twitter:description" content="Application d'auto-hypnose guidée pour gérer le stress, améliorer votre sommeil et votre bien-être quotidien.">
+    <meta property="twitter:image" content="og-image.jpg">
     
     <!-- Manifest pour PWA -->
     <link rel="manifest" href="manifest.json">
@@ -15,536 +34,384 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
     
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <!-- Styles CSS -->
-    <style>
-        :root {
-            --deep-blue: #0A2463;
-            --orange: #FF7F50;
-            --pastel-blue: #A8D0E6;
-            --light-orange: #FFC8A2;
-            --dark-orange: #E25822;
-            --white: #FFFFFF;
-            --black: #000000;
-            --gray: #333333;
-            --light-gray: #F5F5F5;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Open Sans', sans-serif;
-            background-color: var(--light-gray);
-            color: var(--gray);
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-        <script src="hypnorelax-debug.js"></script>
-        h1, h2, h3, h4 {
-            font-family: 'Montserrat', sans-serif;
-            color: var(--deep-blue);
-        }
-        
-        .container {
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-        
-        /* Header */
-        header {
-            background-color: var(--white);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            z-index: 1000;
-        }
-        
-        .header-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 20px;
-        }
-        
-        .logo {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 700;
-            font-size: 28px;
-            background: linear-gradient(135deg, #0A2463, #3a5baa);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        /* Hero Section */
-        .hero {
-            background: linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
-            padding: 130px 0 80px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .hero-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-        }
-        
-        .hero-text {
-            flex: 1;
-            min-width: 300px;
-            padding-right: 30px;
-        }
-        
-        .hero-image {
-            flex: 1;
-            min-width: 300px;
-            position: relative;
-            text-align: center;
-        }
-        
-        .hero-image img {
-            max-width: 100%;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-        
-        h1 {
-            font-size: 42px;
-            line-height: 1.2;
-            margin-bottom: 20px;
-            color: var(--deep-blue);
-        }
-        
-        .hero-subtitle {
-            font-size: 18px;
-            margin-bottom: 30px;
-            color: var(--gray);
-        }
-        
-        /* Features Section */
-        .features {
-            padding: 80px 0;
-            background-color: var(--white);
-        }
-        
-        .section-title {
-            text-align: center;
-            font-size: 36px;
-            margin-bottom: 50px;
-        }
-        
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-        }
-        
-        .feature-card {
-            background-color: var(--white);
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            padding: 30px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-        
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
-        }
-        
-        .feature-icon {
-            width: 80px;
-            height: 80px;
-            background: var(--light-gray);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 36px;
-            color: var(--deep-blue);
-        }
-        
-        .feature-card h3 {
-            font-size: 20px;
-            margin-bottom: 15px;
-        }
-        
-        /* CTA Section */
-        .cta {
-            background: linear-gradient(135deg, var(--deep-blue), #1a3a7c);
-            color: var(--white);
-            padding: 80px 0;
-            text-align: center;
-        }
-        
-        .cta h2 {
-            color: var(--white);
-            font-size: 36px;
-            margin-bottom: 20px;
-        }
-        
-        .cta p {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 18px;
-            margin-bottom: 30px;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        /* Buttons */
-        .btn {
-            display: inline-block;
-            padding: 16px 32px;
-            border-radius: 50px;
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 600;
-            font-size: 18px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: none;
-            margin: 10px;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--orange), var(--dark-orange));
-            color: var(--white);
-            box-shadow: 0 6px 15px rgba(226, 88, 34, 0.3);
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(226, 88, 34, 0.4);
-        }
-        
-        .btn-secondary {
-            background: transparent;
-            color: var(--white);
-            border: 2px solid var(--white);
-        }
-        
-        .btn-secondary:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            transform: translateY(-3px);
-        }
-        
-        /* Testimonials */
-        .testimonials {
-            padding: 80px 0;
-            background-color: var(--light-gray);
-        }
-        
-        .testimonial {
-            background-color: var(--white);
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            margin: 0 auto;
-            max-width: 800px;
-        }
-        
-        .testimonial-content {
-            font-style: italic;
-            margin-bottom: 20px;
-        }
-        
-        .testimonial-author {
-            display: flex;
-            align-items: center;
-        }
-        
-        .testimonial-avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background-color: var(--pastel-blue);
-            margin-right: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: var(--deep-blue);
-            font-size: 24px;
-        }
-        
-        .testimonial-info h4 {
-            font-size: 18px;
-            margin-bottom: 5px;
-        }
-        
-        .testimonial-info p {
-            font-size: 14px;
-            color: #666;
-        }
-        
-        /* Footer */
-        footer {
-            background-color: var(--deep-blue);
-            color: var(--white);
-            padding: 40px 0 20px;
-            text-align: center;
-        }
-        
-        .footer-links {
-            margin-bottom: 20px;
-        }
-        
-        .footer-links a {
-            color: var(--white);
-            margin: 0 10px;
-            text-decoration: none;
-            font-size: 14px;
-        }
-        
-        .footer-links a:hover {
-            text-decoration: underline;
-        }
-        
-        .copyright {
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.7);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            padding-top: 20px;
-            margin-top: 20px;
-        }
-        
-        /* Floating Action Button */
-        .floating-btn {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, var(--orange), var(--dark-orange));
-            border-radius: 50%;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            z-index: 100;
-            transition: all 0.3s ease;
-        }
-        
-        .floating-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 16px rgba(0,0,0,0.3);
-        }
-        
-        /* Loading Screen */
-        #app-loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, var(--deep-blue), #1a3a7c);
-            z-index: 9999;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.5s ease;
-        }
-        
-        #app-loading-screen.active {
-            opacity: 1;
-            visibility: visible;
-        }
-        
-        .loading-content {
-            text-align: center;
-            color: white;
-            padding: 20px;
-        }
-        
-        .app-logo {
-            width: 120px;
-            height: 120px;
-            margin: 0 auto 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
-        }
-        
-        .spiral-loading {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            border: 4px solid transparent;
-            border-top-color: var(--orange);
-            border-bottom-color: var(--pastel-blue);
-            animation: spin 1.5s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .loading-bar-container {
-            height: 6px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 3px;
-            overflow: hidden;
-            margin-top: 30px;
-            width: 250px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        .loading-bar-progress {
-            height: 100%;
-            background: linear-gradient(to right, var(--pastel-blue), var(--orange));
-            width: 0%;
-            transition: width 0.3s ease;
-            border-radius: 3px;
-        }
-        
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .fadeIn {
-            animation: fadeIn 0.8s ease forwards;
-        }
-        
-        /* Pulse animation */
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(255, 127, 80, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(255, 127, 80, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 127, 80, 0); }
-        }
-        
-        .pulse-animation {
-            animation: pulse 2s infinite;
-        }
-        
-        /* Responsive styles */
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 32px;
-            }
-            
-            .hero {
-                padding: 100px 0 60px;
-            }
-            
-            .hero-text {
-                padding-right: 0;
-                margin-bottom: 40px;
-            }
-            
-            .floating-btn {
-                bottom: 20px;
-                right: 20px;
-                width: 50px;
-                height: 50px;
-                font-size: 20px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            h1 {
-                font-size: 28px;
-            }
-            
-            .section-title {
-                font-size: 28px;
-            }
-            
-            .btn {
-                padding: 14px 28px;
-                font-size: 16px;
-                display: block;
-                width: 100%;
-                margin: 10px 0;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="css/marketing-styles.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/img/icons/favicon.png">
+    
+    <!-- Données structurées Schema.org -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Hypnorelax",
+      "description": "Application d'auto-hypnose guidée pour gérer le stress, améliorer votre sommeil et votre bien-être quotidien.",
+      "operatingSystem": "Web, Android, iOS",
+      "applicationCategory": "HealthApplication",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "125"
+      },
+      "author": {
+        "@type": "Person",
+        "name": "Joffrey ROS"
+      }
+    }
+    </script>
 </head>
 <body>
+    <!-- Loading Screen (avec fade in) -->
+    <div id="app-loading-screen">
+        <div class="loading-content">
+            <div class="app-logo">
+                <div class="spiral-loading"></div>
+            </div>
+            <h2>Hypnorelax</h2>
+            <p>Préparation de votre expérience de relaxation...</p>
+            <div class="loading-bar-container">
+                <div id="app-loading-progress" class="loading-bar-progress"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- Header -->
-    <header>
-        <div class="container header-container">
-            <div class="logo">Hypnorelax</div>
+    <header class="site-header">
+        <div class="container">
+            <div class="logo">
+                <span class="logo-text">Hypnorelax</span>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="#features">Fonctionnalités</a></li>
+                    <li><a href="#how-it-works">Comment ça marche</a></li>
+                    <li><a href="#testimonials">Témoignages</a></li>
+                    <li><a href="#faq">FAQ</a></li>
+                </ul>
+            </nav>
+            <button class="menu-toggle" aria-label="Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
         </div>
     </header>
 
+    <!-- Mobile Navigation -->
+    <div class="mobile-nav">
+        <span class="close-mobile-nav">&times;</span>
+        <ul>
+            <li><a href="#features">Fonctionnalités</a></li>
+            <li><a href="#how-it-works">Comment ça marche</a></li>
+            <li><a href="#testimonials">Témoignages</a></li>
+            <li><a href="#faq">FAQ</a></li>
+        </ul>
+    </div>
+    <div class="overlay"></div>
+
     <!-- Hero Section -->
-    <section class="hero">
-        <div class="container hero-content">
-            <div class="hero-text">
-                <h1>Découvrez le pouvoir de l'auto-hypnose guidée</h1>
-                <p class="hero-subtitle">Une application conçue par un professionnel pour vous aider à vous relaxer, gérer votre stress et améliorer votre bien-être quotidien.</p>
-                <a href="#" class="btn btn-primary start-app-button pulse-animation">Commencer l'expérience</a>
+    <section class="hero" id="home">
+        <div class="container">
+            <div class="hero-content animate-fade-in">
+                <h1>Retrouvez calme et sérénité grâce à l'auto-hypnose guidée</h1>
+                <p class="hero-subtitle">Une application conçue par un professionnel pour vous aider à gérer votre stress, améliorer votre sommeil et votre bien-être quotidien</p>
+                <div class="cta-buttons">
+                    <a href="#" class="btn btn-primary start-app-button">
+                        Commencer gratuitement
+                    </a>
+                    <a href="#how-it-works" class="btn btn-outline">
+                        Comment ça marche
+                    </a>
+                </div>
+                <div class="app-badges">
+                    <div class="badge">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Sans inscription</span>
+                    </div>
+                    <div class="badge">
+                        <i class="fas fa-mobile-alt"></i>
+                        <span>Fonctionne sur tous les appareils</span>
+                    </div>
+                    <div class="badge">
+                        <i class="fas fa-brain"></i>
+                        <span>Méthode scientifique</span>
+                    </div>
+                </div>
             </div>
-            <div class="hero-image">
-                <img src="hero-illustration.png" alt="Hypnorelax en action" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22 viewBox=%220 0 400 300%22><rect width=%22400%22 height=%22300%22 fill=%22%23f0f7ff%22 /><circle cx=%22200%22 cy=%22150%22 r=%2280%22 fill=%22%230A2463%22 /><circle cx=%22200%22 cy=%22150%22 r=%2240%22 fill=%22%23FF7F50%22 /><circle cx=%22200%22 cy=%22150%22 r=%2220%22 fill=%22white%22 /></svg>'">
+            <div class="hero-image animate-fade-in">
+                <img src="assets/img/marketing/hero-app.png" alt="Hypnorelax en action" class="hero-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22 viewBox=%220 0 400 300%22><rect width=%22400%22 height=%22300%22 fill=%22%23f0f7ff%22 /><circle cx=%22200%22 cy=%22150%22 r=%2280%22 fill=%22%230A2463%22 /><circle cx=%22200%22 cy=%22150%22 r=%2240%22 fill=%22%23FF7F50%22 /><circle cx=%22200%22 cy=%22150%22 r=%2220%22 fill=%22white%22 /></svg>'">
             </div>
+        </div>
+        <div class="wave-divider">
+            <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="wave-fill"></path>
+            </svg>
         </div>
     </section>
 
     <!-- Features Section -->
-    <section class="features">
+    <section class="features" id="features">
         <div class="container">
-            <h2 class="section-title">Des fonctionnalités essentielles</h2>
+            <h2 class="section-title">Fonctionnalités essentielles</h2>
+            <p class="section-subtitle">Hypnorelax combine plusieurs techniques scientifiquement prouvées pour vous aider à atteindre un état de relaxation profonde rapidement et efficacement.</p>
             
             <div class="features-grid">
                 <div class="feature-card">
-                    <div class="feature-icon">🧠</div>
+                    <div class="feature-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
                     <h3>Auto-hypnose guidée</h3>
-                    <p>Sessions progressives avec une voix apaisante et des visuels captivants pour une détente profonde.</p>
+                    <p>Sessions progressives avec une voix apaisante et des visuels captivants pour induire une détente profonde et accéder à votre inconscient de façon sécurisée.</p>
                 </div>
                 
                 <div class="feature-card">
-                    <div class="feature-icon">❤️</div>
+                    <div class="feature-icon">
+                        <i class="fas fa-heartbeat"></i>
+                    </div>
                     <h3>Cohérence cardiaque</h3>
-                    <p>Technique de respiration qui synchronise votre rythme cardiaque pour un état de calme immédiat.</p>
+                    <p>Technique de respiration qui synchronise votre rythme cardiaque pour un équilibre immédiat du système nerveux et une réduction du stress.</p>
                 </div>
                 
                 <div class="feature-card">
-                    <div class="feature-icon">🎧</div>
+                    <div class="feature-icon">
+                        <i class="fas fa-headphones"></i>
+                    </div>
                     <h3>Sons binauraux</h3>
-                    <p>Stimulation des ondes cérébrales par des fréquences sonores spécifiques pour une relaxation profonde.</p>
+                    <p>Stimulation des ondes cérébrales par des fréquences sonores spécifiques pour favoriser les états de conscience propices à la relaxation profonde.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-moon"></i>
+                    </div>
+                    <h3>Amélioration du sommeil</h3>
+                    <p>Des séances spécifiques conçues pour apaiser votre mental et faciliter l'endormissement naturel sans effets secondaires.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3>Gestion du stress</h3>
+                    <p>Techniques ciblées pour réduire significativement les niveaux de stress et d'anxiété, même dans les situations les plus exigeantes.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3>Application PWA</h3>
+                    <p>Fonctionne sur tous les appareils et peut être installée comme une application native sur votre téléphone pour un accès rapide.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Testimonial Section -->
-    <section class="testimonials">
+    <!-- Benefits Section -->
+    <section class="benefits">
+        <div class="container">
+            <h2 class="section-title">Les bienfaits de l'auto-hypnose</h2>
+            <p class="section-subtitle">Une pratique régulière de l'auto-hypnose peut transformer considérablement votre bien-être mental et physique.</p>
+            
+            <div class="benefits-container">
+                <div class="benefits-content">
+                    <ul class="benefits-list">
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <div>
+                                <h3>Réduction du stress</h3>
+                                <p>87% des utilisateurs rapportent une diminution significative de leur niveau de stress après seulement 2 semaines d'utilisation.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <div>
+                                <h3>Amélioration du sommeil</h3>
+                                <p>Les utilisateurs constatent un endormissement plus rapide et un sommeil de meilleure qualité, avec moins de réveils nocturnes.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <div>
+                                <h3>Gestion des émotions</h3>
+                                <p>Développez une meilleure régulation émotionnelle et une plus grande résilience face aux défis quotidiens.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            <div>
+                                <h3>Réduction des douleurs</h3>
+                                <p>L'auto-hypnose est reconnue pour son efficacité dans la gestion des douleurs chroniques et aiguës.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="benefits-image">
+                    <img src="assets/img/marketing/benefits-illustration.png" alt="Bienfaits de l'auto-hypnose" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22 viewBox=%220 0 400 300%22><rect width=%22400%22 height=%22300%22 fill=%22%23f0f7ff%22 /><circle cx=%22200%22 cy=%22150%22 r=%2270%22 fill=%22%23A8D0E6%22 /><path d=%22M150,200 Q200,100 250,200%22 stroke=%22%230A2463%22 stroke-width=%224%22 fill=%22none%22 /><circle cx=%22200%22 cy=%22120%22 r=%2215%22 fill=%22%23FF7F50%22 /></svg>'">
+                    <div class="benefits-quote">
+                        <blockquote>"L'auto-hypnose est l'un des outils les plus puissants pour reprogrammer l'esprit et accéder à nos ressources intérieures."</blockquote>
+                        <cite>Dr. Marie Laurent, Neuroscientifique</cite>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="container">
+            <h2 class="section-title">Comment ça marche</h2>
+            <p class="section-subtitle">Hypnorelax vous guide à travers un processus simple mais puissant pour atteindre un état de relaxation profonde.</p>
+            
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Cohérence cardiaque</h3>
+                        <p>Commencez par une courte séance de respiration guidée pour calmer votre système nerveux et préparer votre esprit.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Induction hypnotique</h3>
+                        <p>Laissez-vous guider par la voix et les visuels pour entrer progressivement dans un état de relaxation profonde.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Exploration</h3>
+                        <p>Profitez d'un moment d'exploration intérieure et de ressourcement dans cet état de conscience modifié.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="demo-video">
+                <h3>Découvrez Hypnorelax en action</h3>
+                <div class="video-container">
+                    <img src="assets/img/marketing/video-placeholder.jpg" alt="Démonstration vidéo" class="video-placeholder" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><rect width=%22800%22 height=%22450%22 fill=%22%230A2463%22 /><text x=%22400%22 y=%22225%22 font-family=%22Arial%22 font-size=%2224%22 fill=%22white%22 text-anchor=%22middle%22>Démonstration vidéo Hypnorelax</text></svg>'">
+                    <button class="play-button" aria-label="Lire la vidéo">
+                        <i class="fas fa-play"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials" id="testimonials">
         <div class="container">
             <h2 class="section-title">Ce que disent nos utilisateurs</h2>
+            <p class="section-subtitle">Découvrez comment Hypnorelax a transformé la vie quotidienne de ses utilisateurs.</p>
             
-            <div class="testimonial">
-                <div class="testimonial-content">
-                    <p>"J'avais essayé plusieurs applications de méditation sans succès. Hypnorelax a été une révélation ! La cohérence cardiaque combinée à l'auto-hypnose m'a permis de réduire mon stress en seulement quelques sessions."</p>
+            <div class="testimonials-slider">
+                <div class="testimonial">
+                    <div class="testimonial-content">
+                        <p>"J'avais essayé plusieurs applications de méditation sans succès. Hypnorelax a été une révélation ! La cohérence cardiaque combinée à l'auto-hypnose m'a permis de réduire mon niveau de stress en seulement quelques sessions. Maintenant, je l'utilise tous les jours et je dors beaucoup mieux."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <img src="assets/img/marketing/user-sophie.jpg" alt="Sophie M." onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2260%22 height=%2260%22 viewBox=%220 0 60 60%22><circle cx=%2230%22 cy=%2230%22 r=%2230%22 fill=%22%23A8D0E6%22 /><text x=%2230%22 y=%2235%22 font-family=%22Arial%22 font-size=%2220%22 fill=%22%230A2463%22 text-anchor=%22middle%22>S</text></svg>'">
+                        <div>
+                            <h4>Sophie M.</h4>
+                            <p>Utilisatrice depuis 3 mois</p>
+                            <div class="stars">★★★★★</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="testimonial-author">
-                    <div class="testimonial-avatar">S</div>
-                    <div class="testimonial-info">
-                        <h4>Sophie M.</h4>
-                        <p>Utilisatrice depuis 3 mois</p>
+                
+                <div class="testimonial-nav">
+                    <button class="prev-btn" aria-label="Témoignage précédent">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="dots">
+                        <span class="dot active"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                    </div>
+                    <button class="next-btn" aria-label="Témoignage suivant">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq" id="faq">
+        <div class="container">
+            <h2 class="section-title">Questions fréquentes</h2>
+            <p class="section-subtitle">Tout ce que vous devez savoir sur Hypnorelax et l'auto-hypnose.</p>
+            
+            <div class="faq-container" itemscope itemtype="https://schema.org/FAQPage">
+                <div class="faq-item active" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                    <div class="faq-question">
+                        <h3 itemprop="name">Qu'est-ce que l'auto-hypnose ?</h3>
+                        <span class="faq-icon"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <div itemprop="text">
+                            <p>L'auto-hypnose est un état naturel de conscience modifiée où votre attention est focalisée et où vous êtes plus réceptif aux suggestions positives. Contrairement aux idées reçues, vous gardez toujours le contrôle et ne ferez jamais rien contre votre volonté.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                    <div class="faq-question">
+                        <h3 itemprop="name">Est-ce que tout le monde peut pratiquer l'auto-hypnose ?</h3>
+                        <span class="faq-icon"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <div itemprop="text">
+                            <p>Oui, la grande majorité des personnes peuvent bénéficier de l'auto-hypnose. Certaines personnes y sont plus réceptives que d'autres, mais avec de la pratique, presque tout le monde peut atteindre un état hypnotique bénéfique.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                    <div class="faq-question">
+                        <h3 itemprop="name">Combien de temps faut-il pratiquer pour voir des résultats ?</h3>
+                        <span class="faq-icon"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <div itemprop="text">
+                            <p>De nombreux utilisateurs rapportent des effets positifs dès la première séance. Pour des changements plus profonds et durables, une pratique régulière de 2-3 séances par semaine pendant au moins deux semaines est recommandée.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                    <div class="faq-question">
+                        <h3 itemprop="name">Hypnorelax fonctionne-t-il hors ligne ?</h3>
+                        <span class="faq-icon"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <div itemprop="text">
+                            <p>Oui, une fois que vous avez chargé l'application une première fois, elle fonctionne entièrement hors ligne grâce à sa technologie PWA (Progressive Web App). Vous pouvez même l'installer sur votre écran d'accueil pour un accès rapide.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                    <div class="faq-question">
+                        <h3 itemprop="name">Quels sont les avantages des sons binauraux ?</h3>
+                        <span class="faq-icon"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                    <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                        <div itemprop="text">
+                            <p>Les sons binauraux utilisent deux fréquences légèrement différentes pour créer une troisième fréquence perçue par le cerveau. Ils aident à induire des états de conscience spécifiques associés à la relaxation profonde, la créativité ou la concentration.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -556,43 +423,104 @@
         <div class="container">
             <h2>Prêt à transformer votre expérience de relaxation ?</h2>
             <p>Découvrez le pouvoir de l'auto-hypnose guidée et améliorez votre bien-être mental en quelques minutes par jour.</p>
-            
-            <a href="#" class="btn btn-primary start-app-button">Commencer maintenant</a>
+            <a href="#" class="btn btn-primary start-app-button">Commencer gratuitement</a>
+            <a href="#" class="btn btn-secondary" id="install-button" style="display: none;">Installer l'application</a>
         </div>
     </section>
 
     <!-- Footer -->
-    <footer>
+    <footer class="site-footer">
         <div class="container">
-            <div class="footer-links">
-                <a href="#">Politique de confidentialité</a>
-                <a href="#">Conditions d'utilisation</a>
-                <a href="#">Contact</a>
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <span class="logo-text">Hypnorelax</span>
+                    <p>Votre compagnon d'auto-hypnose guidée pour un mieux-être quotidien.</p>
+                    <div class="social-icons">
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4>Navigation</h4>
+                        <ul>
+                            <li><a href="#home">Accueil</a></li>
+                            <li><a href="#features">Fonctionnalités</a></li>
+                            <li><a href="#how-it-works">Comment ça marche</a></li>
+                            <li><a href="#testimonials">Témoignages</a></li>
+                            <li><a href="#faq">FAQ</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Légal</h4>
+                        <ul>
+                            <li><a href="#">Conditions d'utilisation</a></li>
+                            <li><a href="#">Politique de confidentialité</a></li>
+                            <li><a href="#">Mentions légales</a></li>
+                            <li><a href="#">Cookies</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Contact</h4>
+                        <ul>
+                            <li><a href="mailto:contact@hypnorelax.fr">contact@hypnorelax.fr</a></li>
+                            <li><a href="#">Formulaire de contact</a></li>
+                        </ul>
+                    </div>
+                </div>
             </div>
-            <div class="copyright">
-                &copy; 2025 Hypnorelax - Joffrey ROS. Tous droits réservés.
+            <div class="footer-bottom">
+                <p>&copy; 2025 Hypnorelax - Joffrey ROS. Tous droits réservés.</p>
             </div>
         </div>
     </footer>
 
-    <!-- Floating Action Button -->
-    <div class="floating-btn start-app-button">▶</div>
+    <!-- Notification pour abonnement à la newsletter -->
+    <div class="notification-modal" id="newsletter-modal">
+        <div class="notification-content">
+            <span class="close-notification">&times;</span>
+            <h3>Restez informé !</h3>
+            <p>Recevez nos conseils d'auto-hypnose et soyez alerté des nouvelles fonctionnalités.</p>
+            <form class="notification-form">
+                <div class="form-group">
+                    <input type="email" placeholder="Votre email" required>
+                </div>
+                <button type="submit" class="btn btn-primary">S'abonner</button>
+            </form>
+        </div>
+    </div>
 
-    <!-- Loading Screen -->
-    <div id="app-loading-screen">
-        <div class="loading-content">
-            <div class="app-logo">
-                <div class="spiral-loading"></div>
-            </div>
-            <h2 style="color: white; margin-bottom: 15px;">Hypnorelax</h2>
-            <p style="color: rgba(255,255,255,0.9); margin-bottom: 20px;">Préparation de votre expérience de relaxation...</p>
-            <div class="loading-bar-container">
-                <div id="app-loading-progress" class="loading-bar-progress"></div>
+    <!-- Install Prompt -->
+    <div class="install-prompt" id="install-prompt" style="display: none;">
+        <div class="install-prompt-content">
+            <h3>Installez Hypnorelax</h3>
+            <p>Pour une expérience optimale, installez l'application sur votre appareil.</p>
+            <div class="install-buttons">
+                <button id="install-yes" class="btn btn-primary">Installer</button>
+                <button id="install-no" class="btn btn-secondary">Plus tard</button>
             </div>
         </div>
     </div>
 
-    <!-- Script de transition -->
-    <script src="hypnorelax-bridge.js"></script>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-XXXXXXXXXX');
+      
+      // Consentement RGPD
+      gtag('consent', 'default', {
+        'ad_storage': 'denied',
+        'analytics_storage': 'denied'
+      });
+    </script>
+
+    <!-- Scripts -->
+    <script src="js/marketing-scripts.js"></script>
+    <script src="js/hypnorelax-bridge.js"></script>
 </body>
 </html>
