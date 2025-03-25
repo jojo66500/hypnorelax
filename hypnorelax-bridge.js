@@ -1,6 +1,9 @@
 /**
  * Hypnorelax - Script de transition
  * Ce script gère la transition entre la page marketing et l'application
+ * 
+ * @version 1.1.0
+ * @author Joffrey ROS
  */
 
 // Configuration
@@ -10,15 +13,20 @@ const APP_CONFIG = {
     transitionDuration: 500,
     minLoadingTime: 1000,
     preloadResources: [
-        'styles.css',
-        'mobile-optimization.css',
-        'script.js',
-        'mobile-optimization.js'
+        'css/styles.css',
+        'css/mobile-optimization.css',
+        'js/script.js',
+        'js/mobile-optimization.js'
+    ],
+    resourcesRequiredToInitialize: [
+        'js/script.js'
     ]
 };
 
 // Variables globales pour l'application
 let appContainer = null;
+let loadingProgressInterval = null;
+let loadStartTime = null;
 
 // Attendre que le DOM soit chargé
 document.addEventListener('DOMContentLoaded', function() {
@@ -28,10 +36,14 @@ document.addEventListener('DOMContentLoaded', function() {
     setupLaunchButtons();
     
     // Précharger les ressources en arrière-plan
-    preloadResources();
+    preloadResources(false, 0.2); // précharger 20% des ressources en arrière-plan
     
     // Configurer le service worker pour la PWA
     setupServiceWorker();
+    
+    // Exporter les fonctions publiques
+    window.launchApplication = launchApplication;
+    window.getAppStatus = getAppStatus;
 });
 
 /**
@@ -45,6 +57,9 @@ function setupLaunchButtons() {
         button.addEventListener('click', function(e) {
             e.preventDefault();
             console.log("Bouton de démarrage cliqué, lancement de l'application...");
+            
+            // Tracking du clic
+            trackEvent('start_app_button_clicked');
             
             // Afficher l'écran de chargement
             showLoadingScreen();
@@ -68,29 +83,38 @@ function setupLaunchButtons() {
 /**
  * Précharge les ressources de l'application
  * @param {boolean} priority - Si true, exécute le préchargement en priorité
+ * @param {number} progressLimit - Limite de progression pour le préchargement en arrière-plan (0-1)
  * @returns {Promise} - Promise résolue quand les ressources sont chargées
  */
-function preloadResources(priority = false) {
+function preloadResources(priority = false, progressLimit = 1) {
     return new Promise((resolve, reject) => {
         if (APP_CONFIG.resourcesLoaded) {
             resolve();
             return;
         }
         
-        console.log("Préchargement des ressources de l'application...");
+        console.log(`Préchargement des ressources de l'application (priorité: ${priority ? 'haute' : 'basse'})...`);
         
         const startTime = Date.now();
+        loadStartTime = startTime;
         let resourcesLoaded = 0;
         const totalResources = APP_CONFIG.preloadResources.length;
         
+        // Mise à jour automatique de la barre de progression
+        if (priority && !loadingProgressInterval) {
+            startProgressAnimation();
+        }
+        
         // Fonction pour mettre à jour l'indicateur de chargement
         function updateLoadingStatus() {
-            const percentage = Math.round((resourcesLoaded / totalResources) * 100);
+            const percentage = Math.round((resourcesLoaded / totalResources) * 100) * (progressLimit || 1);
             console.log(`Préchargement: ${percentage}%`);
             
-            const loadingProgress = document.getElementById('app-loading-progress');
-            if (loadingProgress) {
-                loadingProgress.style.width = `${percentage}%`;
+            if (priority) {
+                const loadingProgress = document.getElementById('app-loading-progress');
+                if (loadingProgress) {
+                    loadingProgress.style.width = `${percentage}%`;
+                }
             }
         }
         
@@ -101,6 +125,14 @@ function preloadResources(priority = false) {
                 const isScript = resource.endsWith('.js');
                 
                 if (isStylesheet) {
+                    const existingLink = document.querySelector(`link[href="${resource}"]`);
+                    if (existingLink) {
+                        resourcesLoaded++;
+                        updateLoadingStatus();
+                        resolveResource();
+                        return;
+                    }
+                    
                     const link = document.createElement('link');
                     link.rel = priority ? 'stylesheet' : 'preload';
                     link.as = 'style';
@@ -109,6 +141,15 @@ function preloadResources(priority = false) {
                     link.onload = () => {
                         resourcesLoaded++;
                         updateLoadingStatus();
+                        
+                        // Si c'était un préchargement, convertir en stylesheet
+                        if (link.rel === 'preload') {
+                            const styleLink = document.createElement('link');
+                            styleLink.rel = 'stylesheet';
+                            styleLink.href = resource;
+                            document.head.appendChild(styleLink);
+                        }
+                        
                         resolveResource();
                     };
                     
@@ -121,19 +162,21 @@ function preloadResources(priority = false) {
                     };
                     
                     document.head.appendChild(link);
-                    
-                    // Si c'est un préchargement en priorité, la transforme en stylesheet
-                    if (!priority && link.rel === 'preload') {
-                        setTimeout(() => {
-                            link.rel = 'stylesheet';
-                        }, 100);
-                    }
                 } 
                 else if (isScript) {
+                    const existingScript = document.querySelector(`script[src="${resource}"]`);
+                    if (existingScript) {
+                        resourcesLoaded++;
+                        updateLoadingStatus();
+                        resolveResource();
+                        return;
+                    }
+                    
                     if (priority) {
                         // Chargement direct du script
                         const script = document.createElement('script');
                         script.src = resource;
+                        script.async = false;
                         
                         script.onload = () => {
                             resourcesLoaded++;
@@ -143,10 +186,15 @@ function preloadResources(priority = false) {
                         
                         script.onerror = (err) => {
                             console.warn(`Échec du chargement de ${resource}:`, err);
-                            resourcesLoaded++;
-                            updateLoadingStatus();
-                            // Ne pas rejeter pour continuer malgré l'erreur
-                            resolveResource();
+                            
+                            // Si le script est requis pour l'initialisation, c'est critique
+                            if (APP_CONFIG.resourcesRequiredToInitialize.includes(resource)) {
+                                rejectResource(new Error(`Script critique non chargé: ${resource}`));
+                            } else {
+                                resourcesLoaded++;
+                                updateLoadingStatus();
+                                resolveResource();
+                            }
                         };
                         
                         document.body.appendChild(script);
@@ -172,6 +220,23 @@ function preloadResources(priority = false) {
                         
                         document.head.appendChild(preloadLink);
                     }
+                } else {
+                    // Autres types de ressources (images, etc.)
+                    const img = new Image();
+                    img.src = resource;
+                    
+                    img.onload = () => {
+                        resourcesLoaded++;
+                        updateLoadingStatus();
+                        resolveResource();
+                    };
+                    
+                    img.onerror = (err) => {
+                        console.warn(`Échec du préchargement de ${resource}:`, err);
+                        resourcesLoaded++;
+                        updateLoadingStatus();
+                        resolveResource();
+                    };
                 }
             });
         });
@@ -182,30 +247,94 @@ function preloadResources(priority = false) {
                 const loadTime = Date.now() - startTime;
                 console.log(`Toutes les ressources préchargées en ${loadTime}ms`);
                 
-                // Garantir un temps de chargement minimum
-                const remainingTime = Math.max(0, APP_CONFIG.minLoadingTime - loadTime);
-                
-                setTimeout(() => {
-                    APP_CONFIG.resourcesLoaded = true;
+                if (priority) {
+                    // Garantir un temps de chargement minimum
+                    const remainingTime = Math.max(0, APP_CONFIG.minLoadingTime - loadTime);
                     
-                    // Si c'était un préchargement en arrière-plan, charger les scripts maintenant
-                    if (!priority) {
-                        APP_CONFIG.preloadResources.forEach(resource => {
-                            if (resource.endsWith('.js') && !document.querySelector(`script[src="${resource}"]`)) {
-                                // Le script est préchargé mais pas exécuté
-                                console.log(`Script préchargé, chargement différé: ${resource}`);
-                            }
-                        });
-                    }
-                    
+                    setTimeout(() => {
+                        APP_CONFIG.resourcesLoaded = true;
+                        stopProgressAnimation();
+                        
+                        // Si c'était un préchargement en arrière-plan, charger les scripts maintenant
+                        if (!priority) {
+                            APP_CONFIG.preloadResources
+                                .filter(resource => resource.endsWith('.js'))
+                                .forEach(resource => {
+                                    if (!document.querySelector(`script[src="${resource}"]`)) {
+                                        console.log(`Script préchargé, chargement différé: ${resource}`);
+                                        const script = document.createElement('script');
+                                        script.src = resource;
+                                        script.async = false;
+                                        document.body.appendChild(script);
+                                    }
+                                });
+                        }
+                        
+                        resolve();
+                    }, remainingTime);
+                } else {
+                    // En préchargement arrière-plan, on ne marque pas comme chargé complètement
+                    console.log('Préchargement partiel terminé');
                     resolve();
-                }, remainingTime);
+                }
             })
             .catch(error => {
                 console.error("Erreur lors du préchargement des ressources:", error);
+                stopProgressAnimation();
                 reject(error);
             });
     });
+}
+
+/**
+ * Démarre l'animation de la barre de progression
+ */
+function startProgressAnimation() {
+    const loadingProgress = document.getElementById('app-loading-progress');
+    if (!loadingProgress) return;
+    
+    // Définir des étapes pour une animation plus réaliste
+    const steps = [
+        { progress: 15, time: 300 },  // Charge rapidement à 15%
+        { progress: 30, time: 500 },  // Puis à 30%
+        { progress: 50, time: 800 },  // Plus lentement à 50%
+        { progress: 70, time: 1200 }, // Encore plus lentement à 70%
+        { progress: 85, time: 2000 }  // Reste un moment à 85%
+    ];
+    
+    let currentStep = 0;
+    
+    // Gérer l'animation manuelle pour une expérience plus réaliste
+    loadingProgressInterval = setInterval(() => {
+        if (currentStep < steps.length) {
+            loadingProgress.style.width = `${steps[currentStep].progress}%`;
+            currentStep++;
+        } else {
+            // Après les étapes principales, avancer très lentement
+            const currentWidth = parseFloat(loadingProgress.style.width);
+            if (currentWidth < 95) { // Ne jamais atteindre 100% automatiquement
+                loadingProgress.style.width = `${currentWidth + 0.5}%`;
+            } else {
+                stopProgressAnimation();
+            }
+        }
+    }, 300);
+}
+
+/**
+ * Arrête l'animation de la barre de progression
+ */
+function stopProgressAnimation() {
+    if (loadingProgressInterval) {
+        clearInterval(loadingProgressInterval);
+        loadingProgressInterval = null;
+        
+        // Mettre la barre à 100%
+        const loadingProgress = document.getElementById('app-loading-progress');
+        if (loadingProgress) {
+            loadingProgress.style.width = '100%';
+        }
+    }
 }
 
 /**
@@ -218,6 +347,18 @@ function setupServiceWorker() {
             navigator.serviceWorker.register('./service-worker.js', { scope: './' })
                 .then(registration => {
                     console.log('Service Worker enregistré avec succès', registration.scope);
+                    
+                    // Vérifier si une mise à jour est disponible
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                // Une mise à jour est disponible, afficher une notification
+                                showUpdateNotification();
+                            }
+                        });
+                    });
                 })
                 .catch(error => {
                     // Gérer spécifiquement les erreurs de sécurité
@@ -228,8 +369,48 @@ function setupServiceWorker() {
                     }
                     // L'application continuera de fonctionner sans PWA
                 });
+                
+            // Gérer les messages du service worker
+            navigator.serviceWorker.addEventListener('message', (event) => {
+                if (event.data && event.data.type === 'UPDATE_READY') {
+                    showUpdateNotification();
+                }
+            });
         });
     }
+}
+
+/**
+ * Affiche une notification de mise à jour disponible
+ */
+function showUpdateNotification() {
+    // Créer une notification discrète
+    const updateNotif = document.createElement('div');
+    updateNotif.style.position = 'fixed';
+    updateNotif.style.bottom = '20px';
+    updateNotif.style.left = '20px';
+    updateNotif.style.backgroundColor = '#0A2463';
+    updateNotif.style.color = 'white';
+    updateNotif.style.padding = '10px 20px';
+    updateNotif.style.borderRadius = '5px';
+    updateNotif.style.boxShadow = '0 4px 10px rgba(0,0,0,0.2)';
+    updateNotif.style.zIndex = '9999';
+    updateNotif.style.display = 'flex';
+    updateNotif.style.alignItems = 'center';
+    updateNotif.style.gap = '10px';
+    
+    updateNotif.innerHTML = `
+        <div>Mise à jour disponible!</div>
+        <button style="background: #FF7F50; border: none; color: white; padding: 5px 10px; border-radius: 3px; cursor: pointer;">Rafraîchir</button>
+    `;
+    
+    // Ajouter l'action de rafraîchissement
+    const refreshButton = updateNotif.querySelector('button');
+    refreshButton.addEventListener('click', () => {
+        window.location.reload();
+    });
+    
+    document.body.appendChild(updateNotif);
 }
 
 /**
@@ -239,6 +420,15 @@ function showLoadingScreen() {
     const loadingScreen = document.getElementById('app-loading-screen');
     if (loadingScreen) {
         loadingScreen.classList.add('active');
+        
+        // Réinitialiser la barre de progression
+        const loadingProgress = document.getElementById('app-loading-progress');
+        if (loadingProgress) {
+            loadingProgress.style.width = '0%';
+        }
+        
+        // Démarrer l'animation
+        startProgressAnimation();
     }
 }
 
@@ -248,14 +438,23 @@ function showLoadingScreen() {
 function hideLoadingScreen() {
     const loadingScreen = document.getElementById('app-loading-screen');
     if (loadingScreen) {
-        loadingScreen.classList.remove('active');
+        // Assurer que la barre de progression est à 100%
+        const loadingProgress = document.getElementById('app-loading-progress');
+        if (loadingProgress) {
+            loadingProgress.style.width = '100%';
+        }
         
-        // Supprimer après la transition
+        // Masquer avec un délai
         setTimeout(() => {
-            if (loadingScreen.parentNode) {
-                loadingScreen.parentNode.removeChild(loadingScreen);
-            }
-        }, 500);
+            loadingScreen.classList.remove('active');
+            
+            // Supprimer après la transition
+            setTimeout(() => {
+                if (loadingScreen.parentNode) {
+                    loadingScreen.parentNode.removeChild(loadingScreen);
+                }
+            }, 500);
+        }, 200);
     }
 }
 
@@ -264,16 +463,20 @@ function hideLoadingScreen() {
  */
 function launchApplication() {
     console.log("Lancement de l'application...");
+    trackEvent('app_launch_started');
+    
+    // Mesurer le temps de chargement
+    const loadTime = loadStartTime ? (Date.now() - loadStartTime) : 0;
+    trackEvent('app_load_time', loadTime);
     
     // 1. Vérifier que les scripts nécessaires sont chargés
-    const scriptsLoaded = typeof window.createAppStructure === 'function' && 
-                         typeof window.initializeApp === 'function';
+    const scriptsLoaded = checkRequiredScriptsLoaded();
     
     if (!scriptsLoaded) {
         console.log("Chargement des scripts manquants...");
         
         // Charger les scripts nécessaires
-        loadScripts(APP_CONFIG.preloadResources.filter(res => res.endsWith('.js')))
+        loadRequiredScripts()
             .then(() => {
                 // Continuer le processus
                 transitionToApp();
@@ -286,34 +489,59 @@ function launchApplication() {
         // Scripts déjà chargés, continuer
         transitionToApp();
     }
+    
+    return true;
 }
 
 /**
- * Charge dynamiquement des scripts dans l'ordre
- * @param {Array} scripts - Liste des scripts à charger
- * @returns {Promise} - Promise résolue quand tous les scripts sont chargés
+ * Vérifie si tous les scripts requis sont chargés
  */
-function loadScripts(scripts) {
-    return scripts.reduce((promise, script) => {
-        return promise.then(() => {
-            return new Promise((resolve, reject) => {
-                // Vérifier si le script est déjà chargé
-                if (document.querySelector(`script[src="${script}"]`)) {
+function checkRequiredScriptsLoaded() {
+    const requiredScripts = APP_CONFIG.resourcesRequiredToInitialize;
+    for (const script of requiredScripts) {
+        if (!document.querySelector(`script[src="${script}"]`)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * Charge tous les scripts requis
+ */
+function loadRequiredScripts() {
+    const requiredScripts = APP_CONFIG.resourcesRequiredToInitialize.filter(
+        script => !document.querySelector(`script[src="${script}"]`)
+    );
+    
+    return new Promise((resolve, reject) => {
+        if (requiredScripts.length === 0) {
+            resolve();
+            return;
+        }
+        
+        let loadedCount = 0;
+        const totalScripts = requiredScripts.length;
+        
+        requiredScripts.forEach(script => {
+            const scriptElem = document.createElement('script');
+            scriptElem.src = script;
+            scriptElem.async = false;
+            
+            scriptElem.onload = () => {
+                loadedCount++;
+                if (loadedCount === totalScripts) {
                     resolve();
-                    return;
                 }
-                
-                const scriptElem = document.createElement('script');
-                scriptElem.src = script;
-                scriptElem.async = false; // Garantir l'ordre de chargement
-                
-                scriptElem.onload = () => resolve();
-                scriptElem.onerror = (err) => reject(new Error(`Échec du chargement de ${script}: ${err}`));
-                
-                document.body.appendChild(scriptElem);
-            });
+            };
+            
+            scriptElem.onerror = (err) => {
+                reject(new Error(`Échec du chargement de ${script}: ${err}`));
+            };
+            
+            document.body.appendChild(scriptElem);
         });
-    }, Promise.resolve());
+    });
 }
 
 /**
@@ -329,9 +557,11 @@ function transitionToApp() {
             if (typeof window.createAppStructure === 'function') {
                 window.createAppStructure();
                 console.log("Structure de l'application créée");
+                trackEvent('app_structure_created');
             } else {
                 createMinimalAppStructure();
                 console.error("Fonction createAppStructure manquante");
+                trackEvent('app_structure_fallback');
             }
             
             // 3. Initialiser l'application
@@ -340,27 +570,34 @@ function transitionToApp() {
                     if (typeof window.initializeApp === 'function') {
                         window.initializeApp();
                         console.log("Application initialisée");
+                        trackEvent('app_initialized');
                         
                         // 4. Afficher la première page
                         if (typeof window.showPage === 'function') {
                             window.showPage(1);
                             console.log("Première page affichée");
+                            trackEvent('app_first_page_shown');
                         } else {
                             console.error("Fonction showPage manquante");
+                            trackEvent('app_missing_showpage');
                         }
                     } else {
                         console.error("Fonction initializeApp manquante");
+                        trackEvent('app_missing_initialize');
                     }
                     
                     // 5. Masquer l'écran de chargement
+                    APP_CONFIG.appInitialized = true;
                     hideLoadingScreen();
                 } catch (error) {
                     console.error("Erreur lors de l'initialisation de l'application:", error);
+                    trackEvent('app_init_error', error.message);
                     showErrorMessage("Une erreur s'est produite lors de l'initialisation de l'application.");
                 }
             }, 300);
         } catch (error) {
             console.error("Erreur lors de la création de la structure de l'application:", error);
+            trackEvent('app_structure_error', error.message);
             showErrorMessage("Une erreur s'est produite lors de la création de l'application.");
         }
     }, APP_CONFIG.transitionDuration);
@@ -387,8 +624,9 @@ function hideMarketingPage() {
     
     // Liste des sélecteurs d'éléments à masquer
     const elements = [
-        'header', '.hero', '.features', '.testimonials', 
-        '.cta', 'footer', '.floating-btn'
+        'header', '.site-header', '.hero', '.features', '.benefits', '.how-it-works',
+        '.testimonials', '.faq', '.cta', 'footer', '.site-footer', '.floating-btn',
+        '.mobile-nav', '.overlay'
     ];
     
     // Masquer les éléments avec une transition
@@ -415,6 +653,8 @@ function hideMarketingPage() {
         document.body.style.margin = '0';
         document.body.style.background = '#f5f5f5';
         document.body.classList.remove('transitioning-to-app');
+        
+        trackEvent('marketing_page_hidden');
     }, APP_CONFIG.transitionDuration);
 }
 
@@ -425,6 +665,7 @@ function createMinimalAppStructure() {
     console.log("Création d'une structure d'application minimale");
     
     appContainer = document.createElement('div');
+    appContainer.id = 'hypnorelax-app';
     appContainer.className = 'container';
     appContainer.style.padding = '20px';
     appContainer.style.margin = '0 auto';
@@ -450,6 +691,17 @@ function createMinimalAppStructure() {
                 
                 <div style="margin: 30px 0;">
                     <button id="restartBtn" style="padding: 15px 30px; background: linear-gradient(135deg, #FF7F50, #E25822); color: white; border: none; border-radius: 50px; font-size: 18px; cursor: pointer; box-shadow: 0 4px 15px rgba(226, 88, 34, 0.3);">Rafraîchir et réessayer</button>
+                </div>
+                
+                <div id="error-container" style="margin: 30px auto; max-width: 80%; background-color: #ffefef; border-left: 4px solid #e25822; padding: 15px; text-align: left; border-radius: 4px;">
+                    <h3 style="color: #e25822; margin-bottom: 10px;">Problème détecté</h3>
+                    <p>Une erreur est survenue lors du chargement de l'application. Essayez de rafraîchir la page ou réessayez plus tard.</p>
+                    <details style="margin-top: 15px;">
+                        <summary style="cursor: pointer; color: #0A2463;">Détails techniques</summary>
+                        <div id="error-details" style="margin-top: 10px; font-family: monospace; font-size: 14px; background: #f8f8f8; padding: 10px; border-radius: 4px; white-space: pre-wrap;">
+                            Erreur: Structure de l'application non chargée
+                        </div>
+                    </details>
                 </div>
             </div>
             
@@ -490,36 +742,94 @@ function createMinimalAppStructure() {
 /**
  * Affiche un message d'erreur à l'utilisateur
  * @param {string} message - Message d'erreur à afficher
+ * @param {Error} [error] - Objet d'erreur optionnel pour les détails
  */
-function showErrorMessage(message) {
+function showErrorMessage(message, error) {
+    trackEvent('app_error', { message, error: error ? error.toString() : undefined });
+    
     // S'assurer que le conteneur d'application existe
     if (!appContainer) {
         createMinimalAppStructure();
     }
     
-    const errorBox = document.createElement('div');
-    errorBox.style.backgroundColor = 'rgba(220, 53, 69, 0.9)';
-    errorBox.style.color = 'white';
-    errorBox.style.padding = '15px 20px';
-    errorBox.style.borderRadius = '8px';
-    errorBox.style.marginTop = '20px';
-    errorBox.style.textAlign = 'center';
-    errorBox.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
-    errorBox.style.maxWidth = '90%';
-    errorBox.style.margin = '20px auto';
-    
-    errorBox.innerHTML = `
-        <p style="margin-bottom: 10px;"><strong>Erreur</strong></p>
-        <p>${message}</p>
-    `;
-    
-    // Ajouter au conteneur de l'application
-    if (appContainer && appContainer.querySelector('.intro-content')) {
-        appContainer.querySelector('.intro-content').appendChild(errorBox);
+    // Mettre à jour le message d'erreur si le conteneur existe déjà
+    const errorContainer = document.getElementById('error-container');
+    if (errorContainer) {
+        const errorMessage = errorContainer.querySelector('p');
+        if (errorMessage) {
+            errorMessage.textContent = message;
+        }
+        
+        const errorDetails = document.getElementById('error-details');
+        if (errorDetails && error) {
+            errorDetails.textContent = `${error.name}: ${error.message}\n${error.stack || ''}`;
+        }
     } else {
-        document.body.appendChild(errorBox);
+        // Créer un nouveau message d'erreur
+        const errorBox = document.createElement('div');
+        errorBox.style.backgroundColor = 'rgba(220, 53, 69, 0.9)';
+        errorBox.style.color = 'white';
+        errorBox.style.padding = '15px 20px';
+        errorBox.style.borderRadius = '8px';
+        errorBox.style.marginTop = '20px';
+        errorBox.style.textAlign = 'center';
+        errorBox.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+        errorBox.style.maxWidth = '90%';
+        errorBox.style.margin = '20px auto';
+        
+        errorBox.innerHTML = `
+            <p style="margin-bottom: 10px;"><strong>Erreur</strong></p>
+            <p>${message}</p>
+            ${error ? `<details style="margin-top: 10px; text-align: left;">
+                <summary style="cursor: pointer;">Détails techniques</summary>
+                <pre style="margin-top: 10px; font-size: 12px; white-space: pre-wrap;">${error.name}: ${error.message}\n${error.stack || ''}</pre>
+            </details>` : ''}
+        `;
+        
+        // Ajouter au conteneur de l'application
+        if (appContainer && appContainer.querySelector('.intro-content')) {
+            appContainer.querySelector('.intro-content').appendChild(errorBox);
+        } else {
+            document.body.appendChild(errorBox);
+        }
     }
     
     // Masquer l'écran de chargement
     hideLoadingScreen();
+}
+
+/**
+ * Récupère l'état actuel de l'application
+ * @returns {Object} État de l'application
+ */
+function getAppStatus() {
+    return {
+        resourcesLoaded: APP_CONFIG.resourcesLoaded,
+        appInitialized: APP_CONFIG.appInitialized,
+        loadTime: loadStartTime ? (Date.now() - loadStartTime) : 0,
+        scriptsLoaded: checkRequiredScriptsLoaded()
+    };
+}
+
+/**
+ * Suit un événement (intégration avec analytics)
+ * @param {string} eventName - Nom de l'événement
+ * @param {*} [data] - Données associées à l'événement
+ */
+function trackEvent(eventName, data) {
+    // Intégration Google Analytics
+    if (typeof gtag === 'function') {
+        gtag('event', eventName, {
+            'event_category': 'application',
+            'event_label': data ? JSON.stringify(data) : undefined,
+            'value': typeof data === 'number' ? data : undefined
+        });
+    }
+    
+    // Log pour débogage
+    if (data) {
+        console.log(`[Event] ${eventName}:`, data);
+    } else {
+        console.log(`[Event] ${eventName}`);
+    }
 }
