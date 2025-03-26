@@ -41,6 +41,752 @@
     <!-- Styles CSS -->
     <link rel="stylesheet" href="marketing-styles.css">
     
+    <!-- CSS pour la section "Comment ça marche" améliorée -->
+    <style>
+        /* Styles améliorés pour la section Comment ça marche */
+        .how-it-works {
+            padding: 100px 0;
+            background-color: var(--white);
+            overflow: hidden;
+        }
+
+        /* Timeline interactive */
+        .process-timeline {
+            position: relative;
+            margin: 50px auto;
+            max-width: 960px;
+        }
+
+        .timeline-line {
+            position: relative;
+            height: 4px;
+            background-color: var(--light-gray);
+            margin: 0 auto 30px;
+            width: 80%;
+            border-radius: 2px;
+        }
+
+        .timeline-progress {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, var(--pastel-blue), var(--orange));
+            border-radius: 2px;
+            transition: width 0.5s ease;
+        }
+
+        .timeline-tabs {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .timeline-tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 15px;
+            opacity: 0.6;
+            transition: all 0.3s ease;
+            position: relative;
+            flex: 1;
+            max-width: 220px;
+        }
+
+        .timeline-tab::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 3px;
+            background-color: var(--orange);
+            transition: width 0.3s ease;
+        }
+
+        .timeline-tab:hover {
+            opacity: 0.8;
+        }
+
+        .timeline-tab.active {
+            opacity: 1;
+        }
+
+        .timeline-tab.active::after {
+            width: 50px;
+        }
+
+        .tab-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--light-blue-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .tab-icon i {
+            font-size: 24px;
+            color: var(--deep-blue);
+            transition: all 0.3s ease;
+        }
+
+        .timeline-tab.active .tab-icon {
+            background: var(--gradient-blue);
+            transform: scale(1.1);
+            box-shadow: 0 8px 20px rgba(10, 36, 99, 0.2);
+        }
+
+        .timeline-tab.active .tab-icon i {
+            color: var(--white);
+        }
+
+        .timeline-tab span {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--deep-blue);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Contenu de la timeline */
+        .timeline-content-wrapper {
+            position: relative;
+            overflow: hidden;
+            min-height: 450px;
+        }
+
+        .timeline-content {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            position: absolute;
+            width: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(30px);
+            transition: all 0.5s ease;
+        }
+
+        .timeline-content.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+            position: relative;
+        }
+
+        .timeline-media {
+            flex: 1;
+            min-width: 300px;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .timeline-text {
+            flex: 1;
+            min-width: 300px;
+            padding: 20px;
+        }
+
+        .timeline-text h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: var(--deep-blue);
+        }
+
+        .feature-description {
+            margin-bottom: 20px;
+            font-size: 16px;
+            color: var(--gray);
+            line-height: 1.6;
+        }
+
+        .benefits-points {
+            margin-bottom: 20px;
+        }
+
+        .benefits-points li {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+
+        .benefits-points li i {
+            color: var(--orange);
+            margin-right: 10px;
+            margin-top: 5px;
+        }
+
+        /* Animations pour les médias */
+        .breathing-animation {
+            width: 280px;
+            height: 280px;
+            position: relative;
+            background-color: var(--light-blue-bg);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .breath-circle {
+            width: 100px;
+            height: 100px;
+            background-color: rgba(168, 208, 230, 0.8);
+            border-radius: 50%;
+            animation: breathe 8s infinite ease-in-out;
+            box-shadow: 0 0 20px rgba(168, 208, 230, 0.4);
+        }
+
+        .breath-instruction {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: var(--deep-blue);
+            font-weight: 500;
+            animation: fadeInOut 8s infinite;
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(2.2); }
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        .spiral-animation {
+            width: 280px;
+            height: 280px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .spiral-element {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 0deg,
+                var(--white) 0%,
+                var(--light-orange) 25%,
+                var(--orange) 50%,
+                var(--deep-blue) 75%,
+                var(--pastel-blue) 90%,
+                var(--white) 100%
+            );
+            animation: rotate 20s linear infinite;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .spiral-center {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-color: white;
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .exploration-animation {
+            width: 280px;
+            height: 280px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .exploration-scene {
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, var(--pastel-blue) 0%, var(--deep-blue) 100%);
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            animation: pulse 6s infinite alternate ease-in-out;
+        }
+
+        .exploration-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .exploration-particles::before,
+        .exploration-particles::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.3) 1px, transparent 1px),
+                radial-gradient(circle at 70% 65%, rgba(255, 255, 255, 0.3) 1px, transparent 1px),
+                radial-gradient(circle at 40% 50%, rgba(255, 255, 255, 0.3) 2px, transparent 2px),
+                radial-gradient(circle at 90% 20%, rgba(255, 255, 255, 0.3) 2px, transparent 2px),
+                radial-gradient(circle at 10% 80%, rgba(255, 255, 255, 0.3) 1px, transparent 1px),
+                radial-gradient(circle at 60% 10%, rgba(255, 255, 255, 0.3) 1px, transparent 1px);
+            background-size: 300px 300px;
+            animation: moveParticles 30s linear infinite;
+        }
+
+        .exploration-particles::after {
+            background-image: 
+                radial-gradient(circle at 50% 40%, rgba(255, 255, 255, 0.2) 1px, transparent 1px),
+                radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.2) 1px, transparent 1px),
+                radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.2) 2px, transparent 2px),
+                radial-gradient(circle at 70% 40%, rgba(255, 255, 255, 0.2) 1px, transparent 1px),
+                radial-gradient(circle at 90% 60%, rgba(255, 255, 255, 0.2) 2px, transparent 2px);
+            background-size: 200px 200px;
+            animation: moveParticles 20s linear infinite reverse;
+        }
+
+        @keyframes moveParticles {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 20px rgba(168, 208, 230, 0.4); }
+            100% { box-shadow: 0 0 50px rgba(168, 208, 230, 0.7); }
+        }
+
+        /* Citations et notes */
+        .user-quote {
+            background-color: var(--light-blue-bg);
+            border-left: 3px solid var(--orange);
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+        .user-quote blockquote {
+            font-style: italic;
+            margin-bottom: 5px;
+            font-size: 15px;
+            color: var(--deep-blue);
+        }
+
+        .user-quote cite {
+            font-style: normal;
+            font-size: 14px;
+            color: var(--orange);
+        }
+
+        .science-note {
+            display: flex;
+            align-items: flex-start;
+            background-color: var(--light-blue-bg);
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+        .science-note i {
+            font-size: 18px;
+            color: var(--deep-blue);
+            margin-right: 10px;
+            margin-top: 2px;
+        }
+
+        .science-note p {
+            font-size: 14px;
+            color: var(--deep-blue);
+            margin-bottom: 0;
+        }
+
+        .result-highlight {
+            display: flex;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            gap: 20px;
+        }
+
+        .result-item {
+            flex: 1;
+            min-width: 150px;
+            background: var(--white);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border-top: 3px solid var(--orange);
+        }
+
+        .result-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--orange);
+            margin-bottom: 5px;
+        }
+
+        .result-label {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        /* Durée de session */
+        .session-duration {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            max-width: 400px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .duration-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--gradient-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+        }
+
+        .duration-icon i {
+            font-size: 24px;
+            color: var(--white);
+        }
+
+        .duration-text h4 {
+            font-size: 18px;
+            margin-bottom: 5px;
+            color: var(--deep-blue);
+        }
+
+        .duration-text p {
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 0;
+        }
+
+        /* Section de démo améliorée */
+        .demo-section {
+            margin-top: 80px;
+            text-align: center;
+        }
+
+        .demo-section h3 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .demo-subtitle {
+            font-size: 16px;
+            color: var(--gray);
+            margin-bottom: 30px;
+        }
+
+        .video-container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+        }
+
+        .video-placeholder {
+            width: 100%;
+            border-radius: 15px;
+            transition: transform 0.5s ease;
+        }
+
+        .video-container:hover .video-placeholder {
+            transform: scale(1.02);
+        }
+
+        .play-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: auto;
+            min-width: 200px;
+            padding: 15px 25px;
+            background-color: var(--orange);
+            color: var(--white);
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(226, 88, 34, 0.4);
+        }
+
+        .play-button i {
+            font-size: 18px;
+            margin-right: 10px;
+        }
+
+        .play-text {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .play-button:hover {
+            background-color: var(--deep-blue);
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+
+        .video-highlights {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 30px;
+            gap: 30px;
+        }
+
+        .highlight-item {
+            display: flex;
+            align-items: center;
+            color: var(--deep-blue);
+        }
+
+        .highlight-item i {
+            font-size: 16px;
+            margin-right: 8px;
+            color: var(--orange);
+        }
+
+        .highlight-item span {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* FAQ rapide */
+        .quick-faq {
+            max-width: 800px;
+            margin: 60px auto 0;
+        }
+
+        .quick-faq h3 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+
+        .faq-items {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .faq-item {
+            background-color: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .faq-question {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .faq-question:hover {
+            background-color: var(--light-blue-bg);
+        }
+
+        .faq-question h4 {
+            margin-bottom: 0;
+            font-size: 16px;
+            color: var(--deep-blue);
+            font-weight: 600;
+        }
+
+        .faq-question i {
+            color: var(--orange);
+            transition: transform 0.3s ease;
+        }
+
+        .faq-item.active .faq-question i {
+            transform: rotate(180deg);
+        }
+
+        .faq-answer {
+            padding: 0 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+        }
+
+        .faq-item.active .faq-answer {
+            padding: 0 20px 20px;
+            max-height: 300px;
+        }
+
+        .faq-answer p {
+            font-size: 15px;
+            color: var(--gray);
+            margin-bottom: 0;
+        }
+
+        /* CTA dans la section */
+        .section-cta {
+            margin-top: 80px;
+            text-align: center;
+            background-color: var(--light-blue-bg);
+            padding: 40px;
+            border-radius: 15px;
+        }
+
+        .section-cta h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .section-cta p {
+            font-size: 16px;
+            color: var(--gray);
+            margin-bottom: 30px;
+        }
+
+        .section-cta .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-cta .btn i {
+            font-size: 18px;
+        }
+
+        /* Animation de pulsation pour le CTA */
+        @keyframes btnPulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 127, 80, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 15px rgba(255, 127, 80, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 127, 80, 0);
+            }
+        }
+
+        .pulse-animation {
+            animation: btnPulse 2s infinite;
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .timeline-tab {
+                padding: 10px;
+            }
+            
+            .tab-icon {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .tab-icon i {
+                font-size: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .timeline-content {
+                flex-direction: column;
+            }
+            
+            .timeline-media {
+                margin-bottom: 30px;
+            }
+            
+            .breathing-animation,
+            .spiral-animation,
+            .exploration-animation {
+                width: 250px;
+                height: 250px;
+            }
+            
+            .highlight-item {
+                flex-basis: 100%;
+            }
+            
+            .timeline-content-wrapper {
+                min-height: 650px;
+            }
+            
+            .session-duration {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .duration-icon {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+            
+            .section-cta {
+                padding: 30px 20px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .timeline-tabs {
+                flex-wrap: wrap;
+            }
+            
+            .timeline-tab {
+                flex-basis: 33.33%;
+            }
+            
+            .result-item {
+                flex-basis: 100%;
+            }
+            
+            .video-container {
+                margin: 0 -20px;
+                border-radius: 0;
+            }
+            
+            .video-placeholder {
+                border-radius: 0;
+            }
+        }
+    </style>
+    
     <!-- Préchargement des ressources critiques -->
     <link rel="preload" href="styles.css" as="style">
     <link rel="preload" href="mobile-optimization.css" as="style">
@@ -270,47 +1016,187 @@
         </div>
     </section>
 
-    <!-- Section Comment ça marche -->
+    <!-- Section Comment ça marche AMÉLIORÉE -->
     <section class="how-it-works" id="how-it-works">
         <div class="container">
             <h2 class="section-title">Comment ça marche</h2>
-            <p class="section-subtitle">Un processus simple et efficace en trois étapes</p>
+            <p class="section-subtitle">Un voyage guidé vers votre bien-être intérieur en trois phases</p>
             
-            <div class="steps">
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <div class="step-content">
-                        <h3>Cohérence cardiaque</h3>
-                        <p>Commencez par une courte session de respiration synchronisée pour calmer votre système nerveux et préparer votre esprit.</p>
-                    </div>
+            <!-- Nouvelle présentation interactive -->
+            <div class="process-timeline">
+                <div class="timeline-line">
+                    <div class="timeline-progress" id="timelineProgress"></div>
                 </div>
                 
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <div class="step-content">
-                        <h3>Induction hypnotique</h3>
-                        <p>Laissez-vous guider par la voix et les visuels vers un état de détente profonde où votre esprit devient réceptif.</p>
-                    </div>
+                <div class="timeline-tabs">
+                    <button class="timeline-tab active" data-step="1">
+                        <div class="tab-icon"><i class="fas fa-heart"></i></div>
+                        <span>Phase 1</span>
+                    </button>
+                    <button class="timeline-tab" data-step="2">
+                        <div class="tab-icon"><i class="fas fa-brain"></i></div>
+                        <span>Phase 2</span>
+                    </button>
+                    <button class="timeline-tab" data-step="3">
+                        <div class="tab-icon"><i class="fas fa-star"></i></div>
+                        <span>Phase 3</span>
+                    </button>
                 </div>
                 
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                        <h3>Exploration et retour</h3>
-                        <p>Explorez votre monde intérieur et profitez des suggestions positives avant de revenir progressivement à un état d'éveil revitalisé.</p>
+                <div class="timeline-content-wrapper">
+                    <!-- Étape 1 -->
+                    <div class="timeline-content active" data-step="1">
+                        <div class="timeline-media">
+                            <div class="breathing-animation">
+                                <div class="breath-circle"></div>
+                                <div class="breath-instruction">Inspirez... Expirez...</div>
+                            </div>
+                        </div>
+                        <div class="timeline-text">
+                            <h3>Cohérence cardiaque</h3>
+                            <p class="feature-description">Commencez par une session de 2 minutes de respiration synchronisée guidée visuellement. Cette technique scientifiquement prouvée permet de :</p>
+                            <ul class="benefits-points">
+                                <li><i class="fas fa-check"></i> Réduire immédiatement votre niveau de stress</li>
+                                <li><i class="fas fa-check"></i> Diminuer votre rythme cardiaque et votre tension artérielle</li>
+                                <li><i class="fas fa-check"></i> Préparer votre esprit à la phase d'induction hypnotique</li>
+                            </ul>
+                            <div class="user-quote">
+                                <blockquote>"La cohérence cardiaque m'aide à me déconnecter rapidement du stress de ma journée. Ces 2 minutes font toute la différence."</blockquote>
+                                <cite>— Marie L., utilisatrice depuis 3 mois</cite>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Étape 2 -->
+                    <div class="timeline-content" data-step="2">
+                        <div class="timeline-media">
+                            <div class="spiral-animation">
+                                <div class="spiral-element"></div>
+                                <div class="spiral-center"></div>
+                            </div>
+                        </div>
+                        <div class="timeline-text">
+                            <h3>Induction hypnotique</h3>
+                            <p class="feature-description">Laissez-vous guider par une voix apaisante et des visuels hypnotiques spécialement conçus pour faciliter l'accès à un état modifié de conscience :</p>
+                            <ul class="benefits-points">
+                                <li><i class="fas fa-check"></i> Visuel hypnotique synchronisé avec votre respiration</li>
+                                <li><i class="fas fa-check"></i> Suggestions verbales guidant votre détente progressive</li>
+                                <li><i class="fas fa-check"></i> Sons binauraux optionnels pour approfondir l'expérience</li>
+                            </ul>
+                            <div class="science-note">
+                                <i class="fas fa-flask"></i>
+                                <p>L'induction utilise des techniques éprouvées de focalisation visuelle et auditive pour faciliter l'accès à votre inconscient.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Étape 3 -->
+                    <div class="timeline-content" data-step="3">
+                        <div class="timeline-media">
+                            <div class="exploration-animation">
+                                <div class="exploration-scene">
+                                    <div class="exploration-particles"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="timeline-text">
+                            <h3>Exploration et réveil</h3>
+                            <p class="feature-description">Profitez d'un voyage intérieur guidé avant de revenir progressivement à un état d'éveil revitalisé :</p>
+                            <ul class="benefits-points">
+                                <li><i class="fas fa-check"></i> Exploration guidée de votre espace intérieur</li>
+                                <li><i class="fas fa-check"></i> Suggestions positives pour renforcer votre bien-être</li>
+                                <li><i class="fas fa-check"></i> Réveil progressif vous laissant détendu et énergisé</li>
+                            </ul>
+                            <div class="result-highlight">
+                                <div class="result-item">
+                                    <div class="result-number">94%</div>
+                                    <div class="result-label">des utilisateurs rapportent une sensation immédiate de bien-être</div>
+                                </div>
+                                <div class="result-item">
+                                    <div class="result-number">89%</div>
+                                    <div class="result-label">constatent une amélioration de leur sommeil dès la première semaine</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <div class="demo-video">
-                <h3>Découvrez Hypnorelax en action</h3>
+            <!-- Durée de la séance -->
+            <div class="session-duration">
+                <div class="duration-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="duration-text">
+                    <h4>Durée totale : 15-20 minutes</h4>
+                    <p>Une séance complète s'intègre parfaitement dans votre routine quotidienne</p>
+                </div>
+            </div>
+            
+            <!-- Vidéo de démonstration améliorée -->
+            <div class="demo-section">
+                <h3>Voyez Hypnorelax en action</h3>
+                <p class="demo-subtitle">Découvrez l'expérience complète en quelques minutes</p>
+                
                 <div class="video-container">
                     <img src="video-placeholder.jpg" alt="Démonstration Hypnorelax" class="video-placeholder" 
                          onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22450%22 viewBox=%220 0 800 450%22><rect width=%22800%22 height=%22450%22 fill=%22%230A2463%22 /><circle cx=%22400%22 cy=%22225%22 r=%2280%22 fill=%22%23FF7F50%22 /><polygon points=%22375,185 375,265 445,225%22 fill=%22white%22 /></svg>'">
                     <button class="play-button start-app-button">
                         <i class="fas fa-play"></i>
+                        <span class="play-text">Démarrer l'expérience</span>
                     </button>
                 </div>
+                
+                <div class="video-highlights">
+                    <div class="highlight-item">
+                        <i class="fas fa-mobile-alt"></i>
+                        <span>Fonctionne sur tous les appareils</span>
+                    </div>
+                    <div class="highlight-item">
+                        <i class="fas fa-volume-up"></i>
+                        <span>Audio spatial immersif</span>
+                    </div>
+                    <div class="highlight-item">
+                        <i class="fas fa-wifi"></i>
+                        <span>Mode hors-ligne disponible</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- FAQ rapide de la section -->
+            <div class="quick-faq">
+                <h3>Questions fréquentes</h3>
+                <div class="faq-items">
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h4>Est-ce que je vais perdre le contrôle pendant l'hypnose ?</h4>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Non, absolument pas. L'auto-hypnose est un état de conscience modifié où vous restez totalement en contrôle. Vous pouvez sortir de cet état à tout moment si nécessaire. C'est une expérience similaire à être absorbé dans un bon film ou un livre.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h4>Combien de fois par semaine devrais-je utiliser l'application ?</h4>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Pour des résultats optimaux, nous recommandons 3 à 5 sessions par semaine. Cependant, même une session hebdomadaire peut apporter des bénéfices significatifs. Certains utilisateurs préfèrent une pratique quotidienne, particulièrement avant le coucher pour améliorer leur sommeil.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- CTA dans la section -->
+            <div class="section-cta">
+                <h3>Prêt à transformer votre bien-être mental ?</h3>
+                <p>Aucune inscription requise. Aucun paiement nécessaire.</p>
+                <a href="#" class="btn btn-primary btn-large start-app-button pulse-animation">
+                    <i class="fas fa-play-circle"></i>
+                    Commencer ma première séance
+                </a>
             </div>
         </div>
     </section>
@@ -508,6 +1394,183 @@
     <!-- Scripts -->
     <script src="hypnorelax-bridge.js"></script>
     
+    <!-- Script pour la section Comment ça marche améliorée -->
+    <script>
+    /**
+     * Script pour animer la section "Comment ça marche"
+     */
+    document.addEventListener('DOMContentLoaded', function() {
+        // Sélectionner les éléments de la timeline
+        const tabs = document.querySelectorAll('.timeline-tab');
+        const contents = document.querySelectorAll('.timeline-content');
+        const progress = document.getElementById('timelineProgress');
+        
+        // Définir la progression initiale
+        progress.style.width = '33%';
+        
+        // Ajouter les événements de clic aux onglets
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const step = tab.getAttribute('data-step');
+                
+                // Mettre à jour les onglets actifs
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Mettre à jour le contenu actif avec une animation fluide
+                contents.forEach(content => {
+                    if (content.classList.contains('active')) {
+                        // Animer la sortie du contenu actuel
+                        content.style.opacity = '0';
+                        content.style.transform = 'translateX(-30px)';
+                        
+                        setTimeout(() => {
+                            content.classList.remove('active');
+                            
+                            // Activer le nouveau contenu
+                            const newContent = document.querySelector(`.timeline-content[data-step="${step}"]`);
+                            if (newContent) {
+                                newContent.classList.add('active');
+                                // Laisser le temps à la transition de s'appliquer
+                                setTimeout(() => {
+                                    newContent.style.opacity = '1';
+                                    newContent.style.transform = 'translateX(0)';
+                                }, 50);
+                            }
+                        }, 300);
+                    } else if (content.getAttribute('data-step') === step) {
+                        // Si ce n'est pas déjà actif, préparer le nouveau contenu
+                        content.style.opacity = '0';
+                        content.style.transform = 'translateX(30px)';
+                    }
+                });
+                
+                // Mettre à jour la barre de progression avec animation
+                progress.style.width = `${step * 33}%`;
+            });
+        });
+        
+        // Initialiser les accordéons de la FAQ
+        const faqItems = document.querySelectorAll('.quick-faq .faq-item');
+        faqItems.forEach(item => {
+            const question = item.querySelector('.faq-question');
+            const answer = item.querySelector('.faq-answer');
+            
+            question.addEventListener('click', () => {
+                const isOpen = item.classList.contains('active');
+                
+                // Fermer tous les autres éléments ouverts
+                faqItems.forEach(otherItem => {
+                    if (otherItem !== item && otherItem.classList.contains('active')) {
+                        otherItem.classList.remove('active');
+                    }
+                });
+                
+                // Basculer l'état actuel
+                item.classList.toggle('active');
+            });
+        });
+        
+        // Animation pour les particules d'exploration
+        function createExplorationParticles() {
+            const scene = document.querySelector('.exploration-scene');
+            if (!scene) return;
+            
+            // Créer les particules d'étoiles
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'star-particle';
+                
+                // Styles des particules
+                particle.style.position = 'absolute';
+                particle.style.width = `${2 + Math.random() * 3}px`;
+                particle.style.height = particle.style.width;
+                particle.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
+                particle.style.borderRadius = '50%';
+                
+                // Position aléatoire
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                
+                // Animation
+                particle.style.animation = `twinkle ${3 + Math.random() * 5}s infinite alternate ease-in-out`;
+                particle.style.animationDelay = `${Math.random() * 2}s`;
+                
+                scene.appendChild(particle);
+            }
+            
+            // Ajouter le style d'animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes twinkle {
+                    0% { opacity: 0.3; transform: scale(1); }
+                    100% { opacity: 1; transform: scale(1.5); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // Créer l'animation de respiration
+        function animateBreathing() {
+            const breathInstruction = document.querySelector('.breath-instruction');
+            if (!breathInstruction) return;
+            
+            // Animation du texte pour synchroniser avec le cercle
+            setInterval(() => {
+                breathInstruction.textContent = 'Inspirez...';
+                
+                setTimeout(() => {
+                    breathInstruction.textContent = 'Expirez...';
+                }, 4000); // La moitié du cycle de 8s
+            }, 8000); // Cycle complet de respiration
+        }
+        
+        // Initialiser les animations spéciales
+        createExplorationParticles();
+        animateBreathing();
+        
+        // Animer le bouton de lecture de la vidéo
+        const playButton = document.querySelector('.play-button');
+        if (playButton) {
+            playButton.addEventListener('mouseover', () => {
+                playButton.style.transform = 'translate(-50%, -50%) scale(1.05)';
+            });
+            
+            playButton.addEventListener('mouseout', () => {
+                playButton.style.transform = 'translate(-50%, -50%)';
+            });
+        }
+        
+        // Animation au défilement
+        function animateOnScroll() {
+            const elements = document.querySelectorAll('.timeline-media, .timeline-text, .result-item, .session-duration, .video-container');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.2 });
+            
+            elements.forEach(element => {
+                // Définir l'état initial
+                element.style.opacity = '0';
+                element.style.transform = 'translateY(20px)';
+                element.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+                
+                // Observer l'élément
+                observer.observe(element);
+            });
+        }
+        
+        // Activer les animations au défilement
+        animateOnScroll();
+    });
+    </script>
+    
     <script>
         // Navigation et menu mobile
         document.addEventListener('DOMContentLoaded', function() {
@@ -552,7 +1615,7 @@
             });
             
             // FAQ Accordéon
-            const faqItems = document.querySelectorAll('.faq-item');
+            const faqItems = document.querySelectorAll('.faq-container .faq-item');
             
             faqItems.forEach(item => {
                 const question = item.querySelector('.faq-question');
